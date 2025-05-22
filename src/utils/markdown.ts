@@ -19,8 +19,6 @@ import {
 export * from './markdown-parser/types'
 export { parseMarkdownToStructure, processTokens, parseInlineTokens }
 
-const { t } = useI18n()
-
 export function getMarkdown(msgId: string) {
   // import footnote from 'markdown-it-footnote'
   // Create markdown-it instance with configuration
@@ -274,6 +272,7 @@ export function getMarkdown(msgId: string) {
 
   // Custom code block rendering
   md.renderer.rules.fence = (tokens, idx) => {
+    const { t } = useI18n()
     const token = tokens[idx]
     const info = token.info ? token.info.trim() : ''
     const str = token.content

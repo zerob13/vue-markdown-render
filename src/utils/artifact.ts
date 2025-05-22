@@ -1,3 +1,4 @@
+import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 export interface ArtifactState {
@@ -8,7 +9,7 @@ export interface ArtifactState {
   status: 'loading' | 'loaded' | 'error'
 }
 
-export function useArtifactStore() {
+export const useArtifactStore = defineStore('artifact', () => {
   const currentArtifact = ref<ArtifactState | null>(null)
   const isOpen = ref(false)
   const currentMessageId = ref<string | null>(null)
@@ -47,4 +48,4 @@ export function useArtifactStore() {
     hideArtifact,
     validateContext,
   }
-}
+})
