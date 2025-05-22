@@ -43,11 +43,9 @@ importers:
       tsx: ^3.14.0
       typescript: ^4.9.5
       unocss: ^0.61.3
-      unplugin-inspector-lib-css: ^0.0.12
       unplugin-vue-components: ^0.18.5
       uuid: ^11.1.0
       vite: ^6.3.5
-      vite-plugin-css-injected-by-js: ^3.5.1
       vite-plugin-dts: ^3.9.1
       vite-plugin-pages: ^0.25.0
       vitest: ^0.15.2
@@ -98,10 +96,8 @@ importers:
       tsx: 3.14.0
       typescript: 4.9.5
       unocss: 0.61.9_vite@6.3.5
-      unplugin-inspector-lib-css: 0.0.12_unocss@0.61.9
       unplugin-vue-components: 0.18.5_vite@6.3.5+vue@3.5.14
       vite: 6.3.5_pj52hkxorondriumws4ca5tl4u
-      vite-plugin-css-injected-by-js: 3.5.2_vite@6.3.5
       vite-plugin-dts: 3.9.1_pm36q5njusqk5ylt3efp7o4ike
       vite-plugin-pages: 0.25.0_vite@6.3.5
       vitest: 0.15.2_@vitest+ui@0.15.2
@@ -127,12 +123,14 @@ importers:
       vite-plugin-pages: ^0.32.3
       vitest: ^2.0.2
       vue: ^3.4.31
+      vue-markdown-render-test: workspace:*
       vue-router: ^4.4.0
       vue-tsc: ^2.0.26
     dependencies:
       '@vueuse/core': 10.11.1_vue@3.5.14
       '@vueuse/head': 0.7.13_vue@3.5.14
       vue: 3.5.14_typescript@5.8.3
+      vue-markdown-render-test: link:..
       vue-router: 4.5.1_vue@3.5.14
     devDependencies:
       '@antfu/eslint-config': 2.27.3_jii37voa6amgamupfqnyadq34u
@@ -9431,14 +9429,6 @@ packages:
       - rollup
     dev: true
 
-  /unplugin-inspector-lib-css/0.0.12_unocss@0.61.9:
-    resolution: {integrity: sha512-aRyQseFRsn2FSqeFnP9FCCnYsVLUJSisa6YaiiovTLJH8kenGWJ+25Zh43K/adj6u05EQ9NiDAMa27Ow0N/gkg==}
-    peerDependencies:
-      unocss: ^0.61.0
-    dependencies:
-      unocss: 0.61.9_vite@6.3.5
-    dev: true
-
   /unplugin-vue-components/0.18.5_vite@6.3.5+vue@3.5.14:
     resolution: {integrity: sha512-VPA6z/4pcKRDYtWu1H+FIpV0MADlFKG3q7YMVFzNFC3EhMVZ4WuBJ76490oKyauguNw1T1obLCuxNU9JzJ0oAQ==}
     engines: {node: '>=14'}
@@ -9625,14 +9615,6 @@ packages:
       - sugarss
       - supports-color
       - terser
-    dev: true
-
-  /vite-plugin-css-injected-by-js/3.5.2_vite@6.3.5:
-    resolution: {integrity: sha512-2MpU/Y+SCZyWUB6ua3HbJCrgnF0KACAsmzOQt1UvRVJCGF6S8xdA3ZUhWcWdM9ivG4I5az8PnQmwwrkC2CAQrQ==}
-    peerDependencies:
-      vite: '>2.0.0-0'
-    dependencies:
-      vite: 6.3.5_pj52hkxorondriumws4ca5tl4u
     dev: true
 
   /vite-plugin-dts/3.9.1_pm36q5njusqk5ylt3efp7o4ike:

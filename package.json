@@ -1,5 +1,5 @@
 {
-  "name": "vue-markdown-render",
+  "name": "vue-markdown-render-test",
   "type": "module",
   "version": "0.0.1",
   "packageManager": "pnpm@7.33.7",
@@ -96,10 +96,8 @@
     "tsx": "^3.14.0",
     "typescript": "^4.9.5",
     "unocss": "^0.61.3",
-    "unplugin-inspector-lib-css": "^0.0.12",
     "unplugin-vue-components": "^0.18.5",
     "vite": "^6.3.5",
-    "vite-plugin-css-injected-by-js": "^3.5.1",
     "vite-plugin-dts": "^3.9.1",
     "vite-plugin-pages": "^0.25.0",
     "vitest": "^0.15.2",

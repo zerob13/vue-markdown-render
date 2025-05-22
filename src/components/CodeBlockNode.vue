@@ -7,7 +7,9 @@ import type { EditorView } from 'codemirror'
 
 // Optional: Import artifact store if needed
 import { nanoid } from 'nanoid'
-import { detectLanguage, getLanguageIcon, useArtifactStore, useCodeEditor, useThemeStore } from '../utils'
+import { detectLanguage, getLanguageIcon, useCodeEditor } from '../utils'
+import { useArtifactStore } from '../utils/artifact'
+import { useThemeStore } from '../utils/theme'
 import MermaidBlockNode from './MermaidBlockNode.vue'
 
 const props = defineProps<{
