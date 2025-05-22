@@ -340,8 +340,8 @@ export function getLanguageIcon(lang: string): string {
       return 'lucide:square-code' // Fallback icon
   }
 }
-const themeStore = useThemeStore()
 export function useCodeEditor() {
+  const themeStore = useThemeStore()
   // 创建编辑器实例的函数
   let editorView: EditorView | null = null
   const createEditor = (
