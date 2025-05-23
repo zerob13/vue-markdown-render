@@ -2,12 +2,12 @@ import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import routes from 'virtual:generated-pages'
 import { createPinia } from 'pinia'
+import { createI18n } from 'vue-i18n'
 import App from './App.vue'
 
 import '@unocss/reset/tailwind.css'
 import './styles/main.css'
 import 'uno.css'
-import { createI18n } from 'vue-i18n'
 
 const i18n = createI18n({
   globalInjection: true,

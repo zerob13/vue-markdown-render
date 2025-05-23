@@ -46,7 +46,7 @@ export default defineConfig(({ mode }) => {
         fileName: 'index',
       },
       rollupOptions: {
-        external: ['vue'],
+        external: ['vue', 'pinia'],
         output: {
           globals: {
             vue: 'Vue',
