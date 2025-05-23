@@ -1,7 +1,7 @@
 {
-  "name": "vue-markdown-render-test1",
+  "name": "vue-markdown-renderer",
   "type": "module",
-  "version": "0.0.3",
+  "version": "0.0.1",
   "packageManager": "pnpm@7.33.7",
   "description": "@simon_he/test",
   "author": "Simon He",
@@ -19,14 +19,14 @@
   ],
   "exports": {
     ".": {
-      "types": "./dist/Counter.vue.d.ts",
+      "types": "./dist/NodeRenderer.vue.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     }
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
-  "types": "./dist/Counter.vue.d.ts",
+  "types": "./dist/NodeRenderer.vue.d.ts",
   "files": [
     "dist"
   ],
@@ -98,7 +98,7 @@
     "unocss": "^0.61.3",
     "unplugin-vue-components": "^0.18.5",
     "vite": "^6.3.5",
-    "vite-plugin-dts": "^3.9.1",
+    "vite-plugin-dts": "^4.5.4",
     "vite-plugin-pages": "^0.25.0",
     "vitest": "^0.15.2",
     "vue": "^3.4.31",

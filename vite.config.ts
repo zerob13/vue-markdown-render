@@ -2,25 +2,16 @@
 
 import Vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
-import dts from 'vite-plugin-dts'
 import Components from 'unplugin-vue-components/vite'
-import { ArcoResolver } from 'unplugin-vue-components/resolvers'
+import dts from 'vite-plugin-dts'
 import { name } from './package.json'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const base = '/'
   let plugins = [
-    Vue({
-      reactivityTransform: true,
-    }),
-    Components({
-      resolvers: [
-        ArcoResolver({
-          sideEffect: true,
-        }),
-      ],
-    }),
+    Vue(),
+    Components(),
   ]
 
   let build: Record<string, any> = {
@@ -32,7 +23,8 @@ export default defineConfig(({ mode }) => {
     plugins = [
       Vue(),
       dts({
-        entryRoot: 'src/components',
+        entryRoot: 'src/components', // 你的源码根目录
+        outDir: 'dist', // 类型文件输出目录
       }),
     ]
     build = {
@@ -41,7 +33,7 @@ export default defineConfig(({ mode }) => {
       copyPublicDir: false,
       lib: {
         entry: './src/exports.ts',
-        formats: ['cjs', 'es', 'umd'],
+        formats: ['cjs', 'es'],
         name,
         fileName: 'index',
       },
