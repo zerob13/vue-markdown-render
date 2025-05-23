@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { v4 as uuidv4 } from 'uuid'
+import { computed, ref } from 'vue'
 import type { BaseNode } from '../utils'
+import { getMarkdown, parseMarkdownToStructure } from '../utils/markdown'
 import TextNode from './TextNode.vue'
 import ParagraphNode from './ParagraphNode.vue'
 import HeadingNode from './HeadingNode.vue'
@@ -17,7 +20,6 @@ import ImageNode from './ImageNode.vue'
 import ThematicBreakNode from './ThematicBreakNode.vue'
 import MathInlineNode from './MathInlineNode.vue'
 import MathBlockNode from './MathBlockNode.vue'
-// import ReferenceNode from './ReferenceNode.vue'
 import StrongNode from './StrongNode.vue'
 import EmphasisNode from './EmphasisNode.vue'
 import StrikethroughNode from './StrikethroughNode.vue'
@@ -30,14 +32,19 @@ import CheckboxNode from './CheckboxNode.vue'
 import InlineCodeNode from './InlineCodeNode.vue'
 
 // 组件接收的 props
-defineProps<{
-  nodes: BaseNode[]
-  messageId?: string
-  threadId?: string
-}>()
+const props = defineProps<
+  | { content: string, nodes?: undefined, messageId?: string, threadId?: string, customComponents?: Record<string, any> }
+  | { content?: undefined, nodes: BaseNode[], messageId?: string, threadId?: string, customComponents?: Record<string, any> }
+>()
 
 // 定义事件
 defineEmits(['copy', 'handleArtifactClick', 'click', 'mouseover', 'mouseout'])
+const id = ref(`editor-${uuidv4()}`)
+const md = getMarkdown(id.value)
+const parsedNodes = computed<BaseNode[]>(() => {
+  // 解析 content 字符串为节点数组
+  return props.nodes?.length ? props.nodes : props.content ? parseMarkdownToStructure(props.content, md) : []
+})
 
 // 组件映射表
 const nodeComponents = {
@@ -58,7 +65,6 @@ const nodeComponents = {
   thematic_break: ThematicBreakNode,
   math_inline: MathInlineNode,
   math_block: MathBlockNode,
-  // reference: ReferenceNode,
   strong: StrongNode,
   emphasis: EmphasisNode,
   strikethrough: StrikethroughNode,
@@ -70,6 +76,8 @@ const nodeComponents = {
   checkbox: CheckboxNode,
   inline_code: InlineCodeNode,
   // 可以添加更多节点类型
+  // 例如:custom_node: CustomNode,
+  ...props.customComponents || {},
 }
 
 // 备用组件用于处理未知节点类型
@@ -81,25 +89,17 @@ const fallbackComponent = {
 
 <template>
   <component
-    :is="nodeComponents[node.type] || fallbackComponent"
-    v-for="(node, index) in nodes"
-    :key="index"
-    :node="node"
-    :message-id="messageId"
-    :thread-id="threadId"
-    :loading="node.loading"
-    @copy="$emit('copy', $event)"
-    @handle-artifact-click="$emit('handleArtifactClick', $event)"
-    @click="$emit('click', $event)"
-    @mouseover="$emit('mouseover', $event)"
-    @mouseout="$emit('mouseout', $event)"
+    :is="nodeComponents[node.type] || fallbackComponent" v-for="(node, index) in parsedNodes" :key="index"
+    :node="node" :message-id="messageId" :thread-id="threadId" :loading="node.loading" @copy="$emit('copy', $event)"
+    @handle-artifact-click="$emit('handleArtifactClick', $event)" @click="$emit('click', $event)"
+    @mouseover="$emit('mouseover', $event)" @mouseout="$emit('mouseout', $event)"
   />
 </template>
 
 <style scoped>
-.unknown-node {
-  color: #6a737d;
-  font-style: italic;
-  margin: 1rem 0;
-}
+  .unknown-node {
+    color: #6a737d;
+    font-style: italic;
+    margin: 1rem 0;
+  }
 </style>

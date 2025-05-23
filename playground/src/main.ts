@@ -14,8 +14,8 @@ const i18n = createI18n({
   locale: 'zh-CN',
   messages: {
   },
-  legacy: false
-});
+  legacy: false,
+})
 const app = createApp(App)
 app.use(createPinia())
 app.use(i18n)
