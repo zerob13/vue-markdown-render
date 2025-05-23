@@ -7,9 +7,9 @@ import type { EditorView } from 'codemirror'
 
 // Optional: Import artifact store if needed
 import { nanoid } from 'nanoid'
-import { detectLanguage, getLanguageIcon, useCodeEditor } from '../utils'
+import { detectLanguage, getLanguageIcon } from '../utils'
 import { useArtifactStore } from '../utils/artifact'
-import { useThemeStore } from '../utils/theme'
+// import { useThemeStore } from '../utils/theme'
 import MermaidBlockNode from './MermaidBlockNode.vue'
 
 const props = defineProps<{
@@ -24,13 +24,13 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
-const themeStore = useThemeStore()
+// const themeStore = useThemeStore()
 const artifactStore = useArtifactStore()
 const codeEditor = ref<HTMLElement | null>(null)
 const copyText = ref(t('common.copy'))
 const editorInstance = ref<EditorView | null>(null)
 const codeLanguage = ref(props.node.language || '')
-const { createEditor, cleanupEditor } = useCodeEditor()
+// const { createEditor, cleanupEditor } = useCodeEditor()
 
 // 创建节流版本的语言检测函数,1秒内最多执行一次
 const throttledDetectLanguage = useThrottleFn(
@@ -151,13 +151,13 @@ function previewCode() {
 }
 
 // 监听主题变化
-watch(
-  () => themeStore.isDark,
-  () => {
-    if (codeEditor.value)
-      editorInstance.value = createEditor(codeEditor.value, props.node.code, codeLanguage.value)
-  },
-)
+// watch(
+//   () => themeStore.isDark,
+//   () => {
+//     // if (codeEditor.value)
+//       // editorInstance.value = createEditor(codeEditor.value, props.node.code, codeLanguage.value)
+//   },
+// )
 
 // 监听代码变化
 watch(
@@ -192,8 +192,8 @@ watch(
     }
     else {
       // If editor not yet initialized, create it
-      if (codeEditor.value)
-        editorInstance.value = createEditor(codeEditor.value, props.node.code, codeLanguage.value)
+      // if (codeEditor.value)
+      // editorInstance.value = createEditor(codeEditor.value, props.node.code, codeLanguage.value)
     }
   },
   { immediate: true },
@@ -204,33 +204,33 @@ watch(
   () => props.node.language,
   () => {
     // If the language changes, we need to recreate the editor with the new language
-    if (codeEditor.value)
-      editorInstance.value = createEditor(codeEditor.value, props.node.code, codeLanguage.value)
+    // if (codeEditor.value)
+    // editorInstance.value = createEditor(codeEditor.value, props.node.code, codeLanguage.value)
   },
 )
 
 // 初始化代码编辑器
 onMounted(() => {
   // Initial language setup is now handled above definitions
-  if (codeEditor.value)
-    editorInstance.value = createEditor(codeEditor.value, props.node.code, codeLanguage.value)
+  // if (codeEditor.value)
+  // editorInstance.value = createEditor(codeEditor.value, props.node.code, codeLanguage.value)
 })
 
 // 清理资源
 onUnmounted(() => {
-  cleanupEditor()
+  // cleanupEditor()
   editorInstance.value = null
 })
 </script>
 
 <template>
   <MermaidBlockNode v-if="isMermaid" :node="node" />
-  <div v-else class="my-4 rounded-lg border border-border overflow-hidden shadow-sm">
+  <div v-else class="my4 rounded-lg border border-border overflow-hidden shadow-sm">
     <div
-      class="flex justify-between items-center p-2 bg-gray-100 dark:bg-zinc-800 text-xs"
+      class="flex justify-between items-center p2 bg-gray-100 dark:bg-zinc-800 text-xs"
     >
       <span class="flex items-center space-x-2">
-        <Icon :icon="languageIcon" class="w-4 h-4" />
+        <Icon :icon="languageIcon" class="w4 h4" />
         <span class="text-gray-600 dark:text-gray-400 font-mono font-bold">{{
           displayLanguage
         }}</span>
