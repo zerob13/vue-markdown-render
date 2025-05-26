@@ -2,7 +2,10 @@
   "compilerOptions": {
     "target": "ES2017",
     "jsx": "preserve",
-    "lib": ["DOM", "ESNext"],
+    "lib": [
+      "DOM",
+      "ESNext"
+    ],
     "module": "ESNext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
@@ -12,6 +15,13 @@
     "isolatedModules": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*.ts", "src/**/*.vue","shims-vue.d.ts"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.vue",
+    "src/shims-vue.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

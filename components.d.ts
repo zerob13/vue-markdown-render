@@ -4,7 +4,38 @@
 
 declare module 'vue' {
   export interface GlobalComponents {
+    AdmonitionNode: typeof import('./src/components/AdmonitionNode.vue')['default']
+    BlockquoteNode: typeof import('./src/components/BlockquoteNode.vue')['default']
+    Button: typeof import('./src/components/button/Button.vue')['default']
+    CheckboxNode: typeof import('./src/components/CheckboxNode.vue')['default']
+    CodeBlockNode: typeof import('./src/components/CodeBlockNode.vue')['default']
     Counter: typeof import('./src/components/Counter.vue')['default']
+    DefinitionListNode: typeof import('./src/components/DefinitionListNode.vue')['default']
+    EmojiNode: typeof import('./src/components/EmojiNode.vue')['default']
+    EmphasisNode: typeof import('./src/components/EmphasisNode.vue')['default']
+    FootnoteNode: typeof import('./src/components/FootnoteNode.vue')['default']
+    FootnoteReferenceNode: typeof import('./src/components/FootnoteReferenceNode.vue')['default']
+    HardBreakNode: typeof import('./src/components/HardBreakNode.vue')['default']
+    HeadingNode: typeof import('./src/components/HeadingNode.vue')['default']
+    HighlightNode: typeof import('./src/components/HighlightNode.vue')['default']
+    ImageNode: typeof import('./src/components/ImageNode.vue')['default']
+    InlineCodeNode: typeof import('./src/components/InlineCodeNode.vue')['default']
+    InsertNode: typeof import('./src/components/InsertNode.vue')['default']
+    LinkNode: typeof import('./src/components/LinkNode.vue')['default']
+    ListItemNode: typeof import('./src/components/ListItemNode.vue')['default']
+    ListNode: typeof import('./src/components/ListNode.vue')['default']
+    MathBlockNode: typeof import('./src/components/MathBlockNode.vue')['default']
+    MathInlineNode: typeof import('./src/components/MathInlineNode.vue')['default']
+    MermaidBlockNode: typeof import('./src/components/MermaidBlockNode.vue')['default']
+    NodeRenderer: typeof import('./src/components/NodeRenderer.vue')['default']
+    ParagraphNode: typeof import('./src/components/ParagraphNode.vue')['default']
+    StrikethroughNode: typeof import('./src/components/StrikethroughNode.vue')['default']
+    StrongNode: typeof import('./src/components/StrongNode.vue')['default']
+    SubscriptNode: typeof import('./src/components/SubscriptNode.vue')['default']
+    SuperscriptNode: typeof import('./src/components/SuperscriptNode.vue')['default']
+    TableNode: typeof import('./src/components/TableNode.vue')['default']
+    TextNode: typeof import('./src/components/TextNode.vue')['default']
+    ThematicBreakNode: typeof import('./src/components/ThematicBreakNode.vue')['default']
   }
 }
 

@@ -23,8 +23,6 @@ export default defineConfig(({ mode }) => {
     plugins = [
       Vue(),
       dts({
-        entryRoot: 'src',
-        include: ['src/*.vue'],
         outDir: 'dist/types',
       }),
     ]
@@ -32,7 +30,6 @@ export default defineConfig(({ mode }) => {
       target: 'es2015',
       cssTarget: 'chrome61',
       copyPublicDir: false,
-      minify: false,
       lib: {
         entry: './src/exports.ts',
         formats: ['cjs', 'es'],
@@ -55,5 +52,10 @@ export default defineConfig(({ mode }) => {
     base,
     plugins,
     build,
+    resolve: {
+      alias: {
+        '@': '/src',
+      },
+    },
   }
 })
