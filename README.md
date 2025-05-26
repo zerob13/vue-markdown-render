@@ -1,4 +1,4 @@
-# vue-markdown-to-html
+# vue-renderer-markdown
 
 > A Vue 3 component that renders Markdown string content as HTML, supporting custom components and advanced markdown features.
 
@@ -15,18 +15,18 @@
 ## Install
 
 ```bash
-pnpm add vue-markdown-to-html
+pnpm add vue-renderer-markdown
 # or
-npm install vue-markdown-to-html
+npm install vue-renderer-markdown
 # or
-yarn add vue-markdown-to-html
+yarn add vue-renderer-markdown
 ```
 
 ## Usage
 
 ```vue
 <script setup lang="ts">
-import MarkdownRender from 'vue-markdown-to-html'
+import MarkdownRender from 'vue-renderer-markdown'
 
 const markdownContent = `
 # Hello Vue Markdown
