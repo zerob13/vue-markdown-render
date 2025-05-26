@@ -5,7 +5,6 @@ defineProps<{
     emoji: string
     raw: string
   }
-  messageId: string
 }>()
 </script>
 

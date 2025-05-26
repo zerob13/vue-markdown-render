@@ -5,7 +5,6 @@ defineProps<{
     checked: boolean
     raw: string
   }
-  messageId: string
 }>()
 </script>
 

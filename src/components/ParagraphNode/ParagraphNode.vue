@@ -28,8 +28,6 @@ defineProps<{
     children: NodeChild[]
     raw: string
   }
-  messageId: string
-  threadId?: string
 }>()
 
 const nodeComponents = {
@@ -60,8 +58,6 @@ const nodeComponents = {
       v-for="(child, index) in node.children"
       :key="index"
       :node="child"
-      :message-id="messageId"
-      :thread-id="threadId"
     />
   </p>
 </template>

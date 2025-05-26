@@ -12,8 +12,6 @@ interface FootnoteNode {
 // 接收props
 defineProps<{
   node: FootnoteNode
-  messageId?: string
-  threadId?: string
 }>()
 
 // 定义事件
@@ -29,8 +27,6 @@ defineEmits(['copy'])
     <div class="flex-1">
       <NodeRenderer
         :nodes="node.children"
-        :message-id="messageId"
-        :thread-id="threadId"
         @copy="$emit('copy', $event)"
       />
     </div>

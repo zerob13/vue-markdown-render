@@ -17,8 +17,6 @@ interface ListItem {
 
 defineProps<{
   item: ListItem
-  messageId: string
-  threadId?: string
 }>()
 
 defineEmits<{
@@ -30,8 +28,6 @@ defineEmits<{
   <li class="list-item">
     <NodeRenderer
       :nodes="item.children"
-      :message-id="messageId"
-      :thread-id="threadId"
       @copy="$emit('copy', $event)"
     />
   </li>

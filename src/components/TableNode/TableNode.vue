@@ -27,8 +27,6 @@ interface TableNode {
 // 接收props
 defineProps<{
   node: TableNode
-  messageId?: string
-  threadId?: string
 }>()
 
 // 定义事件
@@ -52,8 +50,6 @@ defineEmits(['copy'])
           >
             <NodeRenderer
               :nodes="cell.children"
-              :message-id="messageId"
-              :thread-id="threadId"
               @copy="$emit('copy', $event)"
             />
           </th>
@@ -80,8 +76,6 @@ defineEmits(['copy'])
           >
             <NodeRenderer
               :nodes="cell.children"
-              :message-id="messageId"
-              :thread-id="threadId"
               @copy="$emit('copy', $event)"
             />
           </td>

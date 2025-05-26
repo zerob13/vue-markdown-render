@@ -14,8 +14,6 @@ interface LinkNode {
 // 接收props
 defineProps<{
   node: LinkNode
-  messageId?: string
-  threadId?: string
 }>()
 
 // 定义事件
@@ -32,8 +30,6 @@ defineEmits(['copy'])
   >
     <NodeRenderer
       :nodes="node.children"
-      :message-id="messageId"
-      :thread-id="threadId"
       @copy="$emit('copy', $event)"
     />
   </a>

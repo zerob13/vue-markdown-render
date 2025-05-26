@@ -22,8 +22,6 @@ defineProps<{
     items: ListItem[]
     raw: string
   }
-  messageId: string
-  threadId?: string
 }>()
 
 defineEmits<{
@@ -37,8 +35,6 @@ defineEmits<{
       v-for="(item, index) in node.items"
       :key="index"
       :item="item"
-      :message-id="messageId"
-      :thread-id="threadId"
       @copy="$emit('copy', $event)"
     />
   </component>

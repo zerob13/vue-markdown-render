@@ -11,7 +11,6 @@ import { nanoid } from 'nanoid'
 import MermaidBlockNode from '../MermaidBlockNode'
 
 import { detectLanguage, getLanguageIcon, useCodeEditor } from '@/utils'
-import { useArtifactStore } from '@/utils/artifact'
 import { useThemeStore } from '@/utils/theme'
 
 const props = defineProps<{
@@ -21,13 +20,11 @@ const props = defineProps<{
     code: string
     raw: string
   }
-  messageId?: string
-  threadId?: string
 }>()
 
+const emits = defineEmits(['previewCode'])
 const { t } = useI18n()
 const themeStore = useThemeStore()
-const artifactStore = useArtifactStore()
 const codeEditor = ref<HTMLElement | null>(null)
 const copyText = ref(t('common.copy'))
 const editorInstance = ref<EditorView | null>(null)
@@ -129,27 +126,21 @@ async function copyCode() {
 
 // 预览HTML/SVG代码
 function previewCode() {
-  if (!isPreviewable.value || !props.messageId || !props.threadId)
+  if (!isPreviewable.value)
     return
 
   const lowerLang = props.node.language.toLowerCase()
   const artifactType = lowerLang === 'html' ? 'text/html' : 'image/svg+xml'
   const artifactTitle
-    = lowerLang === 'html'
-      ? t('artifacts.htmlPreviewTitle') || 'HTML Preview'
-      : t('artifacts.svgPreviewTitle') || 'SVG Preview'
-
-  artifactStore.showArtifact(
-    {
-      id: `temp-${lowerLang}-${nanoid()}`,
-      type: artifactType,
-      title: artifactTitle,
-      content: props.node.code,
-      status: 'loaded',
-    },
-    props.messageId,
-    props.threadId,
-  )
+      = lowerLang === 'html'
+        ? t('artifacts.htmlPreviewTitle') || 'HTML Preview'
+        : t('artifacts.svgPreviewTitle') || 'SVG Preview'
+  emits('previewCode', {
+    node: props.node,
+    artifactType,
+    artifactTitle,
+    id: `temp-${lowerLang}-${nanoid()}`,
+  })
 }
 
 // 监听主题变化
@@ -228,14 +219,10 @@ onUnmounted(() => {
 <template>
   <MermaidBlockNode v-if="isMermaid" :node="node" />
   <div v-else class="my4 rounded-lg border border-border overflow-hidden shadow-sm">
-    <div
-      class="flex justify-between items-center p2 bg-gray-100 dark:bg-zinc-800 text-xs"
-    >
+    <div class="flex justify-between items-center p2 bg-gray-100 dark:bg-zinc-800 text-xs">
       <span class="flex items-center space-x-2">
         <Icon :icon="languageIcon" class="w4 h4" />
-        <span class="text-gray-600 dark:text-gray-400 font-mono font-bold">{{
-          displayLanguage
-        }}</span>
+        <span class="text-gray-600 dark:text-gray-400 font-mono font-bold">{{ displayLanguage }}</span>
       </span>
       <div v-if="isPreviewable" class="flex items-center space-x-2">
         <button
@@ -269,14 +256,14 @@ onUnmounted(() => {
 
 <style>
 /* Ensure CodeMirror inherits the right font in the editor */
-.cm-editor .cm-content {
-  font-family:
-    ui-monospace,
-    SFMono-Regular,
-    SF Mono,
-    Menlo,
-    Consolas,
-    Liberation Mono,
-    monospace !important;
-}
+  .cm-editor .cm-content {
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      SF Mono,
+      Menlo,
+      Consolas,
+      Liberation Mono,
+      monospace !important;
+  }
 </style>

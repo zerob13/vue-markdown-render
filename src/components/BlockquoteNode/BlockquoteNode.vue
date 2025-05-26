@@ -9,8 +9,6 @@ interface BlockquoteNode {
 
 defineProps<{
   node: BlockquoteNode
-  messageId?: string
-  threadId?: string
 }>()
 
 defineEmits(['copy'])
@@ -20,8 +18,6 @@ defineEmits(['copy'])
   <blockquote class="blockquote">
     <NodeRenderer
       :nodes="node.children"
-      :message-id="messageId"
-      :thread-id="threadId"
       @copy="$emit('copy', $event)"
     />
   </blockquote>

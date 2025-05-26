@@ -5,7 +5,6 @@ defineProps<{
     code: string
     raw: string
   }
-  messageId: string
 }>()
 </script>
 

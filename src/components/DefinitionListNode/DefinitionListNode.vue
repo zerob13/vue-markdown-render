@@ -19,8 +19,6 @@ interface DefinitionListNode {
 // 接收props
 defineProps<{
   node: DefinitionListNode
-  messageId?: string
-  threadId?: string
 }>()
 
 // 定义事件
@@ -33,16 +31,12 @@ defineEmits(['copy'])
       <dt class="definition-term">
         <NodeRenderer
           :nodes="item.term"
-          :message-id="messageId"
-          :thread-id="threadId"
           @copy="$emit('copy', $event)"
         />
       </dt>
       <dd class="definition-desc">
         <NodeRenderer
           :nodes="item.definition"
-          :message-id="messageId"
-          :thread-id="threadId"
           @copy="$emit('copy', $event)"
         />
       </dd>

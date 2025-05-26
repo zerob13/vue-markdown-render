@@ -71,8 +71,8 @@ export interface MermaidBlockNode {
   }
 }
 
-export type MarkdownRender = { content: string, nodes?: undefined, messageId?: string, threadId?: string, customComponents?: Record<string, any> }
-  | { content?: undefined, nodes: BaseNode[], messageId?: string, threadId?: string, customComponents?: Record<string, any> }
+export type MarkdownRender = { content: string, nodes?: undefined, customComponents?: Record<string, any> }
+  | { content?: undefined, nodes: BaseNode[], customComponents?: Record<string, any> }
 export interface BlockquoteNode extends BaseNode {
   type: 'blockquote'
   children: ParsedNode[]

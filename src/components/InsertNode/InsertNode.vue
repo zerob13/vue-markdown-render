@@ -25,7 +25,6 @@ defineProps<{
     children: NodeChild[]
     raw: string
   }
-  messageId: string
 }>()
 
 // Available node components for child rendering
@@ -53,7 +52,6 @@ const nodeComponents = {
       v-for="(child, index) in node.children"
       :key="index"
       :node="child"
-      :message-id="messageId"
     />
   </ins>
 </template>

@@ -13,8 +13,6 @@ interface AdmonitionNode {
 // 接收props
 defineProps<{
   node: AdmonitionNode
-  messageId?: string
-  threadId?: string
 }>()
 
 // 定义事件
@@ -42,8 +40,6 @@ const iconMap = {
     <div class="admonition-content">
       <NodeRenderer
         :nodes="node.children"
-        :message-id="messageId"
-        :thread-id="threadId"
         @copy="$emit('copy', $event)"
       />
     </div>

@@ -7,8 +7,6 @@ const props = defineProps<{
     type: 'math_inline'
     content: string
     raw: string
-    messageId?: string
-    threadId?: string
   }
 }>()
 

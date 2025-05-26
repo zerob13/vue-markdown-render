@@ -50,8 +50,6 @@ This is **markdown** rendered as HTML!
 |-------------------|---------------------------|----------|--------------------------------------------------|
 | `content`         | `string`                  | ✓        | Markdown string to render                        |
 | `nodes`           | `BaseNode[]`              |          | Parsed markdown AST nodes (alternative to content)|
-| `messageId`       | `string`                  |          | Optional message id                              |
-| `threadId`        | `string`                  |          | Optional thread id                               |
 | `customComponents`| `Record<string, any>`     |          | Custom Vue components for rendering              |
 
 > `content` 和 `nodes` 必须至少传递一个。

@@ -5,8 +5,6 @@ const props = defineProps<{
     content: string
     raw: string
   }
-  messageId: string
-  threadId?: string
 }>()
 
 defineEmits(['copy'])

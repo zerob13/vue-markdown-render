@@ -35,8 +35,8 @@ import { getMarkdown, parseMarkdownToStructure } from '@/utils/markdown'
 
 // 组件接收的 props
 const props = defineProps<
-  | { content: string, nodes?: undefined, messageId?: string, threadId?: string, customComponents?: Record<string, any> }
-  | { content?: undefined, nodes: BaseNode[], messageId?: string, threadId?: string, customComponents?: Record<string, any> }
+  | { content: string, nodes?: undefined, customComponents?: Record<string, any> }
+  | { content?: undefined, nodes: BaseNode[], customComponents?: Record<string, any> }
 >()
 
 // 定义事件
@@ -92,7 +92,7 @@ const fallbackComponent = {
 <template>
   <component
     :is="nodeComponents[node.type] || fallbackComponent" v-for="(node, index) in parsedNodes" :key="index"
-    :node="node" :message-id="messageId" :thread-id="threadId" :loading="node.loading" @copy="$emit('copy', $event)"
+    :node="node" :loading="node.loading" @copy="$emit('copy', $event)"
     @handle-artifact-click="$emit('handleArtifactClick', $event)" @click="$emit('click', $event)"
     @mouseover="$emit('mouseover', $event)" @mouseout="$emit('mouseout', $event)"
   />
