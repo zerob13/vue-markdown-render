@@ -224,3 +224,6 @@ export type ParsedNode =
   | MathInlineNode
   | MathBlockNode
   | ReferenceNode
+
+export type VueRendererMarkdown = { content: string, nodes?: undefined, messageId?: string, threadId?: string, customComponents?: Record<string, any> }
+  | { content?: undefined, nodes: BaseNode[], messageId?: string, threadId?: string, customComponents?: Record<string, any> }

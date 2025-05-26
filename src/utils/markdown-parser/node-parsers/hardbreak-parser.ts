@@ -1,4 +1,4 @@
-import type { HardBreakNode } from '../types'
+import type { HardBreakNode } from '../../../types'
 
 export function parseHardBreak(): HardBreakNode {
   return {

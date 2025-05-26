@@ -1,5 +1,5 @@
 import type MarkdownIt from 'markdown-it'
-import type { MarkdownToken, ParsedNode } from './types'
+import type { MarkdownToken, ParsedNode } from '../../types'
 import { parseHeading } from './node-parsers/heading-parser'
 import { parseParagraph } from './node-parsers/paragraph-parser'
 import { parseCodeBlock, parseFence } from './node-parsers/code-block-parser'

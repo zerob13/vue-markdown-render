@@ -1,4 +1,4 @@
-import type { MarkdownToken, MathInlineNode } from '../types'
+import type { MarkdownToken, MathInlineNode } from '../../../types'
 
 // Parse a math_inline token (inline math expressions)
 export function parseMathInlineToken(token: MarkdownToken): MathInlineNode {

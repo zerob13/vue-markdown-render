@@ -1,4 +1,4 @@
-import type { ImageNode, MarkdownToken } from '../types'
+import type { ImageNode, MarkdownToken } from '../../../types'
 
 export function parseImageToken(token: MarkdownToken): ImageNode {
   return {

@@ -1,4 +1,4 @@
-import type { InlineCodeNode, MarkdownToken } from '../types'
+import type { InlineCodeNode, MarkdownToken } from '../../../types'
 
 export function parseInlineCodeToken(token: MarkdownToken): InlineCodeNode {
   return {

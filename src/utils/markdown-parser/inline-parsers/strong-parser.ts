@@ -1,4 +1,4 @@
-import type { MarkdownToken, ParsedNode, StrongNode } from '../types'
+import type { MarkdownToken, ParsedNode, StrongNode } from '../../../types'
 import { parseInlineTokens } from '../index'
 
 export function parseStrongToken(

@@ -1,4 +1,4 @@
-import type { ListItemNode, ListNode, MarkdownToken, ParsedNode } from '../types'
+import type { ListItemNode, ListNode, MarkdownToken, ParsedNode } from '../../../types'
 import { parseInlineTokens } from '../inline-parsers'
 import { parseBlockquote } from './blockquote-parser'
 import { parseCodeBlock, parseFence } from './code-block-parser'

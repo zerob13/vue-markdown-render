@@ -1,4 +1,4 @@
-import type { MarkdownToken, ReferenceNode } from '../types'
+import type { MarkdownToken, ReferenceNode } from '../../../types'
 
 // Parse a reference token from markdown-it
 export function parseReferenceToken(token: MarkdownToken): ReferenceNode {

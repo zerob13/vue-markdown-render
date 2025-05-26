@@ -8,7 +8,6 @@ import markdownItIns from 'markdown-it-ins'
 import markdownItCheckbox from 'markdown-it-task-checkbox'
 import markdownItFootnote from 'markdown-it-footnote'
 import markdownItContainer from 'markdown-it-container'
-import { useI18n } from 'vue-i18n'
 import {
   parseInlineTokens,
   parseMarkdownToStructure,
@@ -16,7 +15,7 @@ import {
 } from './markdown-parser'
 
 // Re-export the node types for backward compatibility
-export * from './markdown-parser/types'
+export * from '../types'
 export { parseMarkdownToStructure, processTokens, parseInlineTokens }
 
 export function getMarkdown(msgId: string) {
@@ -26,9 +25,8 @@ export function getMarkdown(msgId: string) {
     html: true,
     linkify: true,
     typographer: true,
-    breaks: true,
+    breaks: false,
   })
-
   // 配置加粗标记
   md.inline.ruler.before('emphasis', 'strong', (state, silent) => {
     let found = false
@@ -241,14 +239,24 @@ export function getMarkdown(msgId: string) {
   })
 
   // Add rendering rules
-  md.renderer.rules.math_inline = (tokens, idx) => tokens[idx].content
-  md.renderer.rules.math_block = (tokens, idx) => tokens[idx].content
+  md.renderer.rules.math_inline = (tokens, idx) => {
+    const token = tokens[idx]
+    return `<span class="math-inline">${token.content}</span>`
+  }
+
+  md.renderer.rules.math_block = (tokens, idx) => {
+    const token = tokens[idx]
+    return `<div class="math-block">${token.content}</div>`
+  }
   md.renderer.rules.code_block = (tokens, idx) => tokens[idx].content
 
   // Configure MathJax
   md.use(mathjax3, {
     tex: {
-      inlineMath: [['\\(', '\\)']],
+      inlineMath: [
+        ['\\(', '\\)'],
+        ['$', '$'],
+      ],
       displayMath: [
         ['$$', '$$'],
         ['\\[', '\\]'],
@@ -329,7 +337,7 @@ export function getCommonMarkdown() {
     html: true,
     linkify: true,
     typographer: true,
-    breaks: true,
+    breaks: false,
   })
   return md
 }

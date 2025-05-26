@@ -1,4 +1,4 @@
-import type { CodeBlockNode, MarkdownToken } from '../types'
+import type { CodeBlockNode, MarkdownToken } from '../../../types'
 
 export function parseCodeBlock(token: MarkdownToken): CodeBlockNode {
   return {

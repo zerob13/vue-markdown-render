@@ -1,4 +1,4 @@
-import type { MarkdownToken, ParagraphNode } from '../types'
+import type { MarkdownToken, ParagraphNode } from '../../../types'
 import { parseInlineTokens } from '../inline-parsers'
 
 export function parseParagraph(

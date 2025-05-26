@@ -23,14 +23,16 @@ export default defineConfig(({ mode }) => {
     plugins = [
       Vue(),
       dts({
-        entryRoot: 'src/components', // 你的源码根目录
-        outDir: 'dist', // 类型文件输出目录
+        entryRoot: 'src/types',
+        include: ['src/types'],
+        outDir: 'dist/types',
       }),
     ]
     build = {
       target: 'es2015',
       cssTarget: 'chrome61',
       copyPublicDir: false,
+      minify: false,
       lib: {
         entry: './src/exports.ts',
         formats: ['cjs', 'es'],

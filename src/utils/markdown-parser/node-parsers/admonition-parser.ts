@@ -1,4 +1,4 @@
-import type { AdmonitionNode, MarkdownToken, ParsedNode } from '../types'
+import type { AdmonitionNode, MarkdownToken, ParsedNode } from '../../../types'
 import { parseInlineTokens } from '../inline-parsers'
 import { parseList } from './list-parser'
 

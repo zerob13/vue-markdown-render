@@ -1,4 +1,4 @@
-import type { CheckboxNode, MarkdownToken } from '../types'
+import type { CheckboxNode, MarkdownToken } from '../../../types'
 
 export function parseCheckboxToken(token: MarkdownToken): CheckboxNode {
   return {

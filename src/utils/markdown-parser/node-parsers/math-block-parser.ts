@@ -1,4 +1,4 @@
-import type { MarkdownToken, MathBlockNode } from '../types'
+import type { MarkdownToken, MathBlockNode } from '../../../types'
 
 // Parse a math_block token (block/display math expressions)
 export function parseMathBlock(token: MarkdownToken): MathBlockNode {

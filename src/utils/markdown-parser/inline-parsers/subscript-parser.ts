@@ -1,4 +1,4 @@
-import type { MarkdownToken, ParsedNode, SubscriptNode } from '../types'
+import type { MarkdownToken, ParsedNode, SubscriptNode } from '../../../types'
 import { parseInlineTokens } from '../index'
 
 export function parseSubscriptToken(

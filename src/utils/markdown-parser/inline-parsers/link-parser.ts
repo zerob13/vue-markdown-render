@@ -1,4 +1,4 @@
-import type { LinkNode, MarkdownToken } from '../types'
+import type { LinkNode, MarkdownToken } from '../../../types'
 import { parseInlineTokens } from '../index'
 
 export function parseLinkToken(

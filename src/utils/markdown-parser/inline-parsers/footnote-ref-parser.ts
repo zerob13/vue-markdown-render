@@ -1,4 +1,4 @@
-import type { FootnoteReferenceNode, MarkdownToken } from '../types'
+import type { FootnoteReferenceNode, MarkdownToken } from '../../../types'
 
 export function parseFootnoteRefToken(token: MarkdownToken): FootnoteReferenceNode {
   return {

@@ -1,4 +1,4 @@
-import type { ThematicBreakNode } from '../types'
+import type { ThematicBreakNode } from '../../../types'
 
 export function parseThematicBreak(): ThematicBreakNode {
   return {

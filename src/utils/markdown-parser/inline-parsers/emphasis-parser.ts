@@ -1,4 +1,4 @@
-import type { EmphasisNode, MarkdownToken, ParsedNode } from '../types'
+import type { EmphasisNode, MarkdownToken, ParsedNode } from '../../../types'
 import { parseInlineTokens } from '../index'
 
 export function parseEmphasisToken(

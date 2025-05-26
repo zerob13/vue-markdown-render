@@ -1,4 +1,4 @@
-import type { MarkdownToken, TableCellNode, TableNode, TableRowNode } from '../types'
+import type { MarkdownToken, TableCellNode, TableNode, TableRowNode } from '../../../types'
 import { parseInlineTokens } from '../inline-parsers'
 
 export function parseTable(

@@ -1,4 +1,4 @@
-import type { EmojiNode, MarkdownToken } from '../types'
+import type { EmojiNode, MarkdownToken } from '../../../types'
 
 export function parseEmojiToken(token: MarkdownToken): EmojiNode {
   return {

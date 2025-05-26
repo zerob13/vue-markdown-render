@@ -1,4 +1,4 @@
-import type { FootnoteNode, MarkdownToken, ParsedNode } from '../types'
+import type { FootnoteNode, MarkdownToken, ParsedNode } from '../../../types'
 import { parseInlineTokens } from '../inline-parsers'
 
 export function parseFootnote(

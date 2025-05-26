@@ -1,4 +1,4 @@
-import type { MarkdownToken, TextNode } from '../types'
+import type { MarkdownToken, TextNode } from '../../../types'
 
 export function parseTextToken(token: MarkdownToken): TextNode {
   return {

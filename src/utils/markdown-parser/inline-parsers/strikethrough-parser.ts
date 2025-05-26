@@ -1,4 +1,4 @@
-import type { MarkdownToken, ParsedNode, StrikethroughNode } from '../types'
+import type { MarkdownToken, ParsedNode, StrikethroughNode } from '../../../types'
 import { parseInlineTokens } from '../index'
 
 export function parseStrikethroughToken(

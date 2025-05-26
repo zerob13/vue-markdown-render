@@ -1,122 +1,101 @@
 <script setup lang="ts">
-import MarkdownRender from 'vue-markdown-render-test1'
+import MarkdownRender from 'vue-renderer-markdown'
 
-const content = `
+const content = `MarkdownRenderer initialized with content: # 股票数据分析Python代码示例
 
-以下是对原股票数据分析代码的详细注释版本，帮助用户更好地理解每一部分的功能和实现逻辑：
-
----
+以下是一个简单的股票数据分析Python代码示例，使用\`yfinance\`库获取股票数据，并进行基本分析和可视化：
 
 \`\`\`python
-# 导入必要的库
-# yfinance 用于从 Yahoo Finance 获取股票数据
-# matplotlib.pyplot 用于数据可视化
 import yfinance as yf
 import matplotlib.pyplot as plt
+import pandas as pd
 
-# 定义函数：获取指定股票的历史行情数据
+# 设置股票代码和时间范围
+ticker = "AAPL"  # 苹果公司股票代码
+start_date = "2023-01-01"
+end_date = "2023-12-31"
+
+# 获取股票数据
 def get_stock_data(ticker, start_date, end_date):
-    """
-    从 Yahoo Finance 下载指定股票的历史数据
-    
-    参数:
-        ticker (str): 股票代码，例如 'AAPL'（苹果公司）
-        start_date (str): 数据起始日期，格式为 'YYYY-MM-DD'
-        end_date (str): 数据结束日期，格式为 'YYYY-MM-DD'
-    
-    返回:
-        DataFrame: 包含股票开盘价、收盘价、最高价、最低价、成交量等信息的 DataFrame
-    """
-    # 使用 yfinance 的 download 方法获取数据
-    # 该方法会自动从 Yahoo Finance 下载指定时间段内的数据
-    data = yf.download(ticker, start=start_date, end=end_date)
+    stock_data = yf.download(ticker, start=start_date, end=end_date)
+    return stock_data
+
+# 计算移动平均线
+def calculate_moving_average(data, window=20):
+    data[f'MA_{window}'] = data['Close'].rolling(window=window).mean()
     return data
 
-# 定义函数：绘制股票的收盘价曲线
-def plot_close_price(data, ticker):
-    """
-    绘制指定股票的收盘价随时间变化的折线图
-    
-    参数:
-        data (DataFrame): 包含股票数据的 DataFrame
-        ticker (str): 股票代码，用于图表标题
-    """
-    # 设置图表大小
+# 绘制股票价格和移动平均线
+def plot_stock_data(data, ticker):
     plt.figure(figsize=(12, 6))
-    
-    # 绘制收盘价曲线
-    # data['Close'] 是 DataFrame 中的 'Close' 列，表示每日收盘价
-    plt.plot(data['Close'], label='Close Price')
-    
-    # 设置图表标题
-    plt.title(f'{ticker} Closing Price')
-    
-    # 设置坐标轴标签
-    plt.xlabel('Date')
-    plt.ylabel('Price (USD)')
-    
-    # 显示图例
+    plt.plot(data['Close'], label='收盘价', color='blue')
+    if 'MA_20' in data.columns:
+        plt.plot(data['MA_20'], label='20日移动平均线', color='orange')
+    plt.title(f'{ticker} 股票价格走势 ({start_date} 至 {end_date})')
+    plt.xlabel('日期')
+    plt.ylabel('价格 (美元)')
     plt.legend()
-    
-    # 显示网格
-    plt.grid(True)
-    
-    # 显示图表
+    plt.grid()
     plt.show()
 
-# 主程序入口
+# 计算基本统计信息
+def calculate_statistics(data):
+    stats = {
+        '最高价': data['High'].max(),
+        '最低价': data['Low'].min(),
+        '平均收盘价': data['Close'].mean(),
+        '年波动率': data['Close'].pct_change().std() * (252 ** 0.5)  # 年化波动率
+    }
+    return pd.Series(stats)
+
+# 主程序
 if __name__ == "__main__":
-    # 设置股票代码和日期范围
-    stock_ticker = 'AAPL'  # 示例股票代码：苹果公司
-    start_date = '2020-01-01'  # 数据起始日期
-    end_date = '2023-12-31'    # 数据结束日期
-
-    # 调用函数获取股票数据
-    # 注意：如果网络连接不稳定或股票代码无效，可能会抛出异常
-    stock_data = get_stock_data(stock_ticker, start_date, end_date)
-
-    # 检查数据是否成功获取
-    # 如果数据为空，可以添加异常处理逻辑（此处未实现）
-    if not stock_data.empty:
-        # 调用函数绘制收盘价曲线
-        plot_close_price(stock_data, stock_ticker)
-    else:
-        print("未能获取到股票数据，请检查股票代码或网络连接。")
+    # 获取数据
+    stock_data = get_stock_data(ticker, start_date, end_date)
+    
+    # 计算移动平均线
+    stock_data = calculate_moving_average(stock_data)
+    
+    # 显示前5行数据
+    print("股票数据前5行:")
+    print(stock_data.head())
+    
+    # 显示基本统计信息
+    print("\n基本统计信息:")
+    stats = calculate_statistics(stock_data)
+    print(stats)
+    
+    # 绘制图表
+    plot_stock_data(stock_data, ticker)
 \`\`\`
 
----
+## 代码说明
 
-### 代码注释说明：
+1. 使用\`yfinance\`库从Yahoo Finance获取股票数据
+2. 计算20日移动平均线
+3. 绘制股票收盘价和移动平均线图表
+4. 计算并显示基本统计信息（最高价、最低价、平均收盘价和年化波动率）
 
-1. **库导入**：明确说明每个库的用途，便于用户理解代码结构。
-2. **函数参数**：在函数定义中详细说明每个参数的含义和格式。
-3. **数据获取**：解释 \`yf.download()\` 的作用，并提示潜在的异常情况。
-4. **数据结构**：说明 \`DataFrame\` 中的列（如 'Close'）代表的含义。
-5. **图表绘制**：对 \`plt.plot()\`、\`plt.title()\` 等函数进行解释，说明其作用。
-6. **主程序逻辑**：添加数据检查逻辑，增强代码健壮性，并提示用户可能的错误场景。
+## 运行要求
 
----
-
-### 运行前需安装依赖库：
-
-\`\`\`bash
-pip install yfinance matplotlib
+在运行此代码前，请确保已安装以下库：
+\`\`\`
+pip install yfinance matplotlib pandas
 \`\`\`
 
----
+## 扩展功能
 
-### 扩展建议（可选）：
+你可以根据需要扩展此代码，添加以下功能：
+- 添加更多技术指标（如RSI、MACD等）
+- 实现简单的交易策略回测
+- 添加多股票比较功能
+- 连接券商API实现自动化交易
 
-- 添加异常处理（如网络错误、无效股票代码）。
-- 增加数据预处理（如缺失值处理、数据清洗）。
-- 支持多只股票对比分析。
-- 添加技术指标（如均线、RSI、MACD）。
-
-如需进一步扩展功能，欢迎继续提问！`
+需要任何特定功能的实现或有其他问题，请随时告诉我！`
 </script>
 
 <template>
-  <main font-sans p="x-4 y-10" text="center gray-700 dark:gray-200">
+  <main>
     <MarkdownRender :content="content" />
     <Footer />
   </main>

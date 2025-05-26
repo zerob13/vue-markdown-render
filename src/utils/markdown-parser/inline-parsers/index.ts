@@ -1,4 +1,4 @@
-import type { MarkdownToken, ParsedNode, TextNode } from '../types'
+import type { MarkdownToken, ParsedNode, TextNode } from '../../../types'
 import { parseTextToken } from './text-parser'
 import { parseInlineCodeToken } from './inline-code-parser'
 import { parseLinkToken } from './link-parser'

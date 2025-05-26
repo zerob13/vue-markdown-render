@@ -3,7 +3,7 @@ import type {
   DefinitionListNode,
   MarkdownToken,
   ParsedNode,
-} from '../types'
+} from '../../../types'
 import { parseInlineTokens } from '../inline-parsers'
 
 export function parseDefinitionList(
