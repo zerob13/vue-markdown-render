@@ -344,11 +344,19 @@ export function useCodeEditor() {
   const themeStore = useThemeStore()
   // 创建编辑器实例的函数
   let editorView: EditorView | null = null
+
+  const cleanupEditor = () => {
+    if (editorView)
+      editorView.destroy()
+    editorView = null
+  }
+
   const createEditor = (
     editorContainer: HTMLElement,
     decodedCode: string,
     lang: string,
   ) => {
+    cleanupEditor()
     const extensions = [
       basicSetup,
       themeStore.isDark ? anysphereThemeDark : anysphereThemeLight,
@@ -379,12 +387,6 @@ export function useCodeEditor() {
       editorContainer.innerHTML = `<pre style="white-space: pre-wrap; color: ${'#000000'}; margin: 0;">${escapedCode}</pre>`
     }
     return editorView
-  }
-
-  const cleanupEditor = () => {
-    if (editorView)
-      editorView.destroy()
-    editorView = null
   }
 
   return {
