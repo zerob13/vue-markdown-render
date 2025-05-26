@@ -23,8 +23,8 @@ export default defineConfig(({ mode }) => {
     plugins = [
       Vue(),
       dts({
-        entryRoot: 'src/types',
-        include: ['src/types'],
+        entryRoot: 'src',
+        include: ['src/*.vue'],
         outDir: 'dist/types',
       }),
     ]

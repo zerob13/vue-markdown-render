@@ -8,6 +8,7 @@ import markdownItIns from 'markdown-it-ins'
 import markdownItCheckbox from 'markdown-it-task-checkbox'
 import markdownItFootnote from 'markdown-it-footnote'
 import markdownItContainer from 'markdown-it-container'
+import { useI18n } from 'vue-i18n'
 import {
   parseInlineTokens,
   parseMarkdownToStructure,

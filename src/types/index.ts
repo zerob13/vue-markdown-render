@@ -63,6 +63,16 @@ export interface ThematicBreakNode extends BaseNode {
   type: 'thematic_break'
 }
 
+export interface MermaidBlockNode {
+  node: {
+    type: 'code_block'
+    language: string
+    code: string
+  }
+}
+
+export type MarkdownRender = { content: string, nodes?: undefined, messageId?: string, threadId?: string, customComponents?: Record<string, any> }
+  | { content?: undefined, nodes: BaseNode[], messageId?: string, threadId?: string, customComponents?: Record<string, any> }
 export interface BlockquoteNode extends BaseNode {
   type: 'blockquote'
   children: ParsedNode[]
