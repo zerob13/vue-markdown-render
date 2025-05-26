@@ -27,13 +27,14 @@
   ],
   "exports": {
     ".": {
+      "types": "./dist/types/exports.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     }
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
-  "types": "./dist/types/index.d.ts",
+  "types": "./dist/types/exports.d.ts",
   "files": [
     "dist"
   ],
