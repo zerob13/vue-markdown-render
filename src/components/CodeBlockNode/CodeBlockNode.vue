@@ -11,7 +11,7 @@ import { nanoid } from 'nanoid'
 import MermaidBlockNode from '../MermaidBlockNode'
 
 import { detectLanguage, getLanguageIcon, useCodeEditor } from '../../utils'
-import { isDark } from '@/utils/isDark'
+import { isDark } from '../../utils/isDark'
 
 const props = defineProps<{
   node: {
