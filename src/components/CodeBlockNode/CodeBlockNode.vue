@@ -10,8 +10,8 @@ import { nanoid } from 'nanoid'
 
 import MermaidBlockNode from '../MermaidBlockNode'
 
-import { detectLanguage, getLanguageIcon, useCodeEditor } from '@/utils'
-import { useThemeStore } from '@/utils/theme'
+import { detectLanguage, getLanguageIcon, useCodeEditor } from '../../utils'
+import { isDark } from '@/utils/isDark'
 
 const props = defineProps<{
   node: {
@@ -24,7 +24,6 @@ const props = defineProps<{
 
 const emits = defineEmits(['previewCode'])
 const { t } = useI18n()
-const themeStore = useThemeStore()
 const codeEditor = ref<HTMLElement | null>(null)
 const copyText = ref(t('common.copy'))
 const editorInstance = ref<EditorView | null>(null)
@@ -145,7 +144,7 @@ function previewCode() {
 
 // 监听主题变化
 watch(
-  () => themeStore.isDark,
+  () => isDark.value,
   () => {
     if (codeEditor.value)
       editorInstance.value = createEditor(codeEditor.value, props.node.code, codeLanguage.value)

@@ -30,7 +30,8 @@
       "types": "./dist/types/exports.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
-    }
+    },
+    "./index.css": "./dist/index.css"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -84,7 +85,6 @@
     "markdown-it-task-checkbox": "^1.0.6",
     "mermaid": "^11.6.0",
     "nanoid": "^5.1.5",
-    "pinia": "^3.0.2",
     "radix-vue": "^1.9.17",
     "tailwind-merge": "^3.3.0",
     "uuid": "^11.1.0",

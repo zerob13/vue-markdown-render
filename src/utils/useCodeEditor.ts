@@ -5,8 +5,8 @@ import { makefile } from 'codemirror-lang-makefile'
 import { terraform } from 'codemirror-lang-terraform'
 import type { Extension } from '@codemirror/state'
 import { EditorState } from '@codemirror/state'
-import { useThemeStore } from './theme'
 import { anysphereThemeDark, anysphereThemeLight } from './code.theme'
+import { isDark } from './isDark'
 
 export const editorInstances: Map<string, EditorView> = new Map()
 // 收集当前可见的编辑器ID
@@ -341,7 +341,6 @@ export function getLanguageIcon(lang: string): string {
   }
 }
 export function useCodeEditor() {
-  const themeStore = useThemeStore()
   // 创建编辑器实例的函数
   let editorView: EditorView | null = null
 
@@ -359,7 +358,7 @@ export function useCodeEditor() {
     cleanupEditor()
     const extensions = [
       basicSetup,
-      themeStore.isDark ? anysphereThemeDark : anysphereThemeLight,
+      isDark.value ? anysphereThemeDark : anysphereThemeLight,
       EditorView.lineWrapping,
       EditorState.tabSize.of(2),
       getLanguageExtension(lang),

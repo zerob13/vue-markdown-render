@@ -30,8 +30,8 @@ import EmojiNode from '../EmojiNode'
 import CheckboxNode from '../CheckboxNode'
 import InlineCodeNode from '../InlineCodeNode'
 
-import type { BaseNode } from '@/utils'
-import { getMarkdown, parseMarkdownToStructure } from '@/utils/markdown'
+import type { BaseNode } from '../../utils'
+import { getMarkdown, parseMarkdownToStructure } from '../../utils/markdown'
 
 // 组件接收的 props
 const props = defineProps<
