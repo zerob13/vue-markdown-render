@@ -1,7 +1,8 @@
+import type { CreateThemeOptions } from '@uiw/codemirror-themes'
 import { createTheme } from '@uiw/codemirror-themes'
 import { tags as t } from '@lezer/highlight'
 
-export const anysphereThemeDark = createTheme({
+export const darkStyle: CreateThemeOptions = {
   theme: 'dark',
   settings: {
     background: '#181818',
@@ -58,9 +59,9 @@ export const anysphereThemeDark = createTheme({
     { tag: t.url, color: '#83D6C5', textDecoration: 'underline' },
     { tag: t.color, color: '#EBC88D' },
   ],
-})
+}
 
-export const anysphereThemeLight = createTheme({
+export const lightStyle: CreateThemeOptions = {
   theme: 'light',
   settings: {
     background: '#ffffff',
@@ -117,7 +118,8 @@ export const anysphereThemeLight = createTheme({
     { tag: t.url, color: '#032f62', textDecoration: 'underline' },
     { tag: t.color, color: '#005cc5' },
   ],
-})
+}
 
-// For backward compatibility
-export const anysphereTheme = anysphereThemeDark
+export {
+  createTheme,
+}

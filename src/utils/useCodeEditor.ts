@@ -7,7 +7,7 @@ import type { Extension } from '@codemirror/state'
 import { EditorState } from '@codemirror/state'
 import type { CreateThemeOptions } from '@uiw/codemirror-themes'
 import { createTheme } from '@uiw/codemirror-themes'
-import { anysphereThemeDark, anysphereThemeLight } from './code.theme'
+import { darkStyle, lightStyle } from './code.theme'
 import { isDark } from './isDark'
 
 export const editorInstances: Map<string, EditorView> = new Map()
@@ -344,14 +344,14 @@ export function getLanguageIcon(lang: string): string {
 }
 const _anysphereThemeLight: any = null
 let _anysphereThemeDark: any = null
-export function useCodeEditor(darkStyle?: CreateThemeOptions, lightStyle?: CreateThemeOptions) {
+export function useCodeEditor(_darkStyle?: CreateThemeOptions, _lightStyle?: CreateThemeOptions) {
   // 创建编辑器实例的函数
   let editorView: EditorView | null = null
   if (!_anysphereThemeLight) {
-    _anysphereThemeDark = darkStyle ? createTheme(darkStyle) : anysphereThemeDark
+    _anysphereThemeDark = createTheme(_darkStyle || darkStyle)
   }
   if (!_anysphereThemeDark) {
-    _anysphereThemeDark = lightStyle ? createTheme(lightStyle) : anysphereThemeLight
+    _anysphereThemeDark = createTheme(_lightStyle || lightStyle)
   }
 
   const cleanupEditor = () => {
