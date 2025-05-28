@@ -1,11 +1,13 @@
 <script setup lang="ts">
-  defineProps<{ node: {
-    raw: string
-  } }>()
+defineProps<{ node: {
+  raw: string
+} }>()
 </script>
 
 <template>
-<div class="unknown-node">{{ node.raw }}</div>
+  <div class="unknown-node">
+    {{ node.raw }}
+  </div>
 </template>
 
 <style scoped>

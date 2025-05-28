@@ -37,9 +37,11 @@ export function getMarkdown(msgId: string) {
     const start = pos
     const marker = state.src.charCodeAt(pos)
 
-    if (silent) return false
+    if (silent)
+      return false
 
-    if (marker !== 0x2a /* * */ && marker !== 0x5f /* _ */) return false
+    if (marker !== 0x2A /* * */ && marker !== 0x5F /* _ */)
+      return false
 
     let scan = pos
     const mem = pos
@@ -50,7 +52,8 @@ export function getMarkdown(msgId: string) {
     }
 
     const len = scan - pos
-    if (len < 2) return false
+    if (len < 2)
+      return false
 
     pos = scan
     const markerCount = len
@@ -74,13 +77,13 @@ export function getMarkdown(msgId: string) {
     if (!silent) {
       state.pos = start + markerCount
       token = state.push('strong_open', 'strong', 1)
-      token.markup = marker === 0x2a ? '**' : '__'
+      token.markup = marker === 0x2A ? '**' : '__'
 
       token = state.push('text', '', 0)
       token.content = state.src.slice(start + markerCount, pos)
 
       token = state.push('strong_close', 'strong', -1)
-      token.markup = marker === 0x2a ? '**' : '__'
+      token.markup = marker === 0x2A ? '**' : '__'
     }
 
     state.pos = pos + markerCount
@@ -233,7 +236,7 @@ export function getMarkdown(msgId: string) {
   // Register custom rules
   md.inline.ruler.before('escape', 'math', mathInline)
   md.block.ruler.before('paragraph', 'math_block', mathBlock, {
-    alt: ['paragraph', 'reference', 'blockquote', 'list']
+    alt: ['paragraph', 'reference', 'blockquote', 'list'],
   })
 
   // Add rendering rules
@@ -262,7 +265,7 @@ export function getMarkdown(msgId: string) {
       processEscapes: true,
       processEnvironments: true,
       processRefs: true,
-      digits: /^(?:[0-9]+(?:\{,\}[0-9]{3})*(?:\.[0-9]*)?|\.[0-9]+)/
+      digits: /^(?:\d+(?:\{,\}\d{3})*(?:\.\d*)?|\.\d+)/,
     },
   })
 

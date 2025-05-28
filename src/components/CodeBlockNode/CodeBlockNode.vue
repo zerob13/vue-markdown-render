@@ -1,43 +1,3 @@
-<template>
-  <MermaidBlockNode v-if="isMermaid" :node="node" />
-  <div v-else class="my-4 rounded-lg border border-border overflow-hidden shadow-sm">
-    <div class="flex justify-between items-center p-2 bg-muted text-xs">
-      <span class="flex items-center space-x-2">
-        <Icon :icon="languageIcon" class="w-4 h-4" />
-        <span class="text-gray-600 dark:text-gray-400 font-mono font-bold">{{
-          displayLanguage
-        }}</span>
-      </span>
-      <div v-if="isPreviewable" class="flex items-center space-x-2">
-        <button
-          class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-          @click="copyCode"
-        >
-          {{ copyText }}
-        </button>
-        <button
-          class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-          @click="previewCode"
-        >
-          {{ t('artifacts.preview') }}
-        </button>
-      </div>
-      <button
-        v-else
-        class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-        @click="copyCode"
-      >
-        {{ copyText }}
-      </button>
-    </div>
-    <div
-      ref="codeEditor"
-      class="min-h-[30px] max-h-[500px] text-xs overflow-auto bg-background font-mono leading-relaxed"
-      :data-language="node.language"
-    ></div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -254,6 +214,46 @@ onUnmounted(() => {
   editorInstance.value = null
 })
 </script>
+
+<template>
+  <MermaidBlockNode v-if="isMermaid" :node="node" />
+  <div v-else class="my-4 rounded-lg border border-border overflow-hidden shadow-sm">
+    <div class="flex justify-between items-center p-2 bg-muted text-xs">
+      <span class="flex items-center space-x-2">
+        <Icon :icon="languageIcon" class="w-4 h-4" />
+        <span class="text-gray-600 dark:text-gray-400 font-mono font-bold">{{
+          displayLanguage
+        }}</span>
+      </span>
+      <div v-if="isPreviewable" class="flex items-center space-x-2">
+        <button
+          class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+          @click="copyCode"
+        >
+          {{ copyText }}
+        </button>
+        <button
+          class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+          @click="previewCode"
+        >
+          {{ t('artifacts.preview') }}
+        </button>
+      </div>
+      <button
+        v-else
+        class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+        @click="copyCode"
+      >
+        {{ copyText }}
+      </button>
+    </div>
+    <div
+      ref="codeEditor"
+      class="min-h-[30px] max-h-[500px] text-xs overflow-auto bg-background font-mono leading-relaxed"
+      :data-language="node.language"
+    />
+  </div>
+</template>
 
 <style>
 /* Ensure CodeMirror inherits the right font in the editor */
