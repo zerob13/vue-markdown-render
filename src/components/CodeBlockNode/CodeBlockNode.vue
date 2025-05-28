@@ -8,6 +8,7 @@ import type { EditorView } from 'codemirror'
 // Optional: Import artifact store if needed
 import { nanoid } from 'nanoid'
 
+import type { CreateThemeOptions } from '@uiw/codemirror-themes'
 import MermaidBlockNode from '../MermaidBlockNode'
 
 import { detectLanguage, getLanguageIcon, useCodeEditor } from '../../utils'
@@ -20,6 +21,8 @@ const props = defineProps<{
     code: string
     raw: string
   }
+  darkStyle?: CreateThemeOptions
+  lightStyle?: CreateThemeOptions
 }>()
 
 const emits = defineEmits(['previewCode'])
@@ -28,7 +31,7 @@ const codeEditor = ref<HTMLElement | null>(null)
 const copyText = ref(t('common.copy'))
 const editorInstance = ref<EditorView | null>(null)
 const codeLanguage = ref(props.node.language || '')
-const { createEditor, cleanupEditor } = useCodeEditor()
+const { createEditor, cleanupEditor } = useCodeEditor(props.darkStyle, props.lightStyle)
 
 // 创建节流版本的语言检测函数,1秒内最多执行一次
 const throttledDetectLanguage = useThrottleFn(
@@ -221,9 +224,7 @@ onUnmounted(() => {
     <div class="flex justify-between items-center p-2 bg-muted text-xs">
       <span class="flex items-center space-x-2">
         <Icon :icon="languageIcon" class="w-4 h-4" />
-        <span class="text-gray-600 dark:text-gray-400 font-mono font-bold">{{
-          displayLanguage
-        }}</span>
+        <span class="text-gray-600 dark:text-gray-400 font-mono font-bold">{{ displayLanguage }}</span>
       </span>
       <div v-if="isPreviewable" class="flex items-center space-x-2">
         <button
@@ -257,14 +258,14 @@ onUnmounted(() => {
 
 <style>
 /* Ensure CodeMirror inherits the right font in the editor */
-.cm-editor .cm-content {
-  font-family:
-    ui-monospace,
-    SFMono-Regular,
-    SF Mono,
-    Menlo,
-    Consolas,
-    Liberation Mono,
-    monospace !important;
-}
+  .cm-editor .cm-content {
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      SF Mono,
+      Menlo,
+      Consolas,
+      Liberation Mono,
+      monospace !important;
+  }
 </style>

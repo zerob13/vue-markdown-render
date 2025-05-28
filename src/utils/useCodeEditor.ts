@@ -5,6 +5,8 @@ import { makefile } from 'codemirror-lang-makefile'
 import { terraform } from 'codemirror-lang-terraform'
 import type { Extension } from '@codemirror/state'
 import { EditorState } from '@codemirror/state'
+import type { CreateThemeOptions } from '@uiw/codemirror-themes'
+import { createTheme } from '@uiw/codemirror-themes'
 import { anysphereThemeDark, anysphereThemeLight } from './code.theme'
 import { isDark } from './isDark'
 
@@ -340,9 +342,17 @@ export function getLanguageIcon(lang: string): string {
       return 'lucide:square-code' // Fallback icon
   }
 }
-export function useCodeEditor() {
+const _anysphereThemeLight: any = null
+let _anysphereThemeDark: any = null
+export function useCodeEditor(darkStyle?: CreateThemeOptions, lightStyle?: CreateThemeOptions) {
   // 创建编辑器实例的函数
   let editorView: EditorView | null = null
+  if (!_anysphereThemeLight) {
+    _anysphereThemeDark = darkStyle ? createTheme(darkStyle) : anysphereThemeDark
+  }
+  if (!_anysphereThemeDark) {
+    _anysphereThemeDark = lightStyle ? createTheme(lightStyle) : anysphereThemeLight
+  }
 
   const cleanupEditor = () => {
     if (editorView)
@@ -358,7 +368,7 @@ export function useCodeEditor() {
     cleanupEditor()
     const extensions = [
       basicSetup,
-      isDark.value ? anysphereThemeDark : anysphereThemeLight,
+      isDark.value ? _anysphereThemeDark : _anysphereThemeLight,
       EditorView.lineWrapping,
       EditorState.tabSize.of(2),
       getLanguageExtension(lang),
