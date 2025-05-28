@@ -342,16 +342,16 @@ export function getLanguageIcon(lang: string): string {
       return 'lucide:square-code' // Fallback icon
   }
 }
-const _anysphereThemeLight: any = null
+let _anysphereThemeLight: any = null
 let _anysphereThemeDark: any = null
 export function useCodeEditor(_darkStyle?: CreateThemeOptions, _lightStyle?: CreateThemeOptions) {
   // 创建编辑器实例的函数
   let editorView: EditorView | null = null
-  if (!_anysphereThemeLight) {
+  if (!_anysphereThemeDark) {
     _anysphereThemeDark = createTheme(_darkStyle || darkStyle)
   }
-  if (!_anysphereThemeDark) {
-    _anysphereThemeDark = createTheme(_lightStyle || lightStyle)
+  if (!_anysphereThemeLight) {
+    _anysphereThemeLight = createTheme(_lightStyle || lightStyle)
   }
 
   const cleanupEditor = () => {
