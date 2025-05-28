@@ -71,7 +71,7 @@ defineEmits(['copy'])
             :key="`cell-${rowIndex}-${cellIndex}`"
             class="p-2 text-left whitespace-nowrap"
             :class="{
-              'border-r ': cellIndex < row.cells.length - 1,
+              'border-r': cellIndex < row.cells.length - 1,
             }"
           >
             <NodeRenderer

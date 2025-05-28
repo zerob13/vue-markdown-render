@@ -12,7 +12,7 @@ const router = useRouter()
     </p>
 
     <div>
-      <button class="btn m3 text-sm mt8" @click="router.back()">
+      <button class="btn m-3 text-sm mt8" @click="router.back()">
         Back
       </button>
     </div>
