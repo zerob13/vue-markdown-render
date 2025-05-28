@@ -32,6 +32,7 @@ import InlineCodeNode from '../InlineCodeNode'
 
 import type { BaseNode } from '../../utils'
 import { getMarkdown, parseMarkdownToStructure } from '../../utils/markdown'
+import FallbackComponent from './FallbackComponent.vue'
 
 // 组件接收的 props
 const props = defineProps<
@@ -81,17 +82,11 @@ const nodeComponents = {
   // 例如:custom_node: CustomNode,
   ...props.customComponents || {},
 }
-
-// 备用组件用于处理未知节点类型
-const fallbackComponent = {
-  props: ['node'],
-  template: `<div class="unknown-node">{{ node.raw }}</div>`,
-}
 </script>
 
 <template>
   <component
-    :is="nodeComponents[node.type] || fallbackComponent" v-for="(node, index) in parsedNodes" :key="index"
+    :is="nodeComponents[node.type] || FallbackComponent" v-for="(node, index) in parsedNodes" :key="index"
     :node="node" :loading="node.loading" @copy="$emit('copy', $event)"
     @handle-artifact-click="$emit('handleArtifactClick', $event)" @click="$emit('click', $event)"
     @mouseover="$emit('mouseover', $event)" @mouseout="$emit('mouseout', $event)"
