@@ -1,16 +1,5 @@
 <script setup lang="ts">
-import TextNode from '../TextNode'
-import InlineCodeNode from '../InlineCodeNode'
-import LinkNode from '../LinkNode'
-import StrongNode from '../StrongNode'
-import EmphasisNode from '../EmphasisNode'
-import FootnoteReferenceNode from '../FootnoteReferenceNode'
-import StrikethroughNode from '../StrikethroughNode'
-import HighlightNode from '../HighlightNode'
-import InsertNode from '../InsertNode'
-import SubscriptNode from '../SubscriptNode'
-import EmojiNode from '../EmojiNode'
-import MathInlineNode from '../MathInlineNode'
+import { getNodeComponents } from '../../utils/nodeComponents'
 // import ReferenceNode from './ReferenceNode.vue';
 
 interface NodeChild {
@@ -28,21 +17,7 @@ defineProps<{
 }>()
 
 // Available node components for child rendering
-const nodeComponents = {
-  text: TextNode,
-  inline_code: InlineCodeNode,
-  link: LinkNode,
-  strong: StrongNode,
-  emphasis: EmphasisNode,
-  footnote_reference: FootnoteReferenceNode,
-  strikethrough: StrikethroughNode,
-  highlight: HighlightNode,
-  insert: InsertNode,
-  subscript: SubscriptNode,
-  emoji: EmojiNode,
-  math_inline: MathInlineNode,
-  // reference: ReferenceNode
-}
+const nodeComponents = getNodeComponents()
 </script>
 
 <template>

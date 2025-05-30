@@ -6,7 +6,7 @@ export function parseFootnote(
   index: number,
 ): [FootnoteNode, number] {
   const token = tokens[index]
-  const id = token.meta?.id || ''
+  const id = token.meta?.label ?? 0
   const footnoteChildren: ParsedNode[] = []
   let j = index + 1
 

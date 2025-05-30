@@ -45,6 +45,7 @@ export function processTokens(tokens: MarkdownToken[]): ParsedNode[] {
         i += 3 // Skip paragraph_open, inline, paragraph_close
         break
 
+      case 'html_block':
       case 'code_block':
         result.push(parseCodeBlock(tokens[i]))
         i += 1

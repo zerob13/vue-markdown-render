@@ -32,6 +32,7 @@ import InlineCodeNode from '../InlineCodeNode'
 
 import type { BaseNode } from '../../utils'
 import { getMarkdown, parseMarkdownToStructure } from '../../utils/markdown'
+import { setNodeComponents } from '../../utils/nodeComponents'
 import FallbackComponent from './FallbackComponent.vue'
 
 // 组件接收的 props
@@ -82,6 +83,7 @@ const nodeComponents = {
   // 例如:custom_node: CustomNode,
   ...props.customComponents || {},
 }
+setNodeComponents(nodeComponents)
 </script>
 
 <template>

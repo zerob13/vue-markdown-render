@@ -14,16 +14,21 @@ import MermaidBlockNode from '../MermaidBlockNode'
 import { detectLanguage, getLanguageIcon, useCodeEditor } from '../../utils'
 import { isDark } from '../../utils/isDark'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   node: {
     type: 'code_block'
     language: string
     code: string
     raw: string
   }
+  isShowPreview?: boolean
   darkStyle?: CreateThemeOptions
   lightStyle?: CreateThemeOptions
-}>()
+}>(), {
+  isShowPreview: true,
+  darkStyle: undefined,
+  lightStyle: undefined,
+})
 
 const emits = defineEmits(['previewCode'])
 const { t } = useI18n()
@@ -50,7 +55,7 @@ if (props.node.language === '') {
 // Check if the language is previewable (HTML or SVG)
 const isPreviewable = computed(() => {
   const lang = codeLanguage.value.trim().toLowerCase()
-  return lang === 'html' || lang === 'svg'
+  return props.isShowPreview && (lang === 'html' || lang === 'svg')
 })
 
 // Check if the code block is a Mermaid diagram
