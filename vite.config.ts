@@ -37,7 +37,7 @@ export default defineConfig(({ mode }) => {
         fileName: 'index',
       },
       rollupOptions: {
-        external: ['vue'],
+        external: ['vue', '@codemirror/state', '@iconify/vue', '@lezer/highlight', '@uiw/codemirror-extensions-langs', '@uiw/codemirror-themes', '@vueuse/core', 'class-variance-authority', 'clsx', 'codemirror', 'codemirror-lang-glsl', 'codemirror-lang-makefile', 'codemirror-lang-terraform', 'markdown-it', 'markdown-it-container', 'markdown-it-emoji', 'markdown-it-footnote', 'markdown-it-ins', 'markdown-it-mark', 'markdown-it-mathjax3', 'markdown-it-sub', 'markdown-it-sup', 'markdown-it-task-checkbox', 'mermaid', 'radix-vue', 'tailwind-merge', 'uuid', 'vue-i18n', 'katex'],
         output: {
           globals: {
             vue: 'Vue',

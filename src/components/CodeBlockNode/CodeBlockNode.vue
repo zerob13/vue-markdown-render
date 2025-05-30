@@ -6,7 +6,7 @@ import { Icon } from '@iconify/vue'
 import type { EditorView } from 'codemirror'
 
 // Optional: Import artifact store if needed
-import { nanoid } from 'nanoid'
+import { v4 as uuidv4 } from 'uuid'
 
 import type { CreateThemeOptions } from '@uiw/codemirror-themes'
 import MermaidBlockNode from '../MermaidBlockNode'
@@ -146,7 +146,7 @@ function previewCode() {
     node: props.node,
     artifactType,
     artifactTitle,
-    id: `temp-${lowerLang}-${nanoid()}`,
+    id: `temp-${lowerLang}-${uuidv4()}`,
   })
 }
 
