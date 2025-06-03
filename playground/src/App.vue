@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import MarkdownRender from 'vue-renderer-markdown'
+import MarkdownRender from '../../src/components/NodeRenderer'
 
-const content = `"# JavaScript 深度拷贝实现
+// 模拟流式传输
+const streamContent = `"# JavaScript 深度拷贝实现
 
 在 JavaScript 中实现深度拷贝（神拷贝）需要考虑各种数据类型和特殊情况。下面我将为你提供一个完整的深度拷贝实现方案：
 
@@ -163,8 +164,16 @@ console.log(cloned.self === cloned); // true
 
 1. \`JSON.parse(JSON.stringify(obj))\` - 简单但有限制（不能处理函数、循环引用、特殊对象等）
 2. 使用第三方库如 lodash 的 \`_.cloneDeep()\`
-
 希望这个实现能满足你的需求！如果你有特定的使用场景或需要支持更多数据类型，可以告诉我，我可以进一步调整实现方案。"`
+// 每隔0.5秒输出一部分内容
+const content = ref('')
+useInterval(5, {
+  callback() {
+    if (content.value.length < streamContent.length) {
+      content.value += streamContent.slice(content.value.length, content.value.length + 1)
+    }
+  },
+})
 </script>
 
 <template>

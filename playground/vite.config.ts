@@ -7,7 +7,9 @@ import Pages from 'vite-plugin-pages'
 import Components from 'unplugin-vue-components/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import Unocss from 'unocss/vite'
+import monacoEditorPlugin from 'vite-plugin-monaco-editor-esm'
 
+console.log({ monacoEditorPlugin })
 export default defineConfig({
   base: './',
   resolve: {
@@ -17,7 +19,6 @@ export default defineConfig({
   },
   plugins: [
     Vue({
-      reactivityTransform: true,
     }),
 
     // https://github.com/hannoeru/vite-plugin-pages
@@ -37,6 +38,11 @@ export default defineConfig({
     // https://github.com/antfu/unocss
     // see unocss.config.ts for config
     Unocss(),
+
+    monacoEditorPlugin({
+      languageWorkers: ['editorWorkerService', 'typescript', 'css', 'html', 'json'],
+      publicPath: '../../',
+    }),
   ],
 
   // https://github.com/vitest-dev/vitest

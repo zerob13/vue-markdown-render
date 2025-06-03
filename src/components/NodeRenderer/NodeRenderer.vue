@@ -50,6 +50,7 @@ const parsedNodes = computed<BaseNode[]>(() => {
   return props.nodes?.length ? props.nodes : props.content ? parseMarkdownToStructure(props.content, md) : []
 })
 
+console.log('Parsed Nodes:', parsedNodes.value)
 // 组件映射表
 const nodeComponents = {
   text: TextNode,
@@ -101,4 +102,7 @@ setNodeComponents(nodeComponents)
     font-style: italic;
     margin: 1rem 0;
   }
+</style>
+
+<style>
 </style>
