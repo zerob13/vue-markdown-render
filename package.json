@@ -1,7 +1,7 @@
 {
   "name": "vue-renderer-markdown",
   "type": "module",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "packageManager": "pnpm@7.33.7",
   "description": "A Vue 3 component that renders Markdown string content as HTML, supporting custom components and advanced markdown features.",
   "author": "Simon He",
