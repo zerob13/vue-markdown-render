@@ -1,5 +1,5 @@
 export * from './code.detect'
-export * from './code.theme'
-export * from './useCodeEditor'
+export * from './languageIcon'
+export * from './useMonaco'
 export * from './cn'
 export * from './markdown'
