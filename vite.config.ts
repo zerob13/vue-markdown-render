@@ -1,11 +1,12 @@
+import UnpluginClassExtractor from 'unplugin-class-extractor/vite'
 /// <reference types="vitest" />
 
 import Vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 import Components from 'unplugin-vue-components/vite'
 import dts from 'vite-plugin-dts'
-import UnpluginClassExtractor from 'unplugin-class-extractor/vite'
 import { name } from './package.json'
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const base = '/'
@@ -41,35 +42,13 @@ export default defineConfig(({ mode }) => {
         fileName: 'index',
       },
       rollupOptions: {
-        external: ['vue', '@iconify/vue', '@vueuse/core', 'class-variance-authority', 'clsx', 'markdown-it', 'markdown-it-container', 'markdown-it-emoji', 'markdown-it-footnote', 'markdown-it-ins', 'markdown-it-mark', 'markdown-it-mathjax3', 'markdown-it-sub', 'markdown-it-sup', 'markdown-it-task-checkbox', 'mermaid', 'radix-vue', 'tailwind-merge', 'uuid', 'vue-i18n', 'katex', 'shiki', '@shikijs/monaco', 'monaco-editor'],
-        input: {
-          utils: './src/exports.ts',
-          components: './src/components.ts',
+        external: ['vue', '@iconify/vue', '@lezer/highlight', '@vueuse/core', 'class-variance-authority', 'clsx', 'markdown-it', 'markdown-it-container', 'markdown-it-emoji', 'markdown-it-footnote', 'markdown-it-ins', 'markdown-it-mark', 'markdown-it-mathjax3', 'markdown-it-sub', 'markdown-it-sup', 'markdown-it-task-checkbox', 'mermaid', 'radix-vue', 'tailwind-merge', 'uuid', 'vue-i18n', 'katex'],
+        output: {
+          globals: {
+            vue: 'Vue',
+          },
+          exports: 'named',
         },
-        output: [
-          {
-            format: 'es',
-            entryFileNames: (chunkInfo) => {
-              if (chunkInfo.name === 'utils')
-                return 'utils.js'
-              return 'components/[name].js'
-            },
-            dir: 'dist/es',
-            globals: { vue: 'Vue' },
-            exports: 'named',
-          },
-          {
-            format: 'cjs',
-            entryFileNames: (chunkInfo) => {
-              if (chunkInfo.name === 'utils')
-                return 'utils.cjs'
-              return 'components/[name].cjs'
-            },
-            dir: 'dist/cjs',
-            globals: { vue: 'Vue' },
-            exports: 'named',
-          },
-        ],
       },
     }
   }

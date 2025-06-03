@@ -26,10 +26,10 @@
     "custom-component"
   ],
   "exports": {
-    "./components": {
-      "types": "./dist/types/types/components.d.ts",
-      "import": "./dist/es/components/components.js",
-      "require": "./dist/cjs/components/components.cjs"
+    ".": {
+      "types": "./dist/types/exports.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./utils": {
       "types": "./dist/types/utils/index.d.ts",
@@ -38,6 +38,9 @@
     },
     "./index.css": "./dist/es/index.css"
   },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/types/exports.d.ts",
   "files": [
     "dist"
   ],
