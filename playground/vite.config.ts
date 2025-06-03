@@ -41,7 +41,6 @@ export default defineConfig({
 
     monacoEditorPlugin({
       languageWorkers: ['editorWorkerService', 'typescript', 'css', 'html', 'json'],
-      publicPath: '../../',
     }),
   ],
 

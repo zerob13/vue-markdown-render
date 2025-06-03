@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useThrottleFn } from '@vueuse/core'
 import { Icon } from '@iconify/vue'
 import { v4 as uuidv4 } from 'uuid'
+import type { ThemeInput } from 'shiki'
 import MermaidBlockNode from '../MermaidBlockNode'
 import { detectLanguage, getLanguageIcon } from '../../utils'
 import { useMonaco } from '../../utils/useMonaco'
@@ -16,11 +17,13 @@ const props = withDefaults(defineProps<{
     code: string
     raw: string
   }
+  darkTheme?: ThemeInput
+  lightTheme?: ThemeInput
   isShowPreview?: boolean
 }>(), {
   isShowPreview: true,
-  darkStyle: undefined,
-  lightStyle: undefined,
+  darkTheme: undefined,
+  lightTheme: undefined,
 })
 
 const emits = defineEmits(['previewCode'])
@@ -28,7 +31,14 @@ const { t } = useI18n()
 const codeEditor = ref<HTMLElement | null>(null)
 const copyText = ref(t('common.copy'))
 const codeLanguage = ref(props.node.language || '')
-const { createEditor, updateCode } = useMonaco()
+const { createEditor, updateCode } = useMonaco({
+  themes: props.darkTheme && props.lightTheme
+    ? [
+        props.darkTheme,
+        props.lightTheme,
+      ]
+    : undefined,
+})
 
 // 创建节流版本的语言检测函数,1秒内最多执行一次
 const throttledDetectLanguage = useThrottleFn(
