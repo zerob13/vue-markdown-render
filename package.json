@@ -31,12 +31,7 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
-    "./utils": {
-      "types": "./dist/types/utils/index.d.ts",
-      "import": "./dist/es/utils.js",
-      "require": "./dist/cjs/utils.cjs"
-    },
-    "./index.css": "./dist/es/index.css"
+    "./index.css": "./dist/index.css"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
