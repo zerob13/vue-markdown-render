@@ -184,7 +184,7 @@ onMounted(async () => {
 
 <template>
   <MermaidBlockNode v-if="isMermaid" :node="node" />
-  <div v-else class="my4 rounded-lg border border-border overflow-hidden shadow-sm">
+  <div v-else class="my-4 rounded-lg border border-border overflow-hidden shadow-sm">
     <div class="flex justify-between items-center p-2 bg-muted text-xs">
       <span class="flex items-center space-x-2">
         <Icon :icon="languageIcon" class="w4 h4" />
