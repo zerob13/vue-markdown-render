@@ -187,7 +187,7 @@ onMounted(async () => {
   <div v-else class="my-4 rounded-lg border border-border overflow-hidden shadow-sm">
     <div class="flex justify-between items-center p-2 bg-muted text-xs">
       <span class="flex items-center space-x-2">
-        <Icon :icon="languageIcon" class="w4 h4" />
+        <Icon :icon="languageIcon" class="w-4 h-4" />
         <span class="text-gray-600 dark:text-gray-400 font-mono font-bold">{{ displayLanguage }}</span>
       </span>
       <div v-if="isPreviewable" class="flex items-center space-x-2">
