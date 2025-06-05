@@ -1,7 +1,6 @@
 <script lang="ts" setup>
-import Counter from './components/Counter.vue'
 </script>
 
 <template>
-  <Counter />
+  <div>pnpm play</div>
 </template>
