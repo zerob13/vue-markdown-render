@@ -120,10 +120,11 @@ export function detectLanguage(code: string): CodeLanguage {
   )
 }
 
-export const processedLanguage = (language: string) => {
-  if (/^(shellscript|bash|sh|shell|zsh)/i.test(language))
+export function processedLanguage(language: string) {
+  // eslint-disable-next-line regexp/no-dupe-disjunctions
+  if (/^(?:shellscript|bash|sh|shell|zsh)/i.test(language))
     return 'shell'
-  if(/^(powershell|ps|ps1)/i.test(language))
+  if (/^(?:powershell|ps1?)/i.test(language))
     return 'powershell'
   return language.split(':')[0]
 }

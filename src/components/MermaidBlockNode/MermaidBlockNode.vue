@@ -25,8 +25,8 @@ const translateX = ref(0)
 const translateY = ref(0)
 const isDragging = ref(false)
 const dragStart = ref({ x: 0, y: 0 })
-
-const showSource = ref(false)
+// 避免直接渲染画面报错
+const showSource = ref(true)
 
 const transformStyle = computed(() => ({
   transform: `translate(${translateX.value}px, ${translateY.value}px) scale(${zoom.value})`,

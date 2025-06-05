@@ -50,7 +50,6 @@ const parsedNodes = computed<BaseNode[]>(() => {
   return props.nodes?.length ? props.nodes : props.content ? parseMarkdownToStructure(props.content, md) : []
 })
 
-console.log('Parsed Nodes:', parsedNodes.value)
 // 组件映射表
 const nodeComponents = {
   text: TextNode,

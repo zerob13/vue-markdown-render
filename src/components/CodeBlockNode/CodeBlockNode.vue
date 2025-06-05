@@ -73,7 +73,6 @@ watch(
     }
     else {
       codeLanguage.value = newLanguage
-      console.log({newLanguage})
     }
   },
 )
@@ -161,16 +160,14 @@ watch(
 
 // 监听代码变化
 watch(
-  () => [props.node.code,codeLanguage.value],
+  () => [props.node.code, codeLanguage.value],
   () => {
     updateCode(props.node.code, codeLanguage.value)
-  }
+  },
 )
 
-
-
 // 初始化代码编辑器
-onMounted( () => {
+onMounted(() => {
   // Initial language setup is now handled above definitions
   createEditor(codeEditor.value, props.node.code, codeLanguage.value)
 })
