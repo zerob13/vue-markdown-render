@@ -13,6 +13,7 @@ declare module 'vue' {
     DefinitionListNode: typeof import('./src/components/DefinitionListNode/DefinitionListNode.vue')['default']
     EmojiNode: typeof import('./src/components/EmojiNode/EmojiNode.vue')['default']
     EmphasisNode: typeof import('./src/components/EmphasisNode/EmphasisNode.vue')['default']
+    FallbackComponent: typeof import('./src/components/NodeRenderer/FallbackComponent.vue')['default']
     FootnoteNode: typeof import('./src/components/FootnoteNode/FootnoteNode.vue')['default']
     FootnoteReferenceNode: typeof import('./src/components/FootnoteReferenceNode/FootnoteReferenceNode.vue')['default']
     HardBreakNode: typeof import('./src/components/HardBreakNode/HardBreakNode.vue')['default']

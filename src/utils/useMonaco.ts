@@ -6,6 +6,7 @@ import { createHighlighter } from 'shiki/bundle/full'
 import { computed, onUnmounted } from 'vue'
 import * as monaco from 'monaco-editor'
 import { isDark } from './isDark'
+import { processedLanguage } from './code.detect'
 
 export type MonacoEditorInstance = monaco.editor.IStandaloneCodeEditor
 
@@ -168,6 +169,7 @@ export function useMonaco(monacoOptions: MonacoOptions = {}) {
       minimap: { enabled: false },
       automaticLayout: true,
       readOnly: monacoOptions.readOnly ?? true,
+      contextmenu: false,
       scrollbar: {
         ...defaultScrollbar,
         ...(monacoOptions.scrollbar || {}),
@@ -215,11 +217,12 @@ export function useMonaco(monacoOptions: MonacoOptions = {}) {
     updateCode(newCode, codeLanguage: string) {
       if (!editorView)
         return
+      const processedCodeLanguage = processedLanguage(codeLanguage)
       const model = editorView.getModel()
       if (!model)
         return
-      if (model.getLanguageId() !== codeLanguage) {
-        monaco.editor.setModelLanguage(model, codeLanguage)
+      if (model.getLanguageId() !== processedCodeLanguage) {
+        monaco.editor.setModelLanguage(model, processedCodeLanguage)
       }
       // 如果当前主题与 isDark 状态不一致，则切换主题
       if (initialTheme !== currentTheme.value) {

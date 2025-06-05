@@ -119,3 +119,11 @@ export function detectLanguage(code: string): CodeLanguage {
       .sort((a, b) => b[1] - a[1])[0]?.[0] || 'plain'
   )
 }
+
+export const processedLanguage = (language: string) => {
+  if (/^(shellscript|bash|sh|shell|zsh)/i.test(language))
+    return 'shell'
+  if(/^(powershell|ps|ps1)/i.test(language))
+    return 'powershell'
+  return language.split(':')[0]
+}

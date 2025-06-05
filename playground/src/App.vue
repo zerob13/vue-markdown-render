@@ -2,169 +2,484 @@
 import MarkdownRender from '../../src/components/NodeRenderer'
 
 // 模拟流式传输
-const streamContent = `"# JavaScript 深度拷贝实现
+const streamContent = `I'll create a simple Electron + Vue chat application demo. Here's the structure:
 
-在 JavaScript 中实现深度拷贝（神拷贝）需要考虑各种数据类型和特殊情况。下面我将为你提供一个完整的深度拷贝实现方案：
+1. First, let's set up the project:
 
-## 基础实现方案
+\`\`\`shellscript
+# Create Vue project
+npm create vue@latest electron-vue-chat
 
-这是一个支持常见数据类型的深度拷贝函数：
+# Navigate to project
+cd electron-vue-chat
 
-\`\`\`javascript
-function deepClone(obj) {
-  // 处理基本数据类型和 null/undefined
-  if (obj === null || typeof obj !== 'object') {
-    return obj;
-  }
+# Install dependencies
+npm install
+npm install electron electron-builder vue-router
 
-  // 处理日期对象
-  if (obj instanceof Date) {
-    return new Date(obj.getTime());
-  }
-
-  // 处理数组
-  if (Array.isArray(obj)) {
-    const cloneArr = [];
-    for (let i = 0; i < obj.length; i++) {
-      cloneArr[i] = deepClone(obj[i]);
-    }
-    return cloneArr;
-  }
-
-  // 处理普通对象
-  if (obj instanceof Object) {
-    const cloneObj = {};
-    for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        cloneObj[key] = deepClone(obj[key]);
-      }
-    }
-    return cloneObj;
-  }
-
-  // 其他情况（如 Map、Set 等）可以在这里扩展
-  throw new Error(\`Unable to clone object of type \${obj.constructor.name}\`);
-}
+# Install dev dependencies
+npm install -D electron-dev-server concurrently wait-on
 \`\`\`
 
-## 进阶实现方案
+2. Create the main Electron file:
 
-这是一个更全面的实现，支持更多数据类型：
+\`\`\`javascript:electron/main.js
+const { app, BrowserWindow } = require('electron');
+const path = require('path');
+const isDev = process.env.NODE_ENV === 'development';
 
-\`\`\`javascript
-function deepCloneAdvanced(obj, hash = new WeakMap()) {
-  // 处理基本数据类型和 null/undefined
-  if (obj === null || typeof obj !== 'object') {
-    return obj;
-  }
+let mainWindow;
 
-  // 处理循环引用
-  if (hash.has(obj)) {
-    return hash.get(obj);
-  }
-
-  // 处理日期对象
-  if (obj instanceof Date) {
-    const copy = new Date(obj);
-    hash.set(obj, copy);
-    return copy;
-  }
-
-  // 处理正则表达式
-  if (obj instanceof RegExp) {
-    const copy = new RegExp(obj.source, obj.flags);
-    hash.set(obj, copy);
-    return copy;
-  }
-
-  // 处理数组
-  if (Array.isArray(obj)) {
-    const copy = [];
-    hash.set(obj, copy);
-    for (let i = 0; i < obj.length; i++) {
-      copy[i] = deepCloneAdvanced(obj[i], hash);
+function createWindow() {
+  mainWindow = new BrowserWindow({
+    width: 900,
+    height: 680,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
     }
-    return copy;
+  });
+
+  const url = isDev
+    ? 'http://localhost:5173'
+    : \`file://\${path.join(__dirname, '../dist/index.html')}\`;
+
+  mainWindow.loadURL(url);
+
+  if (isDev) {
+    mainWindow.webContents.openDevTools();
   }
 
-  // 处理 Map
-  if (obj instanceof Map) {
-    const copy = new Map();
-    hash.set(obj, copy);
-    obj.forEach((value, key) => {
-      copy.set(deepCloneAdvanced(key, hash), deepCloneAdvanced(value, hash));
-    });
-    return copy;
-  }
-
-  // 处理 Set
-  if (obj instanceof Set) {
-    const copy = new Set();
-    hash.set(obj, copy);
-    obj.forEach(value => {
-      copy.add(deepCloneAdvanced(value, hash));
-    });
-    return copy;
-  }
-
-  // 处理普通对象
-  if (obj instanceof Object) {
-    const copy = Object.create(Object.getPrototypeOf(obj));
-    hash.set(obj, copy);
-    for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        copy[key] = deepCloneAdvanced(obj[key], hash);
-      }
-    }
-    return copy;
-  }
-
-  // 其他情况
-  throw new Error(\`Unable to clone object of type \${obj.constructor.name}\`);
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
 }
+
+app.on('ready', createWindow);
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
+});
+
+app.on('activate', () => {
+  if (mainWindow === null) {
+    createWindow();
+  }
+});
 \`\`\`
 
-## 使用示例
+3. Update package.json:
 
-\`\`\`javascript
-const original = {
-  name: 'John',
-  age: 30,
-  hobbies: ['reading', 'coding'],
-  address: {
-    city: 'New York',
-    zip: '10001'
+\`\`\`json:package.json
+{
+  "name": "electron-vue-chat",
+  "version": "0.1.0",
+  "private": true,
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
+    "electron:build": "vite build && electron-builder"
   },
-  birthDate: new Date('1990-01-01'),
-  regex: /test/g,
-  friends: new Set(['Alice', 'Bob']),
-  scores: new Map([['math', 90], ['english', 85]])
+  "dependencies": {
+    "vue": "^3.3.4",
+    "vue-router": "^4.2.4",
+    "electron": "^25.3.1",
+    "electron-builder": "^24.4.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.2.3",
+    "concurrently": "^8.2.0",
+    "electron-dev-server": "^1.0.0",
+    "vite": "^4.4.6",
+    "wait-on": "^7.0.1"
+  }
+}
+\`\`\`
+
+4. Create chat components:
+
+\`\`\`vue:src/components/ChatSidebar.vue
+<template>
+  <div class="chat-sidebar">
+    <div class="sidebar-header">
+      <h3>Contacts</h3>
+    </div>
+    <div class="contact-list">
+      <div 
+        v-for="contact in contacts" 
+        :key="contact.id"
+        @click="selectContact(contact)"
+        :class="['contact-item', selectedContact?.id === contact.id ? 'active' : '']">
+        <div class="avatar">{{ contact.name.charAt(0) }}</div>
+        <div class="contact-info">
+          <div class="name">{{ contact.name }}</div>
+          <div class="last-message">{{ contact.lastMessage }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, defineEmits } from 'vue';
+
+const emit = defineEmits(['select-contact']);
+
+const contacts = ref([
+  { id: 1, name: 'Alice', lastMessage: 'Hey, how are you?' },
+  { id: 2, name: 'Bob', lastMessage: 'Let\'s meet tomorrow' },
+  { id: 3, name: 'Charlie', lastMessage: 'Did you see that?' }
+]);
+
+const selectedContact = ref(null);
+
+function selectContact(contact) {
+  selectedContact.value = contact;
+  emit('select-contact', contact);
+}
+<\/script>
+
+<style scoped>
+.chat-sidebar {
+  width: 280px;
+  border-right: 1px solid #e0e0e0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  padding: 15px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.contact-list {
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.contact-item {
+  padding: 12px 15px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.contact-item:hover {
+  background-color: #f5f5f5;
+}
+
+.contact-item.active {
+  background-color: #e1f5fe;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #2196f3;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+.contact-info {
+  flex-grow: 1;
+}
+
+.name {
+  font-weight: bold;
+}
+
+.last-message {
+  font-size: 0.8em;
+  color: #757575;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+</style>
+\`\`\`
+
+\`\`\`vue:src/components/ChatWindow.vue
+<template>
+  <div class="chat-window">
+    <div class="chat-header" v-if="contact">
+      <h3>{{ contact.name }}</h3>
+    </div>
+    <div class="messages-container" ref="messagesContainer">
+      <div v-if="!contact" class="no-contact">
+        Select a contact to start chatting
+      </div>
+      <template v-else>
+        <div 
+          v-for="(message, index) in messages" 
+          :key="index"
+          :class="['message', message.sender === 'me' ? 'sent' : 'received']">
+          {{ message.text }}
+          <div class="message-time">{{ message.time }}</div>
+        </div>
+      </template>
+    </div>
+    <div class="message-input" v-if="contact">
+      <input 
+        type="text" 
+        v-model="newMessage" 
+        @keyup.enter="sendMessage"
+        placeholder="Type a message..." />
+      <button @click="sendMessage">Send</button>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, watch, nextTick } from 'vue';
+
+const props = defineProps({
+  contact: Object
+});
+
+const messages = ref([]);
+const newMessage = ref('');
+const messagesContainer = ref(null);
+
+// Mock message history for each contact
+const messageHistory = {
+  1: [
+    { sender: 'other', text: 'Hi there!', time: '10:00 AM' },
+    { sender: 'me', text: 'Hello Alice!', time: '10:01 AM' },
+    { sender: 'other', text: 'How are you doing?', time: '10:02 AM' }
+  ],
+  2: [
+    { sender: 'other', text: 'Are we still on for tomorrow?', time: '9:30 AM' },
+    { sender: 'me', text: 'Yes, what time?', time: '9:35 AM' }
+  ],
+  3: [
+    { sender: 'me', text: 'Did you watch the game last night?', time: '8:45 PM' },
+    { sender: 'other', text: 'Yes! It was amazing!', time: '9:00 PM' }
+  ]
 };
 
-// 添加循环引用
-original.self = original;
+watch(() => props.contact, (newContact) => {
+  if (newContact) {
+    messages.value = messageHistory[newContact.id] || [];
+    scrollToBottom();
+  }
+});
 
-const cloned = deepCloneAdvanced(original);
+function sendMessage() {
+  if (!newMessage.value.trim()) return;
+  
+  const now = new Date();
+  const time = now.getHours() + ':' + now.getMinutes().toString().padStart(2, '0');
+  
+  messages.value.push({
+    sender: 'me',
+    text: newMessage.value,
+    time
+  });
+  
+  newMessage.value = '';
+  
+  // Mock reply
+  setTimeout(() => {
+    messages.value.push({
+      sender: 'other',
+      text: 'This is a demo auto-reply',
+      time: now.getHours() + ':' + (now.getMinutes() + 1).toString().padStart(2, '0')
+    });
+    scrollToBottom();
+  }, 1000);
+  
+  scrollToBottom();
+}
 
-console.log(cloned);
-console.log(cloned === original); // false
-console.log(cloned.self === cloned); // true
+function scrollToBottom() {
+  nextTick(() => {
+    if (messagesContainer.value) {
+      messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+    }
+  });
+}
+<\/script>
+
+<style scoped>
+.chat-window {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.chat-header {
+  padding: 15px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.messages-container {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.no-contact {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #757575;
+}
+
+.message {
+  max-width: 70%;
+  padding: 10px 15px;
+  border-radius: 18px;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.message.sent {
+  align-self: flex-end;
+  background-color: #dcf8c6;
+}
+
+.message.received {
+  align-self: flex-start;
+  background-color: #f1f0f0;
+}
+
+.message-time {
+  font-size: 0.7em;
+  color: #757575;
+  text-align: right;
+  margin-top: 5px;
+}
+
+.message-input {
+  display: flex;
+  padding: 10px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.message-input input {
+  flex-grow: 1;
+  padding: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  margin-right: 10px;
+}
+
+.message-input button {
+  padding: 0 15px;
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+}
+</style>
 \`\`\`
 
-## 注意事项
+5. Create the main chat view:
 
-1. **循环引用**：进阶版本使用 WeakMap 处理循环引用问题
-2. **原型链**：进阶版本保留了原始对象的原型链
-3. **特殊对象**：进阶版本支持 Date、RegExp、Map、Set 等特殊对象
-4. **性能考虑**：深度拷贝可能对性能有影响，特别是对于大型对象
+\`\`\`vue:src/views/ChatView.vue
+<template>
+  <div class="chat-container">
+    <ChatSidebar @select-contact="setCurrentContact" />
+    <ChatWindow :contact="currentContact" />
+  </div>
+</template>
 
-## 替代方案
+<script setup>
+import { ref } from 'vue';
+import ChatSidebar from '../components/ChatSidebar.vue';
+import ChatWindow from '../components/ChatWindow.vue';
 
-如果你不需要自定义的深度拷贝实现，也可以考虑以下方法：
+const currentContact = ref(null);
 
-1. \`JSON.parse(JSON.stringify(obj))\` - 简单但有限制（不能处理函数、循环引用、特殊对象等）
-2. 使用第三方库如 lodash 的 \`_.cloneDeep()\`
-希望这个实现能满足你的需求！如果你有特定的使用场景或需要支持更多数据类型，可以告诉我，我可以进一步调整实现方案。"`
+function setCurrentContact(contact) {
+  currentContact.value = contact;
+}
+<\/script>
+
+<style scoped>
+.chat-container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+}
+<\/style>
+\`\`\`
+
+6. Update the main App.vue:
+
+\`\`\`vue:src/App.vue
+<template>
+  <router-view />
+<\/template>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+}
+</style>
+\`\`\`
+
+7. Set up the router:
+
+\`\`\`javascript:src/router/index.js
+import { createRouter, createWebHistory } from 'vue-router';
+import ChatView from '../views/ChatView.vue';
+
+const routes = [
+  {
+    path: '/',
+    name: 'chat',
+    component: ChatView
+  }
+];
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes
+});
+
+export default router;
+\`\`\`
+
+8. Update main.js:
+
+\`\`\`javascript:src/main.js
+import { createApp } from 'vue';
+import App from './App.vue';
+import router from './router';
+
+createApp(App).use(router).mount('#app');
+\`\`\`
+
+To run the application:
+
+\`\`\`bash
+npm run electron:dev
+\`\`\`
+
+This creates a simple chat application with a contacts sidebar and a chat window. Users can select contacts and send messages, with auto-replies simulated.`
 // 每隔0.5秒输出一部分内容
 const content = ref('')
 useInterval(5, {
