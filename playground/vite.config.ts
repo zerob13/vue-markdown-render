@@ -9,7 +9,6 @@ import { defineConfig } from 'vite'
 import monacoEditorPlugin from 'vite-plugin-monaco-editor-esm'
 import Pages from 'vite-plugin-pages'
 
-console.log({ monacoEditorPlugin })
 export default defineConfig({
   base: './',
   resolve: {
