@@ -28,7 +28,9 @@ export default defineConfig(({ mode }) => {
       }),
       UnpluginClassExtractor({
         output: 'dist/tailwind.ts',
-        include: ['src/components/**/*.vue'],
+        include: [
+          /\/src\/components\/(?:[^/]+\/)*[^/]+\.vue(\?.*)?$/
+        ],
         safeList: [
           'bg-white dark:bg-zinc-700 text-foreground shadow-sm',
           'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-zinc-700',
