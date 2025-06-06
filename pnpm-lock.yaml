@@ -130,8 +130,8 @@ importers:
         specifier: ^2.2.10
         version: 2.2.10(typescript@5.8.3)
       vue-use-monaco:
-        specifier: ^0.0.2
-        version: 0.0.2(@vueuse/core@8.9.4(vue@3.5.16(typescript@5.8.3)))(vue@3.5.16(typescript@5.8.3))
+        specifier: ^0.0.3
+        version: 0.0.3(@vueuse/core@8.9.4(vue@3.5.16(typescript@5.8.3)))(vue@3.5.16(typescript@5.8.3))
 
   playground:
     dependencies:
@@ -4567,8 +4567,8 @@ packages:
     peerDependencies:
       typescript: '>=5.0.0'
 
-  vue-use-monaco@0.0.2:
-    resolution: {integrity: sha512-4B+4u02pz9tjGIBggzT9ISF5zLr6sAsOl+8/gs0mox1kXunLHdx2OQNF5ID4pzc25bB5la8nHI3pyTjfH5IQcw==}
+  vue-use-monaco@0.0.3:
+    resolution: {integrity: sha512-t17B46MvgvnVb9iwVyKuydV8V7OqgS4axw+6Wh52SXUbP4G13SKuRzNuJPuyhhqWX49x9fnHjc0fChT/sET4sg==}
     hasBin: true
     peerDependencies:
       '@vueuse/core': '>=8.9.4'
@@ -9549,7 +9549,7 @@ snapshots:
       '@vue/language-core': 2.2.10(typescript@5.8.3)
       typescript: 5.8.3
 
-  vue-use-monaco@0.0.2(@vueuse/core@8.9.4(vue@3.5.16(typescript@5.8.3)))(vue@3.5.16(typescript@5.8.3)):
+  vue-use-monaco@0.0.3(@vueuse/core@8.9.4(vue@3.5.16(typescript@5.8.3)))(vue@3.5.16(typescript@5.8.3)):
     dependencies:
       '@shikijs/monaco': 3.6.0
       '@vueuse/core': 8.9.4(vue@3.5.16(typescript@5.8.3))
