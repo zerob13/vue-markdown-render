@@ -1,13 +1,13 @@
 import type { ListItemNode, ListNode, MarkdownToken, ParsedNode } from '../../../types'
 import { parseInlineTokens } from '../inline-parsers'
+import { parseAdmonition } from './admonition-parser'
 import { parseBlockquote } from './blockquote-parser'
 import { parseCodeBlock, parseFence } from './code-block-parser'
-import { parseTable } from './table-parser'
 import { parseDefinitionList } from './definition-list-parser'
 import { parseFootnote } from './footnote-parser'
 import { parseHeading } from './heading-parser'
+import { parseTable } from './table-parser'
 import { parseThematicBreak } from './thematic-break-parser'
-import { parseAdmonition } from './admonition-parser'
 
 export function parseList(
   tokens: MarkdownToken[],

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
 import katex from 'katex'
+import { onMounted, ref, watch } from 'vue'
 
 const props = defineProps<{
   node: {

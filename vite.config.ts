@@ -1,9 +1,9 @@
-import UnpluginClassExtractor from 'unplugin-class-extractor/vite'
+import Vue from '@vitejs/plugin-vue'
 /// <reference types="vitest" />
 
-import Vue from '@vitejs/plugin-vue'
-import { defineConfig } from 'vite'
+import UnpluginClassExtractor from 'unplugin-class-extractor/vite'
 import Components from 'unplugin-vue-components/vite'
+import { defineConfig } from 'vite'
 import dts from 'vite-plugin-dts'
 import { name } from './package.json'
 

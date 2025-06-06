@@ -1,13 +1,13 @@
 import MarkdownIt from 'markdown-it'
+import markdownItContainer from 'markdown-it-container'
+import { full as markdownItEmoji } from 'markdown-it-emoji'
+import markdownItFootnote from 'markdown-it-footnote'
+import markdownItIns from 'markdown-it-ins'
+import markdownItMark from 'markdown-it-mark'
 import mathjax3 from 'markdown-it-mathjax3'
 import markdownItSub from 'markdown-it-sub'
 import markdownItSup from 'markdown-it-sup'
-import markdownItMark from 'markdown-it-mark'
-import { full as markdownItEmoji } from 'markdown-it-emoji'
-import markdownItIns from 'markdown-it-ins'
 import markdownItCheckbox from 'markdown-it-task-checkbox'
-import markdownItFootnote from 'markdown-it-footnote'
-import markdownItContainer from 'markdown-it-container'
 import { useI18n } from 'vue-i18n'
 import {
   parseInlineTokens,
@@ -17,7 +17,7 @@ import {
 
 // Re-export the node types for backward compatibility
 export * from '../types'
-export { parseMarkdownToStructure, processTokens, parseInlineTokens }
+export { parseInlineTokens, parseMarkdownToStructure, processTokens }
 
 export function getMarkdown(msgId: string) {
   // import footnote from 'markdown-it-footnote'

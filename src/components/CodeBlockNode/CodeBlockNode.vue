@@ -1,14 +1,14 @@
 <script setup lang="ts">
+import type { ThemeInput } from 'shiki'
+import { Icon } from '@iconify/vue'
+import { useThrottleFn } from '@vueuse/core'
+import { v4 as uuidv4 } from 'uuid'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useThrottleFn } from '@vueuse/core'
-import { Icon } from '@iconify/vue'
-import { v4 as uuidv4 } from 'uuid'
-import type { ThemeInput } from 'shiki'
 import { useMonaco } from 'vue-use-monaco'
-import MermaidBlockNode from '../MermaidBlockNode'
 import { detectLanguage, getLanguageIcon } from '../../utils'
 import { isDark } from '../../utils/isDark'
+import MermaidBlockNode from '../MermaidBlockNode'
 
 const props = withDefaults(defineProps<{
   node: {

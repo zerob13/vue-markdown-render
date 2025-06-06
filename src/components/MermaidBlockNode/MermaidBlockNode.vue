@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import { Icon } from '@iconify/vue'
+import mermaid from 'mermaid'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import mermaid from 'mermaid'
-import { Icon } from '@iconify/vue'
 import { Button } from '../button'
 
 const props = defineProps<{

@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import TextNode from '../TextNode'
+import EmojiNode from '../EmojiNode'
+import EmphasisNode from '../EmphasisNode'
+import FootnoteReferenceNode from '../FootnoteReferenceNode'
+import HighlightNode from '../HighlightNode'
 import InlineCodeNode from '../InlineCodeNode'
 import LinkNode from '../LinkNode'
-import StrongNode from '../StrongNode'
-import EmphasisNode from '../EmphasisNode'
+import MathInlineNode from '../MathInlineNode'
 import StrikethroughNode from '../StrikethroughNode'
-import HighlightNode from '../HighlightNode'
+import StrongNode from '../StrongNode'
 import SubscriptNode from '../SubscriptNode'
 import SuperscriptNode from '../SuperscriptNode'
-import EmojiNode from '../EmojiNode'
-import FootnoteReferenceNode from '../FootnoteReferenceNode'
-import MathInlineNode from '../MathInlineNode'
+import TextNode from '../TextNode'
 // import ReferenceNode from '../ReferenceNode';
 
 interface NodeChild {
