@@ -47,6 +47,7 @@ importers:
       vue: ^3.5.16
       vue-i18n: ^11.1.5
       vue-tsc: ^0.38.9
+      vue-use-monaco: ^0.0.1
     dependencies:
       '@shikijs/monaco': 3.4.2
       katex: 0.16.22
@@ -63,6 +64,7 @@ importers:
       mermaid: 11.6.0
       monaco-editor: 0.52.2
       shiki: 3.4.2
+      vue-use-monaco: 0.0.1_g3ktmylouknqkcz7fpzw3xnuhe
     devDependencies:
       '@antfu/eslint-config': 2.27.3_ofh752xppip45jjfu5d4kb23qi
       '@iconify/vue': 5.0.0_vue@3.5.16
@@ -1844,10 +1846,27 @@ packages:
       hast-util-to-html: 9.0.5
     dev: false
 
+  /@shikijs/core/3.6.0:
+    resolution: {integrity: sha512-9By7Xb3olEX0o6UeJyPLI1PE1scC4d3wcVepvtv2xbuN9/IThYN4Wcwh24rcFeASzPam11MCq8yQpwwzCgSBRw==}
+    dependencies:
+      '@shikijs/types': 3.6.0
+      '@shikijs/vscode-textmate': 10.0.2
+      '@types/hast': 3.0.4
+      hast-util-to-html: 9.0.5
+    dev: false
+
   /@shikijs/engine-javascript/3.4.2:
     resolution: {integrity: sha512-1/adJbSMBOkpScCE/SB6XkjJU17ANln3Wky7lOmrnpl+zBdQ1qXUJg2GXTYVHRq+2j3hd1DesmElTXYDgtfSOQ==}
     dependencies:
       '@shikijs/types': 3.4.2
+      '@shikijs/vscode-textmate': 10.0.2
+      oniguruma-to-es: 4.3.3
+    dev: false
+
+  /@shikijs/engine-javascript/3.6.0:
+    resolution: {integrity: sha512-7YnLhZG/TU05IHMG14QaLvTW/9WiK8SEYafceccHUSXs2Qr5vJibUwsDfXDLmRi0zHdzsxrGKpSX6hnqe0k8nA==}
+    dependencies:
+      '@shikijs/types': 3.6.0
       '@shikijs/vscode-textmate': 10.0.2
       oniguruma-to-es: 4.3.3
     dev: false
@@ -1859,10 +1878,23 @@ packages:
       '@shikijs/vscode-textmate': 10.0.2
     dev: false
 
+  /@shikijs/engine-oniguruma/3.6.0:
+    resolution: {integrity: sha512-nmOhIZ9yT3Grd+2plmW/d8+vZ2pcQmo/UnVwXMUXAKTXdi+LK0S08Ancrz5tQQPkxvjBalpMW2aKvwXfelauvA==}
+    dependencies:
+      '@shikijs/types': 3.6.0
+      '@shikijs/vscode-textmate': 10.0.2
+    dev: false
+
   /@shikijs/langs/3.4.2:
     resolution: {integrity: sha512-H6azIAM+OXD98yztIfs/KH5H4PU39t+SREhmM8LaNXyUrqj2mx+zVkr8MWYqjceSjDw9I1jawm1WdFqU806rMA==}
     dependencies:
       '@shikijs/types': 3.4.2
+    dev: false
+
+  /@shikijs/langs/3.6.0:
+    resolution: {integrity: sha512-IdZkQJaLBu1LCYCwkr30hNuSDfllOT8RWYVZK1tD2J03DkiagYKRxj/pDSl8Didml3xxuyzUjgtioInwEQM/TA==}
+    dependencies:
+      '@shikijs/types': 3.6.0
     dev: false
 
   /@shikijs/monaco/3.4.2:
@@ -1873,14 +1905,35 @@ packages:
       '@shikijs/vscode-textmate': 10.0.2
     dev: false
 
+  /@shikijs/monaco/3.6.0:
+    resolution: {integrity: sha512-tn2KI3oipAQP3X0dvqBQ+k55cQufydABWmAUBJ67e/KxqGegAm8U252GKyivPqKizo++BpnAAz5Q/GGTnP0S7g==}
+    dependencies:
+      '@shikijs/core': 3.6.0
+      '@shikijs/types': 3.6.0
+      '@shikijs/vscode-textmate': 10.0.2
+    dev: false
+
   /@shikijs/themes/3.4.2:
     resolution: {integrity: sha512-qAEuAQh+brd8Jyej2UDDf+b4V2g1Rm8aBIdvt32XhDPrHvDkEnpb7Kzc9hSuHUxz0Iuflmq7elaDuQAP9bHIhg==}
     dependencies:
       '@shikijs/types': 3.4.2
     dev: false
 
+  /@shikijs/themes/3.6.0:
+    resolution: {integrity: sha512-Fq2j4nWr1DF4drvmhqKq8x5vVQ27VncF8XZMBuHuQMZvUSS3NBgpqfwz/FoGe36+W6PvniZ1yDlg2d4kmYDU6w==}
+    dependencies:
+      '@shikijs/types': 3.6.0
+    dev: false
+
   /@shikijs/types/3.4.2:
     resolution: {integrity: sha512-zHC1l7L+eQlDXLnxvM9R91Efh2V4+rN3oMVS2swCBssbj2U/FBwybD1eeLaq8yl/iwT+zih8iUbTBCgGZOYlVg==}
+    dependencies:
+      '@shikijs/vscode-textmate': 10.0.2
+      '@types/hast': 3.0.4
+    dev: false
+
+  /@shikijs/types/3.6.0:
+    resolution: {integrity: sha512-cLWFiToxYu0aAzJqhXTQsFiJRTFDAGl93IrMSBNaGSzs7ixkLfdG6pH11HipuWFGW5vyx4X47W8HDQ7eSrmBUg==}
     dependencies:
       '@shikijs/vscode-textmate': 10.0.2
       '@types/hast': 3.0.4
@@ -2225,7 +2278,6 @@ packages:
 
   /@types/web-bluetooth/0.0.14:
     resolution: {integrity: sha512-5d2RhCard1nQUC3aHcq/gHzWYO6K0WJmAbjO7mQJgCQKtZpgXxv1rOM6O/dBDhDYYVutk1sciOgNSe+5YyfM8A==}
-    dev: true
 
   /@types/web-bluetooth/0.0.20:
     resolution: {integrity: sha512-g9gZnnXVq7gM7v3tJCWV/qw7w+KeOlSHAhgF9RytFyifW6AF61hdT2ucrYhPq9hLs5JIryeupHV3qGk95dH9ow==}
@@ -3195,7 +3247,6 @@ packages:
       '@vueuse/shared': 8.9.4_vue@3.5.16
       vue: 3.5.16_typescript@4.9.5
       vue-demi: 0.14.10_vue@3.5.16
-    dev: true
 
   /@vueuse/head/0.7.13_vue@3.5.16:
     resolution: {integrity: sha512-VHSla/0uOAUii/mz+NWLFKMrMbz/lQoYxEcpS/ri7drepYjdB5QdbTnD2KdOX8EmQM/b07qpjKanr7erGrd3XA==}
@@ -3213,7 +3264,6 @@ packages:
 
   /@vueuse/metadata/8.9.4:
     resolution: {integrity: sha512-IwSfzH80bnJMzqhaapqJl9JRIiyQU0zsRGEgnxN6jhq7992cPUJIRfV+JHRIZXjYqbwt07E1gTEp0R0zPJ1aqw==}
-    dev: true
 
   /@vueuse/shared/10.11.1_vue@3.5.16:
     resolution: {integrity: sha512-LHpC8711VFZlDaYUXEBbFBCQ7GS3dVU9mjOhhMhXP6txTV4EhYQg/KGnQuvt/sPAtoUKq7VVUnL6mVtFoL42sA==}
@@ -3236,7 +3286,6 @@ packages:
     dependencies:
       vue: 3.5.16_typescript@4.9.5
       vue-demi: 0.14.10_vue@3.5.16
-    dev: true
 
   /@vueuse/shared/9.13.0_vue@3.5.16:
     resolution: {integrity: sha512-UrnhU+Cnufu4S6JLCPZnkWh0WwZGUp72ktOF2DFptMlOs3TOdVv8xJN53zhHGARmVOsz5KqOls09+J1NR6sBKw==}
@@ -7852,6 +7901,19 @@ packages:
       '@types/hast': 3.0.4
     dev: false
 
+  /shiki/3.6.0:
+    resolution: {integrity: sha512-tKn/Y0MGBTffQoklaATXmTqDU02zx8NYBGQ+F6gy87/YjKbizcLd+Cybh/0ZtOBX9r1NEnAy/GTRDKtOsc1L9w==}
+    dependencies:
+      '@shikijs/core': 3.6.0
+      '@shikijs/engine-javascript': 3.6.0
+      '@shikijs/engine-oniguruma': 3.6.0
+      '@shikijs/langs': 3.6.0
+      '@shikijs/themes': 3.6.0
+      '@shikijs/types': 3.6.0
+      '@shikijs/vscode-textmate': 10.0.2
+      '@types/hast': 3.0.4
+    dev: false
+
   /side-channel-list/1.0.0:
     resolution: {integrity: sha512-FCLHtRD/gnpCiCHEiJLOwdmFP+wzCmDEkc9y7NsYxeF4u7Btsn1ZuwgwJGxImImHicJArLP4R0yX4c2KCrMrTA==}
     engines: {node: '>= 0.4'}
@@ -9148,6 +9210,20 @@ packages:
       '@vue/language-core': 2.2.10_typescript@5.8.3
       typescript: 5.8.3
     dev: true
+
+  /vue-use-monaco/0.0.1_g3ktmylouknqkcz7fpzw3xnuhe:
+    resolution: {integrity: sha512-hzDkare8Jsv5oZPBXyNebyCrDVt08UGaxIn022EFL+u6OvsEyFbs98VFFdq3CnDRUJqpQO4+FIM+JDxjtE4nKA==}
+    hasBin: true
+    peerDependencies:
+      '@vueuse/core': '>=8.9.4'
+      vue: '>=3.0.0'
+    dependencies:
+      '@shikijs/monaco': 3.6.0
+      '@vueuse/core': 8.9.4_vue@3.5.16
+      monaco-editor: 0.52.2
+      shiki: 3.6.0
+      vue: 3.5.16_typescript@4.9.5
+    dev: false
 
   /vue/3.5.16_typescript@4.9.5:
     resolution: {integrity: sha512-rjOV2ecxMd5SiAmof2xzh2WxntRcigkX/He4YFJ6WdRvVUrbt6DxC1Iujh10XLl8xCDRDtGKMeO3D+pRQ1PP9w==}

@@ -70,7 +70,6 @@
     "vue-i18n": ">=9"
   },
   "dependencies": {
-    "@shikijs/monaco": "^3.4.2",
     "katex": "^0.16.22",
     "markdown-it": "^14.1.0",
     "markdown-it-container": "^4.0.0",
@@ -83,8 +82,7 @@
     "markdown-it-sup": "^2.0.0",
     "markdown-it-task-checkbox": "^1.0.6",
     "mermaid": "^11.6.0",
-    "monaco-editor": "^0.52.2",
-    "shiki": "^3.4.2"
+    "vue-use-monaco": "^0.0.1"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^2.27.3",

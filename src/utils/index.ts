@@ -1,5 +1,4 @@
 export * from './code.detect'
 export * from './languageIcon'
-export * from './useMonaco'
 export * from './cn'
 export * from './markdown'

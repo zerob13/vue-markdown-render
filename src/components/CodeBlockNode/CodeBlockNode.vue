@@ -5,9 +5,9 @@ import { useThrottleFn } from '@vueuse/core'
 import { Icon } from '@iconify/vue'
 import { v4 as uuidv4 } from 'uuid'
 import type { ThemeInput } from 'shiki'
+import { useMonaco } from 'vue-use-monaco'
 import MermaidBlockNode from '../MermaidBlockNode'
 import { detectLanguage, getLanguageIcon } from '../../utils'
-import { useMonaco } from '../../utils/useMonaco'
 import { isDark } from '../../utils/isDark'
 
 const props = withDefaults(defineProps<{
