@@ -65,6 +65,15 @@ This is **markdown** rendered as HTML!
   import type { MyMarkdownProps } from 'vue-markdown-to-html/dist/types'
   ```
 
+## Thanks
+
+This project is built with the help of these awesome libraries:
+
+- [vue-use-monaco](https://github.com/vueuse/vue-use-monaco) — Monaco Editor integration for Vue
+- [shiki](https://github.com/shikijs/shiki) — Syntax highlighter powered by TextMate grammars and VS Code themes
+
+Thanks to the authors and contributors of these projects!
+
 ## License
 
 [MIT](./LICENSE) © [Simon He](https://github.com/Simon-He95)
