@@ -492,8 +492,11 @@ useInterval(5, {
 </script>
 
 <template>
-  <main>
+  <main class="bg-[#f9f9f9]" p4 h-full>
     <MarkdownRender :content="content" />
     <Footer />
   </main>
 </template>
+
+<style scoped>
+</style>
