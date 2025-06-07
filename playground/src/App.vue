@@ -482,6 +482,7 @@ npm run electron:dev
 This creates a simple chat application with a contacts sidebar and a chat window. Users can select contacts and send messages, with auto-replies simulated.`
 // 每隔0.5秒输出一部分内容
 const content = ref('')
+const mainRef = ref<any>(null)
 useInterval(5, {
   callback() {
     if (content.value.length < streamContent.length) {
@@ -489,12 +490,23 @@ useInterval(5, {
     }
   },
 })
+// 监听 content 的变化
+watch(content, async () => {
+  // 等待 DOM 更新
+  await nextTick()
+  if (mainRef.value) {
+    // 检查 main 元素是否真的有滚动条
+    if (mainRef.value.scrollHeight > mainRef.value.clientHeight) {
+      // 滚动到底部
+      mainRef.value.scrollTop = mainRef.value.scrollHeight
+    }
+  }
+})
 </script>
 
 <template>
-  <main class="bg-[#f9f9f9]" p4 h-full>
+  <main ref="mainRef" class="overflow-auto" p4 h-full>
     <MarkdownRender :content="content" />
-    <Footer />
   </main>
 </template>
 

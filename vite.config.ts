@@ -29,7 +29,7 @@ export default defineConfig(({ mode }) => {
       UnpluginClassExtractor({
         output: 'dist/tailwind.ts',
         include: [
-          /\/src\/components\/(?:[^/]+\/)*[^/]+\.vue(\?.*)?$/
+          /\/src\/components\/(?:[^/]+\/)*[^/]+\.vue(\?.*)?$/,
         ],
         safeList: [
           'bg-white dark:bg-zinc-700 text-foreground shadow-sm',
@@ -37,8 +37,8 @@ export default defineConfig(({ mode }) => {
           'cursor-grabbing',
           'bg-gray-100 dark:bg-zinc-900 dark:border-zinc-800',
           'border-b dark:border-zinc-800',
-          'border-r'
-        ]
+          'border-r',
+        ],
       }) as any,
     ]
     build = {
