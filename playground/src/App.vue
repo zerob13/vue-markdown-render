@@ -4,6 +4,7 @@ import MarkdownRender from '../../src/components/NodeRenderer'
 // 模拟流式传输
 const streamContent = `I'll create a simple Electron + Vue chat application demo. Here's the structure:
 
+مرحبا بكم في عالم اللغة العربية!
 1. First, let's set up the project:
 
 \`\`\`shellscript

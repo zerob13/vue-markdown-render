@@ -19,7 +19,7 @@ const nodeComponents = getNodeComponents()
 </script>
 
 <template>
-  <p>
+  <p dir="auto">
     <component
       :is="nodeComponents[child.type]"
       v-for="(child, index) in node.children"

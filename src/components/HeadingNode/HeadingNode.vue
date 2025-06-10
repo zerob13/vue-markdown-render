@@ -61,6 +61,7 @@ const nodeComponents = {
     :is="`h${node.level}`"
     class="heading-node"
     :class="[`heading-${node.level}`]"
+    dir="auto"
   >
     <component
       :is="nodeComponents[child.type]"

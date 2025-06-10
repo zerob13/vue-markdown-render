@@ -43,6 +43,7 @@ defineEmits(['copy'])
           <th
             v-for="(cell, index) in node.header.cells"
             :key="`header-${index}`"
+            dir="auto"
             class="p-2 text-left font-semibold bg-gray-100 dark:bg-zinc-900 dark:border-zinc-800 whitespace-nowrap"
             :class="{
               'border-r ': index < node.header.cells.length - 1,
@@ -70,6 +71,7 @@ defineEmits(['copy'])
             v-for="(cell, cellIndex) in row.cells"
             :key="`cell-${rowIndex}-${cellIndex}`"
             class="p-2 text-left whitespace-nowrap"
+            dir="auto"
             :class="{
               'border-r': cellIndex < row.cells.length - 1,
             }"

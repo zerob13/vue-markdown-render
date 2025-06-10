@@ -15,7 +15,7 @@ defineEmits(['copy'])
 </script>
 
 <template>
-  <blockquote class="blockquote">
+  <blockquote class="blockquote" dir="auto">
     <NodeRenderer
       :nodes="node.children"
       @copy="$emit('copy', $event)"
