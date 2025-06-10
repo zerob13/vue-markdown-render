@@ -52,7 +52,7 @@ This is **markdown** rendered as HTML!
 | `nodes`           | `BaseNode[]`              |          | Parsed markdown AST nodes (alternative to content)|
 | `customComponents`| `Record<string, any>`     |          | Custom Vue components for rendering              |
 
-> `content` 和 `nodes` 必须至少传递一个。
+> Either `content` or `nodes` must be provided.
 
 ## Advanced
 
@@ -64,6 +64,36 @@ This is **markdown** rendered as HTML!
   ```ts
   import type { MyMarkdownProps } from 'vue-markdown-to-html/dist/types'
   ```
+
+## Monaco Editor Integration
+
+If you are using Monaco Editor in your project, you need to configure `vite-plugin-monaco-editor-esm` to handle global injection of workers. On Windows, you may encounter issues during the build process. To resolve this, configure `customDistPath` to ensure successful packaging.
+
+### Example Configuration
+
+```ts
+import path from 'node:path'
+import monacoEditorPlugin from 'vite-plugin-monaco-editor-esm'
+
+export default {
+  plugins: [
+    monacoEditorPlugin({
+      languageWorkers: [
+        'editorWorkerService',
+        'typescript',
+        'css',
+        'html',
+        'json',
+      ],
+      customDistPath(root, buildOutDir, base) {
+        return path.resolve(buildOutDir, 'monacoeditorwork')
+      },
+    }),
+  ],
+}
+```
+
+This configuration ensures that Monaco Editor workers are correctly packaged and accessible in your project.
 
 ## Thanks
 

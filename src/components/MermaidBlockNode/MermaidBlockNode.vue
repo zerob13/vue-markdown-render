@@ -259,7 +259,7 @@ onMounted(initMermaid)
       </div>
       <div
         ref="mermaidContainer"
-        class="min-h-[360px] max-h-[500px] overflow-auto bg-gray-50 dark:bg-zinc-900 relative"
+        class="content-['''] min-h-[360px] max-h-[500px] overflow-auto bg-gray-50 dark:bg-zinc-900 relative"
         @mousedown="startDrag"
         @mousemove="onDrag"
         @mouseup="stopDrag"
