@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { getNodeComponents } from '../../utils/nodeComponents'
+
 // import ReferenceNode from './ReferenceNode.vue';
 interface NodeChild {
   type: string

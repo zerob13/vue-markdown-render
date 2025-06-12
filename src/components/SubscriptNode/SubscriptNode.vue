@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { getNodeComponents } from '../../utils/nodeComponents'
+
 // import MathInlineNode from '../MathInlineNode'
 interface NodeChild {
   type: string

@@ -13,6 +13,7 @@ import App from './App.vue'
 import '@unocss/reset/tailwind.css'
 import './styles/main.css'
 import 'uno.css'
+
 // @ts-expect-error monaco global is not defined in this context
 globalThis.MonacoEnvironment = {
   getWorker(_: any, label: string) {

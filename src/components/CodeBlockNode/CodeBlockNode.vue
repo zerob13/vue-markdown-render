@@ -6,8 +6,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { detectLanguage, useMonaco } from 'vue-use-monaco'
-import { getLanguageIcon } from '../../utils'
-import { isDark } from '../../utils/isDark'
+import { getLanguageIcon, languageMap } from '../../utils'
 import MermaidBlockNode from '../MermaidBlockNode'
 
 const props = withDefaults(defineProps<{
@@ -77,34 +76,6 @@ watch(
   },
 )
 
-// 映射一些常见语言的显示名称
-const languageMap: Record<string, string> = {
-  'js': 'JavaScript',
-  'ts': 'TypeScript',
-  'jsx': 'JSX',
-  'tsx': 'TSX',
-  'html': 'HTML',
-  'css': 'CSS',
-  'scss': 'SCSS',
-  'json': 'JSON',
-  'py': 'Python',
-  'python': 'Python',
-  'rb': 'Ruby',
-  'go': 'Go',
-  'java': 'Java',
-  'c': 'C',
-  'cpp': 'C++',
-  'cs': 'C#',
-  'php': 'PHP',
-  'sh': 'Shell',
-  'bash': 'Bash',
-  'sql': 'SQL',
-  'yaml': 'YAML',
-  'md': 'Markdown',
-  '': 'Plain Text',
-  'plain': 'Plain Text',
-}
-
 // 计算用于显示的语言名称
 const displayLanguage = computed(() => {
   const lang = codeLanguage.value.trim().toLowerCase()
@@ -149,14 +120,6 @@ function previewCode() {
     id: `temp-${lowerLang}-${uuidv4()}`,
   })
 }
-
-// 监听主题变化
-watch(
-  () => isDark.value,
-  () => {
-    updateCode(props.node.code, codeLanguage.value)
-  },
-)
 
 // 监听代码变化
 watch(

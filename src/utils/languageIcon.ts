@@ -137,3 +137,31 @@ export function getLanguageIcon(lang: string): string {
       return 'lucide:square-code' // Fallback icon
   }
 }
+
+// 映射一些常见语言的显示名称
+export const languageMap: Record<string, string> = {
+  'js': 'JavaScript',
+  'ts': 'TypeScript',
+  'jsx': 'JSX',
+  'tsx': 'TSX',
+  'html': 'HTML',
+  'css': 'CSS',
+  'scss': 'SCSS',
+  'json': 'JSON',
+  'py': 'Python',
+  'python': 'Python',
+  'rb': 'Ruby',
+  'go': 'Go',
+  'java': 'Java',
+  'c': 'C',
+  'cpp': 'C++',
+  'cs': 'C#',
+  'php': 'PHP',
+  'sh': 'Shell',
+  'bash': 'Bash',
+  'sql': 'SQL',
+  'yaml': 'YAML',
+  'md': 'Markdown',
+  '': 'Plain Text',
+  'plain': 'Plain Text',
+}
