@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { ThemeInput } from 'vue-use-monaco'
 import { Icon } from '@iconify/vue'
-import { useThrottleFn } from '@vueuse/core'
+import { useThrottleFn, watchOnce } from '@vueuse/core'
 import { v4 as uuidv4 } from 'uuid'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { detectLanguage, useMonaco } from 'vue-use-monaco'
 import { getLanguageIcon, languageMap } from '../../utils'
@@ -129,9 +129,7 @@ watch(
   },
 )
 
-// 初始化代码编辑器
-onMounted(() => {
-  // Initial language setup is now handled above definitions
+watchOnce(() => codeEditor.value, () => {
   createEditor(codeEditor.value, props.node.code, codeLanguage.value)
 })
 </script>
