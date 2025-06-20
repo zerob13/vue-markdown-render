@@ -2,7 +2,7 @@
 
 > A Vue 3 component that renders Markdown string content as HTML, supporting custom components and advanced markdown features.
 
-[![NPM version](https://img.shields.io/npm/v/vue-markdown-to-html?color=a1b858&label=)](https://www.npmjs.com/package/vue-markdown-to-html)
+[![NPM version](https://img.shields.io/npm/v/vue-renderer-markdown?color=a1b858&label=)](https://www.npmjs.com/package/vue-renderer-markdown)
 
 ## Features
 
