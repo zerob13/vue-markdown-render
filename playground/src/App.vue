@@ -559,7 +559,7 @@ onUnmounted(() => {
 
 <template>
   <main ref="mainRef" class="overflow-auto" p4 h-full>
-    <MarkdownRender :content="content" />
+    <MarkdownRender :content="content" :typewriterEffect="true" />
   </main>
 </template>
 

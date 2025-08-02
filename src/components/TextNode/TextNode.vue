@@ -11,7 +11,11 @@ defineEmits(['copy'])
 </script>
 
 <template>
-  <span class="whitespace-pre-wrap break-normal" style="font-weight: inherit;">{{ props.node.content }}</span>
+  <span class="text-node" style="font-weight: inherit; white-space: pre-wrap; word-break: break-word;">{{ props.node.content }}</span>
 </template>
 
-<style scoped></style>
+<style scoped>
+.text-node {
+  display: inline;
+}
+</style>

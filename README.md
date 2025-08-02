@@ -9,6 +9,7 @@
 - 📝 **Markdown to HTML**: Render Markdown string content directly as HTML in your Vue 3 app.
 - 🧩 **Custom Components**: Support for custom Vue components inside Markdown.
 - ⚡ **Advanced Markdown**: Supports tables, math, emoji, checkboxes, and more.
+- ⌨️ **Typewriter Effect**: Built-in typewriter animation for streaming content with real-time cursor tracking.
 - 📦 **TypeScript Support**: Full type definitions for props and usage.
 - 🔌 **Easy Integration**: Plug-and-play with Vite, Vue CLI, or any Vue 3 project.
 
@@ -44,6 +45,44 @@ This is **markdown** rendered as HTML!
 </template>
 ```
 
+### Typewriter Effect
+
+Enable a typewriter animation effect perfect for streaming content or live markdown updates:
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import MarkdownRender from 'vue-renderer-markdown'
+
+const content = ref('')
+const fullContent = `# Streaming Content\n\nThis text appears character by character...`
+
+// Simulate streaming content
+let index = 0
+const interval = setInterval(() => {
+  if (index < fullContent.length) {
+    content.value += fullContent[index]
+    index++
+  } else {
+    clearInterval(interval)
+  }
+}, 50)
+</script>
+
+<template>
+  <MarkdownRender 
+    :content="content" 
+    :typewriterEffect="true" 
+  />
+</template>
+```
+
+The typewriter effect features:
+- **Real-time cursor tracking**: Cursor follows the text as it appears
+- **Smart positioning**: Automatically adjusts to different font sizes and line heights
+- **Performance optimized**: Uses efficient DOM updates and animation frames
+- **Auto-hiding cursor**: Cursor disappears after content stops updating
+
 ### Props
 
 | Name              | Type                       | Required | Description                                      |
@@ -51,6 +90,7 @@ This is **markdown** rendered as HTML!
 | `content`         | `string`                  | ✓        | Markdown string to render                        |
 | `nodes`           | `BaseNode[]`              |          | Parsed markdown AST nodes (alternative to content)|
 | `customComponents`| `Record<string, any>`     |          | Custom Vue components for rendering              |
+| `typewriterEffect`| `boolean`                 |          | Enable typewriter animation effect (default: false)|
 
 > Either `content` or `nodes` must be provided.
 
