@@ -1,6 +1,6 @@
 import type { App, Plugin } from 'vue'
-
 import AdmonitionNode from './components/AdmonitionNode'
+
 import BlockquoteNode from './components/BlockquoteNode'
 import CheckboxNode from './components/CheckboxNode'
 import CodeBlockNode from './components/CodeBlockNode'
@@ -29,6 +29,7 @@ import SuperscriptNode from './components/SuperscriptNode'
 import TableNode from './components/TableNode'
 import TextNode from './components/TextNode'
 import ThematicBreakNode from './components/ThematicBreakNode'
+import './index.css'
 
 export * from './utils'
 

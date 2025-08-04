@@ -63,16 +63,17 @@ const interval = setInterval(() => {
   if (index < fullContent.length) {
     content.value += fullContent[index]
     index++
-  } else {
+  }
+  else {
     clearInterval(interval)
   }
 }, 50)
 </script>
 
 <template>
-  <MarkdownRender 
-    :content="content" 
-    :typewriterEffect="true" 
+  <MarkdownRender
+    :content="content"
+    :typewriter-effect="true"
   />
 </template>
 ```

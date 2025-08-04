@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import MarkdownRender from '../../src/components/NodeRenderer'
+import MarkdownRender from 'vue-renderer-markdown'
 
 // 模拟流式传输
 const streamContent = `I'll create a simple Electron + Vue chat application demo. Here's the structure:
@@ -559,7 +559,7 @@ onUnmounted(() => {
 
 <template>
   <main ref="mainRef" class="overflow-auto" p4 h-full>
-    <MarkdownRender :content="content" :typewriterEffect="true" />
+    <MarkdownRender :content="content" :typewriter-effect="true" />
   </main>
 </template>
 

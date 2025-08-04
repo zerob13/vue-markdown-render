@@ -31,14 +31,6 @@ export default defineConfig(({ mode }) => {
         include: [
           /\/src\/components\/(?:[^/]+\/)*[^/]+\.vue(\?.*)?$/,
         ],
-        safeList: [
-          'bg-white dark:bg-zinc-700 text-foreground shadow-sm',
-          'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-zinc-700',
-          'cursor-grabbing',
-          'bg-gray-100 dark:bg-zinc-900 dark:border-zinc-800',
-          'border-b dark:border-zinc-800',
-          'border-r',
-        ],
       }) as any,
     ]
     build = {
@@ -67,6 +59,9 @@ export default defineConfig(({ mode }) => {
     base,
     plugins,
     build,
+    css: {
+      postcss: mode === 'npm' ? './postcss.config.cjs' : undefined,
+    },
     resolve: {
       alias: {
         '@': '/src',

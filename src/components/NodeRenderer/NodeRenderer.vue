@@ -2,7 +2,7 @@
 import type { BaseNode } from '../../utils'
 import { v4 as uuidv4 } from 'uuid'
 
-import { computed, ref, nextTick, watch, onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { getMarkdown, parseMarkdownToStructure } from '../../utils/markdown'
 import { setNodeComponents } from '../../utils/nodeComponents'
 import AdmonitionNode from '../AdmonitionNode'
@@ -67,7 +67,7 @@ watch(() => props.content, (newContent) => {
     if (currentLength > lastContentLength) {
       showCursor.value = true
       lastContentLength = currentLength
-      
+
       // 清除之前的定时器和动画帧
       if (cursorTimeout) {
         clearTimeout(cursorTimeout)
@@ -78,12 +78,12 @@ watch(() => props.content, (newContent) => {
       if (debounceTimeout) {
         clearTimeout(debounceTimeout)
       }
-      
+
       // 立即更新光标位置
       requestAnimationFrame(() => {
         updateCursorPosition()
       })
-      
+
       // 防抖：如果短时间内有多次更新，延迟隐藏光标
       debounceTimeout = setTimeout(() => {
         cursorTimeout = setTimeout(() => {
@@ -103,12 +103,14 @@ onMounted(() => {
   if (props.typewriterEffect) {
     // 只在需要时启动高频更新
     const startHighFrequencyUpdate = () => {
-      if (updateInterval) return // 已经在运行
-      
+      if (updateInterval)
+        return // 已经在运行
+
       updateInterval = setInterval(() => {
         if (showCursor.value && containerRef.value) {
           updateCursorPosition()
-        } else {
+        }
+        else {
           // 如果光标隐藏，停止高频更新
           if (updateInterval) {
             clearInterval(updateInterval)
@@ -117,7 +119,7 @@ onMounted(() => {
         }
       }, 16) // 约60FPS的更新频率
     }
-    
+
     // 监听内容变化来启动高频更新
     watch(() => showCursor.value, (visible) => {
       if (visible) {
@@ -148,12 +150,14 @@ onUnmounted(() => {
 })
 
 // 获取最后一个文本元素的位置来放置光标
-const updateCursorPosition = () => {
-  if (!props.typewriterEffect || !containerRef.value || !showCursor.value) return
-  
+function updateCursorPosition() {
+  if (!props.typewriterEffect || !containerRef.value || !showCursor.value)
+    return
+
   const cursor = containerRef.value.querySelector('.typewriter-cursor') as HTMLElement
-  if (!cursor) return
-  
+  if (!cursor)
+    return
+
   try {
     // 查找容器内所有的文本节点
     const walker = document.createTreeWalker(
@@ -167,26 +171,26 @@ const updateCursorPosition = () => {
             return NodeFilter.FILTER_REJECT
           }
           return node.textContent?.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
-        }
-      }
+        },
+      },
     )
-    
+
     let lastTextNode = null
     let currentNode
     while (currentNode = walker.nextNode()) {
       lastTextNode = currentNode
     }
-    
+
     if (lastTextNode && lastTextNode.textContent) {
       // 创建范围来获取最后一个字符的位置
       const range = document.createRange()
       const textLength = lastTextNode.textContent.length
       range.setStart(lastTextNode, textLength)
       range.setEnd(lastTextNode, textLength)
-      
+
       const rect = range.getBoundingClientRect()
       const containerRect = containerRef.value.getBoundingClientRect()
-      
+
       // 检查 rect 是否有效
       if (rect.width === 0 && rect.height === 0) {
         // 如果范围无效，尝试使用父元素的位置
@@ -195,50 +199,54 @@ const updateCursorPosition = () => {
           const parentRect = parentElement.getBoundingClientRect()
           const left = parentRect.right - containerRect.left
           const top = parentRect.top - containerRect.top
-          
+
           const computedStyle = window.getComputedStyle(parentElement)
-          const fontSize = parseFloat(computedStyle.fontSize) || 16
-          
+          const fontSize = Number.parseFloat(computedStyle.fontSize) || 16
+
           cursor.style.transform = `translate(${left}px, ${top}px)`
           cursor.style.height = `${fontSize}px`
           cursor.style.fontSize = `${fontSize}px`
         }
         return
       }
-      
+
       // 计算相对于容器的位置
       const left = rect.left - containerRect.left
       const top = rect.top - containerRect.top
-      
+
       // 获取文本行的高度信息
       const parentElement = lastTextNode.parentElement
       let lineHeight = 16 // 默认行高
-      
+
       if (parentElement) {
         const computedStyle = window.getComputedStyle(parentElement)
-        const fontSize = parseFloat(computedStyle.fontSize) || 16
+        const fontSize = Number.parseFloat(computedStyle.fontSize) || 16
         const computedLineHeight = computedStyle.lineHeight
-        
+
         if (computedLineHeight === 'normal') {
           lineHeight = fontSize * 1.2 // 默认行高倍数
-        } else if (computedLineHeight.endsWith('px')) {
-          lineHeight = parseFloat(computedLineHeight)
-        } else if (!isNaN(parseFloat(computedLineHeight))) {
-          lineHeight = fontSize * parseFloat(computedLineHeight)
-        } else {
+        }
+        else if (computedLineHeight.endsWith('px')) {
+          lineHeight = Number.parseFloat(computedLineHeight)
+        }
+        else if (!Number.isNaN(Number.parseFloat(computedLineHeight))) {
+          lineHeight = fontSize * Number.parseFloat(computedLineHeight)
+        }
+        else {
           lineHeight = fontSize * 1.2
         }
-        
+
         // 确保光标高度不超过实际字体大小的1.2倍
         lineHeight = Math.min(lineHeight, fontSize * 1.2)
       }
-      
+
       // 使用 transform 来提高性能，避免重排
       cursor.style.transform = `translate(${left}px, ${top}px)`
       cursor.style.height = `${lineHeight}px`
       cursor.style.fontSize = `${lineHeight}px`
     }
-  } catch (error) {
+  }
+  catch (error) {
     // 如果任何步骤失败，静默处理错误
     console.warn('Failed to position cursor:', error)
   }
@@ -289,8 +297,8 @@ setNodeComponents(nodeComponents)
       @mouseover="$emit('mouseover', $event)" @mouseout="$emit('mouseout', $event)"
     />
     <!-- 打字光标 -->
-    <span 
-      v-if="typewriterEffect && showCursor" 
+    <span
+      v-if="typewriterEffect && showCursor"
       class="typewriter-cursor"
     >|</span>
   </div>
