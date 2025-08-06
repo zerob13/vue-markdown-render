@@ -54,7 +54,7 @@
     "play": "pnpm run -C playground dev",
     "play:build": "pnpm run -C playground build",
     "preview": "pnpm run -C playground preview",
-    "build": "vite build --mode npm && npm run build:css",
+    "build": "vite build --mode npm & npm run build:css",
     "build:css": "tsx build-css.ts",
     "build:demo": "vite build",
     "build:view": "vite preview",
