@@ -19,9 +19,11 @@ export function parseMarkdownToStructure(
   markdown: string,
   md: MarkdownIt,
 ): ParsedNode[] {
+  // 预处理，将 [] 中的 反斜杠替换为 \\，以避免 markdown-it 解析时误处理
   // Get tokens from markdown-it
   const tokens = md.parse(markdown, {}) as MarkdownToken[]
   // Process the tokens into our structured format
+
   const result = processTokens(tokens)
   return result
 }

@@ -6,6 +6,7 @@ import { parseCodeBlock, parseFence } from './code-block-parser'
 import { parseDefinitionList } from './definition-list-parser'
 import { parseFootnote } from './footnote-parser'
 import { parseHeading } from './heading-parser'
+import { parseMathBlock } from './math-block-parser'
 import { parseTable } from './table-parser'
 import { parseThematicBreak } from './thematic-break-parser'
 
@@ -60,6 +61,11 @@ export function parseList(
         else if (tokens[k].type === 'fence') {
           // Parse fenced code block
           itemChildren.push(parseFence(tokens[k]))
+          k += 1
+        }
+        else if (tokens[k].type === 'math_block') {
+          // Parse math block
+          itemChildren.push(parseMathBlock(tokens[k]))
           k += 1
         }
         else if (tokens[k].type === 'table_open') {
@@ -179,6 +185,11 @@ function parseNestedList(
         }
         else if (tokens[k].type === 'fence') {
           itemChildren.push(parseFence(tokens[k]))
+          k += 1
+        }
+        else if (tokens[k].type === 'math_block') {
+          // Parse math block in nested lists
+          itemChildren.push(parseMathBlock(tokens[k]))
           k += 1
         }
         else {

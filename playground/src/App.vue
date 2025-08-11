@@ -480,7 +480,27 @@ To run the application:
 npm run electron:dev
 \`\`\`
 
-This creates a simple chat application with a contacts sidebar and a chat window. Users can select contacts and send messages, with auto-replies simulated.`
+This creates a simple chat application with a contacts sidebar and a chat window. Users can select contacts and send messages, with auto-replies simulated.
+
+
+9. ### 付费转化率计算验证
+1. **公式**  
+   \[
+   \text{付费转化率} = \\left( \\frac{\text{付费用户数}}{\text{月活用户数}} \\right) \times 100\%
+   \]
+
+2. **代入数据**  
+   \[
+   \\frac{363}{15,\!135} \times 100\% = 2.398\%
+   \]
+
+3. **计算工具验证**  
+   通过数学计算工具确认结果：  
+   \`363 ÷ 15,135 × 100 = 2.39841427...\`
+
+4. **差异说明**  
+   $$E=mc^2$$
+`
 // 每隔0.5秒输出一部分内容
 const content = ref('')
 const mainRef = ref<any>(null)

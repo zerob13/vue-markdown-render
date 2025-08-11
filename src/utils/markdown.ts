@@ -135,11 +135,10 @@ export function getMarkdown(msgId: string) {
   const mathInline = (state: any, silent: boolean) => {
     const delimiters: [string, string, boolean][] = [
       ['\\(', '\\)', true],
-      ['\\[', '\\]', false],
       ['$$', '$$', true],
     ]
 
-    for (const [open, close, isInline] of delimiters) {
+    for (const [open, close] of delimiters) {
       const start = state.pos
       if (state.src.slice(start, start + open.length) !== open)
         continue
@@ -149,9 +148,9 @@ export function getMarkdown(msgId: string) {
         continue
 
       if (!silent) {
-        const token = state.push(isInline ? 'math_inline' : 'math_block', 'math', 0)
+        const token = state.push('math_inline', 'math', 0)
         token.content = state.src.slice(start + open.length, end)
-        token.markup = isInline ? '\\(\\)' : open === '$$' ? '$$' : '\\[\\]'
+        token.markup = open === '$$' ? '$$' : '\\(\\)'
       }
 
       state.pos = end + close.length
@@ -170,22 +169,43 @@ export function getMarkdown(msgId: string) {
     const delimiters: [string, string][] = [
       ['\\[', '\\]'],
       ['$$', '$$'],
+      ['[', ']'], // 添加对单独 [ ] 的支持
     ]
 
     // Check for math block at the current position
     const startPos = state.bMarks[startLine] + state.tShift[startLine]
-    const lineText = state.src.slice(startPos, state.eMarks[startLine])
-
+    const lineText = state.src.slice(startPos, state.eMarks[startLine]).trim()
     let matched = false
     let openDelim = ''
     let closeDelim = ''
 
     for (const [open, close] of delimiters) {
-      if (lineText.startsWith(open)) {
-        matched = true
-        openDelim = open
-        closeDelim = close
-        break
+      if (lineText === open || lineText.startsWith(open)) {
+        // 对于单独的 '[' 需要额外检查
+        if (open === '[') {
+          // 如果行只有 '['
+          if (lineText === '[') {
+            // 检查下一行是否有数学内容
+            if (startLine + 1 < endLine) {
+              const nextLineStart = state.bMarks[startLine + 1] + state.tShift[startLine + 1]
+              const nextLineText = state.src.slice(nextLineStart, state.eMarks[startLine + 1])
+              const hasMathContent = /\\text|\\frac|\\left|\\right|\\times/.test(nextLineText)
+              if (hasMathContent) {
+                matched = true
+                openDelim = open
+                closeDelim = close
+                break
+              }
+            }
+            continue
+          }
+        }
+        else {
+          matched = true
+          openDelim = open
+          closeDelim = close
+          break
+        }
       }
     }
 
@@ -196,27 +216,61 @@ export function getMarkdown(msgId: string) {
     if (silent)
       return true
 
-    // Find the closing delimiter
+    // Check if the entire formula is on one line first
+    if (lineText.includes(closeDelim) && lineText.indexOf(closeDelim) > openDelim.length) {
+      const startDelimIndex = lineText.indexOf(openDelim)
+      const endDelimIndex = lineText.indexOf(closeDelim, startDelimIndex + openDelim.length)
+      const content = lineText.slice(startDelimIndex + openDelim.length, endDelimIndex)
+
+      // Create the token
+      const token = state.push('math_block', 'math', 0)
+      token.content = content // 不要 trim，保留所有空格和反斜杠
+      token.markup = openDelim === '$$' ? '$$' : openDelim === '[' ? '[]' : '\\[\\]'
+      token.map = [startLine, startLine + 1]
+      token.block = true
+
+      // Update parser position
+      state.line = startLine + 1
+      return true
+    }
+
+    // Find the closing delimiter across multiple lines
     let nextLine = startLine
     let content = ''
     let found = false
 
-    for (nextLine = startLine + 1; nextLine < endLine; nextLine++) {
-      const lineStart = state.bMarks[nextLine] + state.tShift[nextLine]
-      const lineEnd = state.eMarks[nextLine]
-      const currentLine = state.src.slice(lineStart, lineEnd)
+    // Add content from the first line (after opening delimiter)
+    const firstLineContent = lineText === openDelim ? '' : lineText.slice(openDelim.length)
 
-      // Check if this line has the closing delimiter
-      if (currentLine.includes(closeDelim)) {
-        found = true
-        content += state.src.slice(
-          state.bMarks[nextLine] + state.tShift[nextLine],
-          state.src.indexOf(closeDelim, state.bMarks[nextLine]),
-        )
-        break
+    if (firstLineContent.includes(closeDelim)) {
+      const endIndex = firstLineContent.indexOf(closeDelim)
+      content = firstLineContent.slice(0, endIndex)
+      found = true
+      nextLine = startLine
+    }
+    else {
+      if (firstLineContent) {
+        content = firstLineContent
       }
 
-      content += `${currentLine}\n`
+      for (nextLine = startLine + 1; nextLine < endLine; nextLine++) {
+        const lineStart = state.bMarks[nextLine] + state.tShift[nextLine]
+        const lineEnd = state.eMarks[nextLine]
+        const currentLine = state.src.slice(lineStart, lineEnd)
+        // Check if this line has the closing delimiter
+        if (currentLine.trim() === closeDelim) {
+          found = true
+          break
+        }
+        else if (currentLine.includes(closeDelim)) {
+          found = true
+          const endIndex = currentLine.indexOf(closeDelim)
+          content += (content ? '\n' : '') + currentLine.slice(0, endIndex)
+          break
+        }
+
+        content += (content ? '\n' : '') + currentLine
+      }
     }
 
     if (!found)
@@ -224,8 +278,8 @@ export function getMarkdown(msgId: string) {
 
     // Create the token
     const token = state.push('math_block', 'math', 0)
-    token.content = content.trim()
-    token.markup = openDelim === '$$' ? '$$' : '\\[\\]'
+    token.content = content // 不要 trim，保留反斜杠和空格
+    token.markup = openDelim === '$$' ? '$$' : openDelim === '[' ? '[]' : '\\[\\]'
     token.map = [startLine, nextLine + 1]
     token.block = true
 
@@ -234,7 +288,7 @@ export function getMarkdown(msgId: string) {
     return true
   }
 
-  // Register custom rules
+  // Register custom rules - math should come before reference
   md.inline.ruler.before('escape', 'math', mathInline)
   md.block.ruler.before('paragraph', 'math_block', mathBlock, {
     alt: ['paragraph', 'reference', 'blockquote', 'list'],
@@ -262,6 +316,7 @@ export function getMarkdown(msgId: string) {
       displayMath: [
         ['$$', '$$'],
         ['\\[', '\\]'],
+        ['[', ']'], // 添加对单独 [ ] 的支持
       ],
       processEscapes: true,
       processEnvironments: true,
