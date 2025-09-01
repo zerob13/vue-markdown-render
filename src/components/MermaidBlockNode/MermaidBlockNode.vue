@@ -28,6 +28,23 @@ const isDragging = ref(false)
 const dragStart = ref({ x: 0, y: 0 })
 // 避免直接渲染画面报错
 const showSource = ref(true)
+const isRendering = ref(false)
+const renderQueue = ref<Promise<void> | null>(null)
+const RENDER_DEBOUNCE_DELAY = 100
+
+function debounce<T extends (...args: any[]) => any>(
+  func: T,
+  wait: number,
+): (...args: Parameters<T>) => void {
+  let timeout: number | null = null
+
+  return (...args: Parameters<T>) => {
+    if (timeout) {
+      clearTimeout(timeout)
+    }
+    timeout = setTimeout(() => func(...args), wait)
+  }
+}
 
 const transformStyle = computed(() => ({
   transform: `translate(${translateX.value}px, ${translateY.value}px) scale(${zoom.value})`,
@@ -156,59 +173,89 @@ async function exportSvg() {
 
 // 优化的 mermaid 渲染函数
 async function initMermaid() {
-  if (!mermaidContent.value) return
+  if (isRendering.value) {
+    return renderQueue.value
+  }
 
-  try {
-    // 生成唯一的图表ID
-    const id = `mermaid-${Date.now()}`
-
-    mermaid.initialize({
-      theme: isDark.value ? 'dark' : 'default',
-      securityLevel: 'loose',
-    })
-
-    // 使用 render API 直接渲染新内容
-    const { svg } = await mermaid.render(
-      id,
-      props.node.code,
-      mermaidContent.value,
-    )
-
-    // 更新 DOM
-    if (mermaidContent.value) {
-      mermaidContent.value.innerHTML = svg
-    }
-  } catch (error) {
-    console.error('Failed to render mermaid diagram:', error)
-    if (mermaidContent.value) {
-      mermaidContent.value.innerHTML = `<div class="text-red-500 p-4">Failed to render diagram: ${
-        error instanceof Error ? error.message : 'Unknown error'
-      }</div>`
+  if (!mermaidContent.value) {
+    await nextTick()
+    if (!mermaidContent.value) {
+      console.warn('Mermaid container not ready')
+      return
     }
   }
+
+  isRendering.value = true
+
+  renderQueue.value = (async () => {
+    try {
+      const id = `mermaid-${Date.now()}-${Math.random()
+        .toString(36)
+        .substring(2, 11)}`
+
+      mermaid.initialize({
+        theme: isDark.value ? 'dark' : 'default',
+        securityLevel: 'loose',
+        startOnLoad: false,
+      })
+
+      const { svg, bindFunctions } = await mermaid.render(
+        id,
+        props.node.code,
+        mermaidContent.value,
+      )
+
+      if (mermaidContent.value) {
+        mermaidContent.value.innerHTML = svg
+        bindFunctions?.(mermaidContent.value)
+      }
+    } catch (error) {
+      console.error('Failed to render mermaid diagram:', error)
+      if (mermaidContent.value) {
+        const errorDiv = document.createElement('div')
+        errorDiv.className = 'text-red-500 p-4'
+        errorDiv.textContent = 'Failed to render diagram: '
+
+        const errorSpan = document.createElement('span')
+        errorSpan.textContent =
+          error instanceof Error ? error.message : 'Unknown error'
+        errorDiv.appendChild(errorSpan)
+
+        mermaidContent.value.innerHTML = ''
+        mermaidContent.value.appendChild(errorDiv)
+      }
+    } finally {
+      isRendering.value = false
+      renderQueue.value = null
+    }
+  })()
+
+  return renderQueue.value
 }
 
+const debouncedInitMermaid = debounce(initMermaid, RENDER_DEBOUNCE_DELAY)
+
 // Watch for code changes
-watch(() => props.node.code, initMermaid)
+watch(() => props.node.code, debouncedInitMermaid)
 
-// Watch for dark mode changes
-watch(isDark, initMermaid)
+// Watch for dark mode changes with debounce
+watch(isDark, debouncedInitMermaid)
 
-// Watch for source toggle
+// Watch for source toggle with proper timing
 watch(
   () => showSource.value,
-  (newValue) => {
+  async (newValue) => {
     if (!newValue) {
-      // When switching back to preview mode
-      nextTick(() => {
-        initMermaid()
-      })
+      await nextTick()
+      await initMermaid()
     }
   },
 )
 
-// Initialize on mount
-onMounted(initMermaid)
+onMounted(async () => {
+  await nextTick()
+  await initMermaid()
+})
 </script>
 
 <template>
@@ -315,9 +362,7 @@ onMounted(initMermaid)
           <div
             ref="mermaidContent"
             class="mermaid w-full text-center flex items-center justify-center min-h-full"
-          >
-            {{ node.code }}
-          </div>
+          ></div>
         </div>
       </div>
     </div>
