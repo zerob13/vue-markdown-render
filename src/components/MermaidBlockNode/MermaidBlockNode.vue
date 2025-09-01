@@ -4,6 +4,7 @@ import mermaid from 'mermaid'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Button } from '../button'
+import { isDark } from '../../utils/isDark'
 
 const props = defineProps<{
   node: {
@@ -168,6 +169,11 @@ async function initMermaid() {
     // 生成唯一的图表ID
     const id = `mermaid-${Date.now()}`
 
+    mermaid.initialize({
+      theme: isDark.value ? 'dark' : 'default',
+      securityLevel: 'loose',
+    })
+
     // 使用 render API 直接渲染新内容
     const { svg } = await mermaid.render(id, props.node.code, mermaidContent.value)
 
@@ -186,6 +192,9 @@ async function initMermaid() {
 
 // Watch for code changes
 watch(() => props.node.code, initMermaid)
+
+// Watch for dark mode changes
+watch(isDark, initMermaid)
 
 // Watch for source toggle
 watch(
