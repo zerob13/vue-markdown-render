@@ -92,6 +92,34 @@ function stopDrag() {
   isDragging.value = false
 }
 
+// Wheel zoom functionality
+function handleWheel(event: WheelEvent) {
+  if (event.ctrlKey || event.metaKey) {
+    event.preventDefault()
+    if (!mermaidContainer.value)
+      return
+    
+    const rect = mermaidContainer.value.getBoundingClientRect()
+    const mouseX = event.clientX - rect.left
+    const mouseY = event.clientY - rect.top
+    const containerCenterX = rect.width / 2
+    const containerCenterY = rect.height / 2
+    const offsetX = mouseX - containerCenterX
+    const offsetY = mouseY - containerCenterY
+    const contentMouseX = (offsetX - translateX.value) / zoom.value
+    const contentMouseY = (offsetY - translateY.value) / zoom.value
+    const sensitivity = 0.01
+    const delta = -event.deltaY * sensitivity
+    const newZoom = Math.min(Math.max(zoom.value + delta, 0.5), 3)
+    
+    if (newZoom !== zoom.value) {
+      translateX.value = offsetX - contentMouseX * newZoom
+      translateY.value = offsetY - contentMouseY * newZoom
+      zoom.value = newZoom
+    }
+  }
+}
+
 // Copy functionality
 async function copyCode() {
   try {
@@ -260,6 +288,7 @@ onMounted(initMermaid)
       <div
         ref="mermaidContainer"
         class="min-h-[360px] max-h-[500px] overflow-auto bg-gray-50 dark:bg-zinc-900 relative"
+        @wheel="handleWheel"
         @mousedown="startDrag"
         @mousemove="onDrag"
         @mouseup="stopDrag"
@@ -276,8 +305,7 @@ onMounted(initMermaid)
         >
           <div
             ref="mermaidContent"
-            class="mermaid w-full text-center absolute"
-            style="left: 50%; top: 50%; transform: translate(-50%, -50%)"
+            class="mermaid w-full text-center flex items-center justify-center min-h-full"
           >
             {{ node.code }}
           </div>
