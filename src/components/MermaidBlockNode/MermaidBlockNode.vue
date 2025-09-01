@@ -212,9 +212,17 @@ async function initMermaid() {
     } catch (error) {
       console.error('Failed to render mermaid diagram:', error)
       if (mermaidContent.value) {
-        mermaidContent.value.innerHTML = `<div class="text-red-500 p-4">Failed to render diagram: ${
+        const errorDiv = document.createElement('div')
+        errorDiv.className = 'text-red-500 p-4'
+        errorDiv.textContent = 'Failed to render diagram: '
+
+        const errorSpan = document.createElement('span')
+        errorSpan.textContent =
           error instanceof Error ? error.message : 'Unknown error'
-        }</div>`
+        errorDiv.appendChild(errorSpan)
+
+        mermaidContent.value.innerHTML = ''
+        mermaidContent.value.appendChild(errorDiv)
       }
     } finally {
       isRendering.value = false
