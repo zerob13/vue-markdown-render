@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 import mermaid from 'mermaid'
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { isDark } from '../../utils/isDark'
 import { Button } from '../button'
@@ -31,6 +31,10 @@ const showSource = ref(true)
 const isRendering = ref(false)
 const renderQueue = ref<Promise<void> | null>(null)
 const RENDER_DEBOUNCE_DELAY = 100
+const contentStableTimer = ref<number | null>(null)
+const CONTENT_STABLE_DELAY = 300
+const lastContentLength = ref(0)
+const isContentGenerating = ref(false)
 
 function debounce<T extends (...args: any[]) => any>(
   func: T,
@@ -43,6 +47,34 @@ function debounce<T extends (...args: any[]) => any>(
       clearTimeout(timeout)
     }
     timeout = setTimeout(() => func(...args), wait)
+  }
+}
+
+function checkContentStability() {
+  if (!showSource.value) {
+    return
+  }
+
+  const currentLength = props.node.code.length
+
+  if (currentLength > lastContentLength.value) {
+    isContentGenerating.value = true
+    lastContentLength.value = currentLength
+
+    if (contentStableTimer.value) {
+      clearTimeout(contentStableTimer.value)
+    }
+
+    contentStableTimer.value = setTimeout(() => {
+      if (
+        isContentGenerating.value &&
+        showSource.value &&
+        props.node.code.trim()
+      ) {
+        isContentGenerating.value = false
+        showSource.value = false
+      }
+    }, CONTENT_STABLE_DELAY)
   }
 }
 
@@ -236,7 +268,13 @@ async function initMermaid() {
 const debouncedInitMermaid = debounce(initMermaid, RENDER_DEBOUNCE_DELAY)
 
 // Watch for code changes
-watch(() => props.node.code, debouncedInitMermaid)
+watch(
+  () => props.node.code,
+  () => {
+    debouncedInitMermaid()
+    checkContentStability()
+  },
+)
 
 // Watch for dark mode changes with debounce
 watch(isDark, debouncedInitMermaid)
@@ -255,6 +293,13 @@ watch(
 onMounted(async () => {
   await nextTick()
   await initMermaid()
+  lastContentLength.value = props.node.code.length
+})
+
+onUnmounted(() => {
+  if (contentStableTimer.value) {
+    clearTimeout(contentStableTimer.value)
+  }
 })
 </script>
 
