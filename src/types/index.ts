@@ -71,8 +71,17 @@ export interface MermaidBlockNode {
   }
 }
 
-export type MarkdownRender = { content: string, nodes?: undefined, customComponents?: Record<string, any> }
-  | { content?: undefined, nodes: BaseNode[], customComponents?: Record<string, any> }
+export type MarkdownRender =
+  | {
+      content: string
+      nodes?: undefined
+      customComponents?: Record<string, any>
+    }
+  | {
+      content?: undefined
+      nodes: BaseNode[]
+      customComponents?: Record<string, any>
+    }
 export interface BlockquoteNode extends BaseNode {
   type: 'blockquote'
   children: ParsedNode[]
@@ -200,36 +209,36 @@ export interface MarkdownToken {
   meta?: any
 }
 
-export type ParsedNode
-  = | TextNode
-    | HeadingNode
-    | ParagraphNode
-    | ListNode
-    | ListItemNode
-    | CodeBlockNode
-    | InlineCodeNode
-    | LinkNode
-    | ImageNode
-    | ThematicBreakNode
-    | BlockquoteNode
-    | TableNode
-    | TableRowNode
-    | TableCellNode
-    | StrongNode
-    | EmphasisNode
-    | StrikethroughNode
-    | HighlightNode
-    | InsertNode
-    | SubscriptNode
-    | SuperscriptNode
-    | CheckboxNode
-    | EmojiNode
-    | DefinitionListNode
-    | DefinitionItemNode
-    | FootnoteNode
-    | FootnoteReferenceNode
-    | AdmonitionNode
-    | HardBreakNode
-    | MathInlineNode
-    | MathBlockNode
-    | ReferenceNode
+export type ParsedNode =
+  | TextNode
+  | HeadingNode
+  | ParagraphNode
+  | ListNode
+  | ListItemNode
+  | CodeBlockNode
+  | InlineCodeNode
+  | LinkNode
+  | ImageNode
+  | ThematicBreakNode
+  | BlockquoteNode
+  | TableNode
+  | TableRowNode
+  | TableCellNode
+  | StrongNode
+  | EmphasisNode
+  | StrikethroughNode
+  | HighlightNode
+  | InsertNode
+  | SubscriptNode
+  | SuperscriptNode
+  | CheckboxNode
+  | EmojiNode
+  | DefinitionListNode
+  | DefinitionItemNode
+  | FootnoteNode
+  | FootnoteReferenceNode
+  | AdmonitionNode
+  | HardBreakNode
+  | MathInlineNode
+  | MathBlockNode
+  | ReferenceNode

@@ -38,11 +38,9 @@ export function getMarkdown(msgId: string) {
     const start = pos
     const marker = state.src.charCodeAt(pos)
 
-    if (silent)
-      return false
+    if (silent) return false
 
-    if (marker !== 0x2A /* * */ && marker !== 0x5F /* _ */)
-      return false
+    if (marker !== 0x2a /* * */ && marker !== 0x5f /* _ */) return false
 
     let scan = pos
     const mem = pos
@@ -53,8 +51,7 @@ export function getMarkdown(msgId: string) {
     }
 
     const len = scan - pos
-    if (len < 2)
-      return false
+    if (len < 2) return false
 
     pos = scan
     const markerCount = len
@@ -78,13 +75,13 @@ export function getMarkdown(msgId: string) {
     if (!silent) {
       state.pos = start + markerCount
       token = state.push('strong_open', 'strong', 1)
-      token.markup = marker === 0x2A ? '**' : '__'
+      token.markup = marker === 0x2a ? '**' : '__'
 
       token = state.push('text', '', 0)
       token.content = state.src.slice(start + markerCount, pos)
 
       token = state.push('strong_close', 'strong', -1)
-      token.markup = marker === 0x2A ? '**' : '__'
+      token.markup = marker === 0x2a ? '**' : '__'
     }
 
     state.pos = pos + markerCount
@@ -104,8 +101,7 @@ export function getMarkdown(msgId: string) {
   const waveRule = (state: any, silent: boolean) => {
     const start = state.pos
 
-    if (state.src[start] !== '~')
-      return false
+    if (state.src[start] !== '~') return false
 
     // 检查是否是数字之间的波浪号
     const prevChar = state.src[start - 1]
@@ -140,12 +136,10 @@ export function getMarkdown(msgId: string) {
 
     for (const [open, close] of delimiters) {
       const start = state.pos
-      if (state.src.slice(start, start + open.length) !== open)
-        continue
+      if (state.src.slice(start, start + open.length) !== open) continue
 
       const end = state.src.indexOf(close, start + open.length)
-      if (end === -1)
-        continue
+      if (end === -1) continue
 
       if (!silent) {
         const token = state.push('math_inline', 'math', 0)
@@ -187,9 +181,14 @@ export function getMarkdown(msgId: string) {
           if (lineText === '[') {
             // 检查下一行是否有数学内容
             if (startLine + 1 < endLine) {
-              const nextLineStart = state.bMarks[startLine + 1] + state.tShift[startLine + 1]
-              const nextLineText = state.src.slice(nextLineStart, state.eMarks[startLine + 1])
-              const hasMathContent = /\\text|\\frac|\\left|\\right|\\times/.test(nextLineText)
+              const nextLineStart =
+                state.bMarks[startLine + 1] + state.tShift[startLine + 1]
+              const nextLineText = state.src.slice(
+                nextLineStart,
+                state.eMarks[startLine + 1],
+              )
+              const hasMathContent =
+                /\\text|\\frac|\\left|\\right|\\times/.test(nextLineText)
               if (hasMathContent) {
                 matched = true
                 openDelim = open
@@ -199,8 +198,7 @@ export function getMarkdown(msgId: string) {
             }
             continue
           }
-        }
-        else {
+        } else {
           matched = true
           openDelim = open
           closeDelim = close
@@ -209,23 +207,31 @@ export function getMarkdown(msgId: string) {
       }
     }
 
-    if (!matched)
-      return false
+    if (!matched) return false
 
     // Skip if in silent mode
-    if (silent)
-      return true
+    if (silent) return true
 
     // Check if the entire formula is on one line first
-    if (lineText.includes(closeDelim) && lineText.indexOf(closeDelim) > openDelim.length) {
+    if (
+      lineText.includes(closeDelim) &&
+      lineText.indexOf(closeDelim) > openDelim.length
+    ) {
       const startDelimIndex = lineText.indexOf(openDelim)
-      const endDelimIndex = lineText.indexOf(closeDelim, startDelimIndex + openDelim.length)
-      const content = lineText.slice(startDelimIndex + openDelim.length, endDelimIndex)
+      const endDelimIndex = lineText.indexOf(
+        closeDelim,
+        startDelimIndex + openDelim.length,
+      )
+      const content = lineText.slice(
+        startDelimIndex + openDelim.length,
+        endDelimIndex,
+      )
 
       // Create the token
       const token = state.push('math_block', 'math', 0)
       token.content = content // 不要 trim，保留所有空格和反斜杠
-      token.markup = openDelim === '$$' ? '$$' : openDelim === '[' ? '[]' : '\\[\\]'
+      token.markup =
+        openDelim === '$$' ? '$$' : openDelim === '[' ? '[]' : '\\[\\]'
       token.map = [startLine, startLine + 1]
       token.block = true
 
@@ -240,15 +246,15 @@ export function getMarkdown(msgId: string) {
     let found = false
 
     // Add content from the first line (after opening delimiter)
-    const firstLineContent = lineText === openDelim ? '' : lineText.slice(openDelim.length)
+    const firstLineContent =
+      lineText === openDelim ? '' : lineText.slice(openDelim.length)
 
     if (firstLineContent.includes(closeDelim)) {
       const endIndex = firstLineContent.indexOf(closeDelim)
       content = firstLineContent.slice(0, endIndex)
       found = true
       nextLine = startLine
-    }
-    else {
+    } else {
       if (firstLineContent) {
         content = firstLineContent
       }
@@ -261,8 +267,7 @@ export function getMarkdown(msgId: string) {
         if (currentLine.trim() === closeDelim) {
           found = true
           break
-        }
-        else if (currentLine.includes(closeDelim)) {
+        } else if (currentLine.includes(closeDelim)) {
           found = true
           const endIndex = currentLine.indexOf(closeDelim)
           content += (content ? '\n' : '') + currentLine.slice(0, endIndex)
@@ -273,13 +278,13 @@ export function getMarkdown(msgId: string) {
       }
     }
 
-    if (!found)
-      return false
+    if (!found) return false
 
     // Create the token
     const token = state.push('math_block', 'math', 0)
     token.content = content // 不要 trim，保留反斜杠和空格
-    token.markup = openDelim === '$$' ? '$$' : openDelim === '[' ? '[]' : '\\[\\]'
+    token.markup =
+      openDelim === '$$' ? '$$' : openDelim === '[' ? '[]' : '\\[\\]'
     token.map = [startLine, nextLine + 1]
     token.block = true
 
@@ -348,7 +353,9 @@ export function getMarkdown(msgId: string) {
     return `<div class="code-block" data-code="${encodedCode}" data-lang="${language}" id="${uniqueId}">
       <div class="code-header">
         <span class="code-lang">${language.toUpperCase()}</span>
-        <button class="copy-button" data-code="${encodedCode}">${t('common.copyCode')}</button>
+        <button class="copy-button" data-code="${encodedCode}">${t(
+      'common.copyCode',
+    )}</button>
       </div>
       <div class="code-editor"></div>
     </div>`
@@ -356,12 +363,10 @@ export function getMarkdown(msgId: string) {
 
   // Custom reference inline rule
   const referenceInline = (state: any, silent: boolean) => {
-    if (state.src[state.pos] !== '[')
-      return false
+    if (state.src[state.pos] !== '[') return false
 
     const match = /^\[(\d+)\]/.exec(state.src.slice(state.pos))
-    if (!match)
-      return false
+    if (!match) return false
 
     if (!silent) {
       const id = match[1]

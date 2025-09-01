@@ -7,7 +7,7 @@ interface LinkNode {
   href: string
   title: string | null
   text: string
-  children: { type: string, raw: string }[]
+  children: { type: string; raw: string }[]
   raw: string
 }
 
@@ -28,10 +28,7 @@ defineEmits(['copy'])
     target="_blank"
     rel="noopener noreferrer"
   >
-    <NodeRenderer
-      :nodes="node.children"
-      @copy="$emit('copy', $event)"
-    />
+    <NodeRenderer :nodes="node.children" @copy="$emit('copy', $event)" />
   </a>
 </template>
 

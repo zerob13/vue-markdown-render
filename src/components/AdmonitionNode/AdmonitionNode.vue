@@ -6,7 +6,7 @@ interface AdmonitionNode {
   type: 'admonition'
   kind: string
   title: string
-  children: { type: string, raw: string }[]
+  children: { type: string; raw: string }[]
   raw: string
 }
 
@@ -38,10 +38,7 @@ const iconMap = {
       <span class="admonition-title">{{ node.title }}</span>
     </div>
     <div class="admonition-content">
-      <NodeRenderer
-        :nodes="node.children"
-        @copy="$emit('copy', $event)"
-      />
+      <NodeRenderer :nodes="node.children" @copy="$emit('copy', $event)" />
     </div>
   </div>
 </template>

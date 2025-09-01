@@ -19,8 +19,7 @@ export function parseFootnote(
         raw: contentToken.content || '',
       })
       j += 3 // Skip paragraph_open, inline, paragraph_close
-    }
-    else {
+    } else {
       j++
     }
   }
@@ -29,7 +28,7 @@ export function parseFootnote(
     type: 'footnote',
     id,
     children: footnoteChildren,
-    raw: `[^${id}]: ${footnoteChildren.map(child => child.raw).join('\n')}`,
+    raw: `[^${id}]: ${footnoteChildren.map((child) => child.raw).join('\n')}`,
   }
 
   return [footnoteNode, j + 1] // Skip footnote_close

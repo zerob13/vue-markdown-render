@@ -4,10 +4,11 @@ import { parseInlineTokens } from '../index'
 export function parseLinkToken(
   tokens: MarkdownToken[],
   startIndex: number,
-): { node: LinkNode, nextIndex: number } {
+): { node: LinkNode; nextIndex: number } {
   const openToken = tokens[startIndex]
-  const href = openToken.attrs?.find(attr => attr[0] === 'href')?.[1] || ''
-  const title = openToken.attrs?.find(attr => attr[0] === 'title')?.[1] || null
+  const href = openToken.attrs?.find((attr) => attr[0] === 'href')?.[1] || ''
+  const title =
+    openToken.attrs?.find((attr) => attr[0] === 'title')?.[1] || null
 
   let i = startIndex + 1
   const linkTokens: MarkdownToken[] = []
@@ -26,8 +27,7 @@ export function parseLinkToken(
   const children = parseInlineTokens(linkTokens)
   const linkText = children
     .map((node) => {
-      if ('content' in node)
-        return node.content
+      if ('content' in node) return node.content
       return node.raw
     })
     .join('')

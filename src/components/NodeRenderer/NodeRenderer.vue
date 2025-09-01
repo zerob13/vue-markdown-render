@@ -37,8 +37,18 @@ import FallbackComponent from './FallbackComponent.vue'
 
 // 组件接收的 props
 const props = defineProps<
-  | { content: string, nodes?: undefined, customComponents?: Record<string, any>, typewriterEffect?: boolean }
-  | { content?: undefined, nodes: BaseNode[], customComponents?: Record<string, any>, typewriterEffect?: boolean }
+  | {
+      content: string
+      nodes?: undefined
+      customComponents?: Record<string, any>
+      typewriterEffect?: boolean
+    }
+  | {
+      content?: undefined
+      nodes: BaseNode[]
+      customComponents?: Record<string, any>
+      typewriterEffect?: boolean
+    }
 >()
 
 // 定义事件
@@ -50,7 +60,11 @@ const showCursor = ref(false)
 
 const parsedNodes = computed<BaseNode[]>(() => {
   // 解析 content 字符串为节点数组
-  return props.nodes?.length ? props.nodes : props.content ? parseMarkdownToStructure(props.content, md) : []
+  return props.nodes?.length
+    ? props.nodes
+    : props.content
+    ? parseMarkdownToStructure(props.content, md)
+    : []
 })
 
 // 监听内容变化，控制光标显示
@@ -60,57 +74,59 @@ let updateInterval: number | null = null
 let lastContentLength = 0
 let debounceTimeout: number | null = null
 
-watch(() => props.content, (newContent) => {
-  if (props.typewriterEffect && newContent) {
-    const currentLength = newContent.length
-    // 只有当内容实际增加时才更新光标
-    if (currentLength > lastContentLength) {
-      showCursor.value = true
-      lastContentLength = currentLength
+watch(
+  () => props.content,
+  (newContent) => {
+    if (props.typewriterEffect && newContent) {
+      const currentLength = newContent.length
+      // 只有当内容实际增加时才更新光标
+      if (currentLength > lastContentLength) {
+        showCursor.value = true
+        lastContentLength = currentLength
 
-      // 清除之前的定时器和动画帧
-      if (cursorTimeout) {
-        clearTimeout(cursorTimeout)
-      }
-      if (animationFrame) {
-        cancelAnimationFrame(animationFrame)
-      }
-      if (debounceTimeout) {
-        clearTimeout(debounceTimeout)
-      }
+        // 清除之前的定时器和动画帧
+        if (cursorTimeout) {
+          clearTimeout(cursorTimeout)
+        }
+        if (animationFrame) {
+          cancelAnimationFrame(animationFrame)
+        }
+        if (debounceTimeout) {
+          clearTimeout(debounceTimeout)
+        }
 
-      // 立即更新光标位置
-      requestAnimationFrame(() => {
-        updateCursorPosition()
-      })
+        // 立即更新光标位置
+        requestAnimationFrame(() => {
+          updateCursorPosition()
+        })
 
-      // 防抖：如果短时间内有多次更新，延迟隐藏光标
-      debounceTimeout = setTimeout(() => {
-        cursorTimeout = setTimeout(() => {
-          showCursor.value = false
-          if (updateInterval) {
-            clearInterval(updateInterval)
-            updateInterval = null
-          }
-        }, 3000) // 3秒后隐藏光标（比之前稍短）
-      }, 100) // 100ms防抖
+        // 防抖：如果短时间内有多次更新，延迟隐藏光标
+        debounceTimeout = setTimeout(() => {
+          cursorTimeout = setTimeout(() => {
+            showCursor.value = false
+            if (updateInterval) {
+              clearInterval(updateInterval)
+              updateInterval = null
+            }
+          }, 3000) // 3秒后隐藏光标（比之前稍短）
+        }, 100) // 100ms防抖
+      }
     }
-  }
-}, { flush: 'post' })
+  },
+  { flush: 'post' },
+)
 
 // 设置智能更新机制
 onMounted(() => {
   if (props.typewriterEffect) {
     // 只在需要时启动高频更新
     const startHighFrequencyUpdate = () => {
-      if (updateInterval)
-        return // 已经在运行
+      if (updateInterval) return // 已经在运行
 
       updateInterval = setInterval(() => {
         if (showCursor.value && containerRef.value) {
           updateCursorPosition()
-        }
-        else {
+        } else {
           // 如果光标隐藏，停止高频更新
           if (updateInterval) {
             clearInterval(updateInterval)
@@ -121,11 +137,15 @@ onMounted(() => {
     }
 
     // 监听内容变化来启动高频更新
-    watch(() => showCursor.value, (visible) => {
-      if (visible) {
-        startHighFrequencyUpdate()
-      }
-    }, { immediate: true })
+    watch(
+      () => showCursor.value,
+      (visible) => {
+        if (visible) {
+          startHighFrequencyUpdate()
+        }
+      },
+      { immediate: true },
+    )
   }
 })
 
@@ -154,9 +174,10 @@ function updateCursorPosition() {
   if (!props.typewriterEffect || !containerRef.value || !showCursor.value)
     return
 
-  const cursor = containerRef.value.querySelector('.typewriter-cursor') as HTMLElement
-  if (!cursor)
-    return
+  const cursor = containerRef.value.querySelector(
+    '.typewriter-cursor',
+  ) as HTMLElement
+  if (!cursor) return
 
   try {
     // 查找容器内所有的文本节点
@@ -170,14 +191,16 @@ function updateCursorPosition() {
           if (parent?.classList.contains('typewriter-cursor')) {
             return NodeFilter.FILTER_REJECT
           }
-          return node.textContent?.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
+          return node.textContent?.trim()
+            ? NodeFilter.FILTER_ACCEPT
+            : NodeFilter.FILTER_REJECT
         },
       },
     )
 
     let lastTextNode = null
     let currentNode
-    while (currentNode = walker.nextNode()) {
+    while ((currentNode = walker.nextNode())) {
       lastTextNode = currentNode
     }
 
@@ -225,14 +248,11 @@ function updateCursorPosition() {
 
         if (computedLineHeight === 'normal') {
           lineHeight = fontSize * 1.2 // 默认行高倍数
-        }
-        else if (computedLineHeight.endsWith('px')) {
+        } else if (computedLineHeight.endsWith('px')) {
           lineHeight = Number.parseFloat(computedLineHeight)
-        }
-        else if (!Number.isNaN(Number.parseFloat(computedLineHeight))) {
+        } else if (!Number.isNaN(Number.parseFloat(computedLineHeight))) {
           lineHeight = fontSize * Number.parseFloat(computedLineHeight)
-        }
-        else {
+        } else {
           lineHeight = fontSize * 1.2
         }
 
@@ -245,8 +265,7 @@ function updateCursorPosition() {
       cursor.style.height = `${lineHeight}px`
       cursor.style.fontSize = `${lineHeight}px`
     }
-  }
-  catch (error) {
+  } catch (error) {
     // 如果任何步骤失败，静默处理错误
     console.warn('Failed to position cursor:', error)
   }
@@ -283,7 +302,7 @@ const nodeComponents = {
   inline_code: InlineCodeNode,
   // 可以添加更多节点类型
   // 例如:custom_node: CustomNode,
-  ...props.customComponents || {},
+  ...(props.customComponents || {}),
 }
 setNodeComponents(nodeComponents)
 </script>
@@ -291,16 +310,21 @@ setNodeComponents(nodeComponents)
 <template>
   <div ref="containerRef" class="markdown-renderer">
     <component
-      :is="nodeComponents[node.type] || FallbackComponent" v-for="(node, index) in parsedNodes" :key="index"
-      :node="node" :loading="node.loading" @copy="$emit('copy', $event)"
-      @handle-artifact-click="$emit('handleArtifactClick', $event)" @click="$emit('click', $event)"
-      @mouseover="$emit('mouseover', $event)" @mouseout="$emit('mouseout', $event)"
+      :is="nodeComponents[node.type] || FallbackComponent"
+      v-for="(node, index) in parsedNodes"
+      :key="index"
+      :node="node"
+      :loading="node.loading"
+      @copy="$emit('copy', $event)"
+      @handle-artifact-click="$emit('handleArtifactClick', $event)"
+      @click="$emit('click', $event)"
+      @mouseover="$emit('mouseover', $event)"
+      @mouseout="$emit('mouseout', $event)"
     />
     <!-- 打字光标 -->
-    <span
-      v-if="typewriterEffect && showCursor"
-      class="typewriter-cursor"
-    >|</span>
+    <span v-if="typewriterEffect && showCursor" class="typewriter-cursor"
+      >|</span
+    >
   </div>
 </template>
 
@@ -334,11 +358,13 @@ setNodeComponents(nodeComponents)
 }
 
 @keyframes blink {
-  0%, 50% {
+  0%,
+  50% {
     opacity: 1;
     background-color: currentColor;
   }
-  51%, 100% {
+  51%,
+  100% {
     opacity: 0;
     background-color: transparent;
   }
@@ -351,5 +377,4 @@ setNodeComponents(nodeComponents)
 }
 </style>
 
-<style>
-</style>
+<style></style>

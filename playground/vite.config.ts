@@ -17,8 +17,7 @@ export default defineConfig({
     },
   },
   plugins: [
-    Vue({
-    }),
+    Vue({}),
 
     // https://github.com/hannoeru/vite-plugin-pages
     Pages(),
@@ -39,7 +38,13 @@ export default defineConfig({
     Unocss(),
 
     monacoEditorPlugin({
-      languageWorkers: ['editorWorkerService', 'typescript', 'css', 'html', 'json'],
+      languageWorkers: [
+        'editorWorkerService',
+        'typescript',
+        'css',
+        'html',
+        'json',
+      ],
     }),
   ],
 

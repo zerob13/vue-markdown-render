@@ -25,11 +25,15 @@ describe('列表中的数学公式解析测试', () => {
     const tokens = md.parse(testContent, {})
 
     // 查找数学块 tokens
-    const mathBlocks = tokens.filter(token => token.type === 'math_block')
+    const mathBlocks = tokens.filter((token) => token.type === 'math_block')
 
     console.log('所有 tokens:')
     tokens.forEach((token, i) => {
-      console.log(`  ${i}: ${token.type} ${token.tag || ''} - ${(token.content || '').slice(0, 50)}...`)
+      console.log(
+        `  ${i}: ${token.type} ${token.tag || ''} - ${(
+          token.content || ''
+        ).slice(0, 50)}...`,
+      )
     })
 
     console.log('\\n数学块详情:')
@@ -70,7 +74,7 @@ describe('列表中的数学公式解析测试', () => {
     const tokens = md.parse(testContent, {})
 
     // 查找数学块 tokens
-    const mathBlocks = tokens.filter(token => token.type === 'math_block')
+    const mathBlocks = tokens.filter((token) => token.type === 'math_block')
 
     console.log('\\n=== 嵌套列表数学公式测试 ===')
     console.log('数学块数量:', mathBlocks.length)
@@ -83,7 +87,9 @@ describe('列表中的数学公式解析测试', () => {
 
     // 验证是否找到了数学块
     expect(mathBlocks.length).toBe(3)
-    expect(mathBlocks[0].content).toContain('x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}')
+    expect(mathBlocks[0].content).toContain(
+      'x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}',
+    )
     expect(mathBlocks[1].content).toContain('\\int_0^1 x^2 dx')
     expect(mathBlocks[2].content).toContain('\\sum_{i=1}^n i')
   })

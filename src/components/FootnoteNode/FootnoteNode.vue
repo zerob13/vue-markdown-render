@@ -5,7 +5,7 @@ import NodeRenderer from '../NodeRenderer'
 interface FootnoteNode {
   type: 'footnote'
   id: string
-  children: { type: string, raw: string }[]
+  children: { type: string; raw: string }[]
   raw: string
 }
 
@@ -25,10 +25,7 @@ defineEmits(['copy'])
   >
     <span class="font-semibold mr-2 text-[#0366d6]">[{{ node.id }}]</span>
     <div class="flex-1">
-      <NodeRenderer
-        :nodes="node.children"
-        @copy="$emit('copy', $event)"
-      />
+      <NodeRenderer :nodes="node.children" @copy="$emit('copy', $event)" />
     </div>
   </div>
 </template>

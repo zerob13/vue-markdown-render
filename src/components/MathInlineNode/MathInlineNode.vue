@@ -14,8 +14,7 @@ const mathElement = ref<HTMLElement | null>(null)
 
 // Function to render math using KaTeX
 function renderMath() {
-  if (!mathElement.value || !props.node.content)
-    return
+  if (!mathElement.value || !props.node.content) return
 
   try {
     katex.render(props.node.content, mathElement.value, {
@@ -23,8 +22,7 @@ function renderMath() {
       displayMode: false,
       output: 'html',
     })
-  }
-  catch (error) {
+  } catch (error) {
     console.error('KaTeX rendering error:', error)
     // Fallback to displaying the raw math
     mathElement.value.textContent = props.node.raw

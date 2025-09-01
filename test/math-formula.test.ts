@@ -19,11 +19,15 @@ describe('数学公式解析测试', () => {
     const tokens = md.parse(testContent, {})
 
     // 查找数学块 tokens
-    const mathBlocks = tokens.filter(token => token.type === 'math_block')
+    const mathBlocks = tokens.filter((token) => token.type === 'math_block')
 
     console.log('所有 tokens:')
     tokens.forEach((token, i) => {
-      console.log(`  ${i}: ${token.type} ${token.tag || ''} - ${(token.content || '').slice(0, 50)}...`)
+      console.log(
+        `  ${i}: ${token.type} ${token.tag || ''} - ${(
+          token.content || ''
+        ).slice(0, 50)}...`,
+      )
     })
 
     console.log('\\n数学块详情:')
@@ -67,7 +71,7 @@ $$E=mc^2$$
     const tokens = md.parse(streamContent, {})
 
     // 查找数学块 tokens
-    const mathBlocks = tokens.filter(token => token.type === 'math_block')
+    const mathBlocks = tokens.filter((token) => token.type === 'math_block')
 
     console.log('\\n=== 完整内容测试 ===')
     console.log('数学块数量:', mathBlocks.length)
@@ -119,7 +123,7 @@ $$E=mc^2$$
     const tokens = md.parse(newContent, {})
 
     // 查找数学块 tokens
-    const mathBlocks = tokens.filter(token => token.type === 'math_block')
+    const mathBlocks = tokens.filter((token) => token.type === 'math_block')
 
     console.log('\\n=== 新内容测试 ===')
     console.log('数学块数量:', mathBlocks.length)
@@ -128,7 +132,7 @@ $$E=mc^2$$
       console.log(`  内容: ${block.content}`)
       console.log(`  标记: ${block.markup}`)
       console.log('---')
-    })// 应该找到 3 个数学块：$$E=mc^2$$，第一个 \\[...\\]，第二个 \\[...\\]
+    }) // 应该找到 3 个数学块：$$E=mc^2$$，第一个 \\[...\\]，第二个 \\[...\\]
     expect(mathBlocks.length).toBe(3)
 
     // 验证第一个数学块是 E=mc^2

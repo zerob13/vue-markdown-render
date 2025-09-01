@@ -9,7 +9,6 @@ import { name } from './package.json'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-
   base: '/',
   plugins: [
     Vue(),
@@ -18,9 +17,7 @@ export default defineConfig({
     }),
     UnpluginClassExtractor({
       output: 'dist2/tailwind.ts',
-      include: [
-        /\/src\/components\/(?:[^/]+\/)*[^/]+\.vue(\?.*)?$/,
-      ],
+      include: [/\/src\/components\/(?:[^/]+\/)*[^/]+\.vue(\?.*)?$/],
     }) as any,
   ],
   build: {
@@ -35,7 +32,30 @@ export default defineConfig({
       fileName: 'index',
     },
     rollupOptions: {
-      external: ['vue', '@iconify/vue', '@lezer/highlight', '@vueuse/core', 'class-variance-authority', 'clsx', 'markdown-it', 'markdown-it-container', 'markdown-it-emoji', 'markdown-it-footnote', 'markdown-it-ins', 'markdown-it-mark', 'markdown-it-mathjax3', 'markdown-it-sub', 'markdown-it-sup', 'markdown-it-task-checkbox', 'mermaid', 'radix-vue', 'tailwind-merge', 'uuid', 'vue-i18n', 'katex'],
+      external: [
+        'vue',
+        '@iconify/vue',
+        '@lezer/highlight',
+        '@vueuse/core',
+        'class-variance-authority',
+        'clsx',
+        'markdown-it',
+        'markdown-it-container',
+        'markdown-it-emoji',
+        'markdown-it-footnote',
+        'markdown-it-ins',
+        'markdown-it-mark',
+        'markdown-it-mathjax3',
+        'markdown-it-sub',
+        'markdown-it-sup',
+        'markdown-it-task-checkbox',
+        'mermaid',
+        'radix-vue',
+        'tailwind-merge',
+        'uuid',
+        'vue-i18n',
+        'katex',
+      ],
       output: {
         globals: {
           vue: 'Vue',
@@ -57,5 +77,4 @@ export default defineConfig({
       '@': '/src',
     },
   },
-
 })

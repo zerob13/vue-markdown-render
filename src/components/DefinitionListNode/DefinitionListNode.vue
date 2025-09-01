@@ -4,8 +4,8 @@ import NodeRenderer from '../NodeRenderer'
 // 定义定义项节点
 interface DefinitionItemNode {
   type: 'definition_item'
-  term: { type: string, raw: string }[]
-  definition: { type: string, raw: string }[]
+  term: { type: string; raw: string }[]
+  definition: { type: string; raw: string }[]
   raw: string
 }
 
@@ -29,16 +29,10 @@ defineEmits(['copy'])
   <dl class="definition-list">
     <template v-for="(item, index) in node.items" :key="index">
       <dt class="definition-term">
-        <NodeRenderer
-          :nodes="item.term"
-          @copy="$emit('copy', $event)"
-        />
+        <NodeRenderer :nodes="item.term" @copy="$emit('copy', $event)" />
       </dt>
       <dd class="definition-desc">
-        <NodeRenderer
-          :nodes="item.definition"
-          @copy="$emit('copy', $event)"
-        />
+        <NodeRenderer :nodes="item.definition" @copy="$emit('copy', $event)" />
       </dd>
     </template>
   </dl>

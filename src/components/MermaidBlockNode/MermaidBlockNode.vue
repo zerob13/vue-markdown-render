@@ -3,8 +3,8 @@ import { Icon } from '@iconify/vue'
 import mermaid from 'mermaid'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Button } from '../button'
 import { isDark } from '../../utils/isDark'
+import { Button } from '../button'
 
 const props = defineProps<{
   node: {
@@ -60,8 +60,7 @@ function startDrag(e: MouseEvent | TouchEvent) {
       x: e.clientX - translateX.value,
       y: e.clientY - translateY.value,
     }
-  }
-  else {
+  } else {
     dragStart.value = {
       x: e.touches[0].clientX - translateX.value,
       y: e.touches[0].clientY - translateY.value,
@@ -70,8 +69,7 @@ function startDrag(e: MouseEvent | TouchEvent) {
 }
 
 function onDrag(e: MouseEvent | TouchEvent) {
-  if (!isDragging.value)
-    return
+  if (!isDragging.value) return
 
   let clientX: number
   let clientY: number
@@ -79,8 +77,7 @@ function onDrag(e: MouseEvent | TouchEvent) {
   if (e instanceof MouseEvent) {
     clientX = e.clientX
     clientY = e.clientY
-  }
-  else {
+  } else {
     clientX = e.touches[0].clientX
     clientY = e.touches[0].clientY
   }
@@ -97,9 +94,8 @@ function stopDrag() {
 function handleWheel(event: WheelEvent) {
   if (event.ctrlKey || event.metaKey) {
     event.preventDefault()
-    if (!mermaidContainer.value)
-      return
-    
+    if (!mermaidContainer.value) return
+
     const rect = mermaidContainer.value.getBoundingClientRect()
     const mouseX = event.clientX - rect.left
     const mouseY = event.clientY - rect.top
@@ -112,7 +108,7 @@ function handleWheel(event: WheelEvent) {
     const sensitivity = 0.01
     const delta = -event.deltaY * sensitivity
     const newZoom = Math.min(Math.max(zoom.value + delta, 0.5), 3)
-    
+
     if (newZoom !== zoom.value) {
       translateX.value = offsetX - contentMouseX * newZoom
       translateY.value = offsetY - contentMouseY * newZoom
@@ -129,8 +125,7 @@ async function copyCode() {
     setTimeout(() => {
       copyText.value = t('common.copy')
     }, 2000)
-  }
-  catch (err) {
+  } catch (err) {
     console.error('Failed to copy:', err)
   }
 }
@@ -154,16 +149,14 @@ async function exportSvg() {
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
-  }
-  catch (error) {
+  } catch (error) {
     console.error('Failed to export SVG:', error)
   }
 }
 
 // 优化的 mermaid 渲染函数
 async function initMermaid() {
-  if (!mermaidContent.value)
-    return
+  if (!mermaidContent.value) return
 
   try {
     // 生成唯一的图表ID
@@ -175,17 +168,22 @@ async function initMermaid() {
     })
 
     // 使用 render API 直接渲染新内容
-    const { svg } = await mermaid.render(id, props.node.code, mermaidContent.value)
+    const { svg } = await mermaid.render(
+      id,
+      props.node.code,
+      mermaidContent.value,
+    )
 
     // 更新 DOM
     if (mermaidContent.value) {
       mermaidContent.value.innerHTML = svg
     }
-  }
-  catch (error) {
+  } catch (error) {
     console.error('Failed to render mermaid diagram:', error)
     if (mermaidContent.value) {
-      mermaidContent.value.innerHTML = `<div class="text-red-500 p-4">Failed to render diagram: ${error instanceof Error ? error.message : 'Unknown error'}</div>`
+      mermaidContent.value.innerHTML = `<div class="text-red-500 p-4">Failed to render diagram: ${
+        error instanceof Error ? error.message : 'Unknown error'
+      }</div>`
     }
   }
 }
@@ -218,7 +216,9 @@ onMounted(initMermaid)
     <div
       class="flex justify-between items-center p-2 bg-gray-100 dark:bg-zinc-800 text-xs"
     >
-      <span class="text-gray-600 dark:text-gray-400 font-mono font-bold">Mermaid</span>
+      <span class="text-gray-600 dark:text-gray-400 font-mono font-bold"
+        >Mermaid</span
+      >
       <div class="flex items-center space-x-2">
         <button
           class="px-2 py-1 rounded-md transition-colors"

@@ -63,22 +63,19 @@ const interval = setInterval(() => {
   if (index < fullContent.length) {
     content.value += fullContent[index]
     index++
-  }
-  else {
+  } else {
     clearInterval(interval)
   }
 }, 50)
 </script>
 
 <template>
-  <MarkdownRender
-    :content="content"
-    :typewriter-effect="true"
-  />
+  <MarkdownRender :content="content" :typewriter-effect="true" />
 </template>
 ```
 
 The typewriter effect features:
+
 - **Real-time cursor tracking**: Cursor follows the text as it appears
 - **Smart positioning**: Automatically adjusts to different font sizes and line heights
 - **Performance optimized**: Uses efficient DOM updates and animation frames
@@ -86,12 +83,12 @@ The typewriter effect features:
 
 ### Props
 
-| Name              | Type                       | Required | Description                                      |
-|-------------------|---------------------------|----------|--------------------------------------------------|
-| `content`         | `string`                  | ✓        | Markdown string to render                        |
-| `nodes`           | `BaseNode[]`              |          | Parsed markdown AST nodes (alternative to content)|
-| `customComponents`| `Record<string, any>`     |          | Custom Vue components for rendering              |
-| `typewriterEffect`| `boolean`                 |          | Enable typewriter animation effect (default: false)|
+| Name               | Type                  | Required | Description                                         |
+| ------------------ | --------------------- | -------- | --------------------------------------------------- |
+| `content`          | `string`              | ✓        | Markdown string to render                           |
+| `nodes`            | `BaseNode[]`          |          | Parsed markdown AST nodes (alternative to content)  |
+| `customComponents` | `Record<string, any>` |          | Custom Vue components for rendering                 |
+| `typewriterEffect` | `boolean`             |          | Enable typewriter animation effect (default: false) |
 
 > Either `content` or `nodes` must be provided.
 

@@ -507,7 +507,10 @@ const mainRef = ref<any>(null)
 useInterval(5, {
   callback() {
     if (content.value.length < streamContent.length) {
-      content.value += streamContent.slice(content.value.length, content.value.length + 1)
+      content.value += streamContent.slice(
+        content.value.length,
+        content.value.length + 1,
+      )
     }
   },
 })
@@ -518,8 +521,7 @@ let isAutoScrolling = false
 // 监听 content 的变化
 const { pause, resume, stop } = watch(content, async () => {
   // 只有当用户在底部时才自动滚动
-  if (!isUserAtBottom.value)
-    return
+  if (!isUserAtBottom.value) return
 
   // 等待 DOM 更新
   await nextTick()
@@ -538,8 +540,7 @@ const { pause, resume, stop } = watch(content, async () => {
 
 // 检查用户是否在底部
 function checkIfAtBottom() {
-  if (!mainRef.value)
-    return false
+  if (!mainRef.value) return false
   const { scrollTop, scrollHeight, clientHeight } = mainRef.value
   // 允许5px的误差
   return scrollHeight - scrollTop - clientHeight <= 5
@@ -547,16 +548,14 @@ function checkIfAtBottom() {
 
 // 处理用户滚动事件
 function handleUserScroll() {
-  if (isAutoScrolling)
-    return // 如果是自动滚动触发的，不处理
+  if (isAutoScrolling) return // 如果是自动滚动触发的，不处理
 
   const atBottom = checkIfAtBottom()
   if (isUserAtBottom.value !== atBottom) {
     isUserAtBottom.value = atBottom
     if (atBottom) {
       resume() // 用户滚动到底部，恢复自动滚动
-    }
-    else {
+    } else {
       pause() // 用户滚动离开底部，暂停自动滚动
     }
   }
@@ -565,7 +564,9 @@ function handleUserScroll() {
 // 监听滚动事件
 onMounted(() => {
   if (mainRef.value) {
-    mainRef.value.addEventListener('scroll', handleUserScroll, { passive: true })
+    mainRef.value.addEventListener('scroll', handleUserScroll, {
+      passive: true,
+    })
   }
 })
 onUnmounted(() => {
@@ -583,5 +584,4 @@ onUnmounted(() => {
   </main>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

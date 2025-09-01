@@ -100,15 +100,15 @@ export function processTokens(tokens: MarkdownToken[]): ParsedNode[] {
       }
 
       case 'container_open': {
-        const match = /^::: ?(warning|info|note|tip|danger|caution) ?(.*)$/.exec(
-          token.info || '',
-        )
+        const match =
+          /^::: ?(warning|info|note|tip|danger|caution) ?(.*)$/.exec(
+            token.info || '',
+          )
         if (match) {
           const [admonitionNode, newIndex] = parseAdmonition(tokens, i, match)
           result.push(admonitionNode)
           i = newIndex
-        }
-        else {
+        } else {
           i += 1 // Not a container type we handle, skip
         }
         break

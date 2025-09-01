@@ -3,7 +3,7 @@ import NodeRenderer from '../NodeRenderer'
 
 interface BlockquoteNode {
   type: 'blockquote'
-  children: { type: string, raw: string }[]
+  children: { type: string; raw: string }[]
   raw: string
 }
 
@@ -16,10 +16,7 @@ defineEmits(['copy'])
 
 <template>
   <blockquote class="blockquote" dir="auto">
-    <NodeRenderer
-      :nodes="node.children"
-      @copy="$emit('copy', $event)"
-    />
+    <NodeRenderer :nodes="node.children" @copy="$emit('copy', $event)" />
   </blockquote>
 </template>
 

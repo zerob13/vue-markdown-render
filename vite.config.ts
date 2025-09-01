@@ -10,10 +10,7 @@ import { name } from './package.json'
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const base = '/'
-  let plugins = [
-    Vue(),
-    Components(),
-  ]
+  let plugins = [Vue(), Components()]
 
   let build: Record<string, any> = {
     target: 'es2015',
@@ -28,9 +25,7 @@ export default defineConfig(({ mode }) => {
       }),
       UnpluginClassExtractor({
         output: 'dist/tailwind.ts',
-        include: [
-          /\/src\/components\/(?:[^/]+\/)*[^/]+\.vue(\?.*)?$/,
-        ],
+        include: [/\/src\/components\/(?:[^/]+\/)*[^/]+\.vue(\?.*)?$/],
       }) as any,
     ]
     build = {
@@ -44,7 +39,30 @@ export default defineConfig(({ mode }) => {
         fileName: 'index',
       },
       rollupOptions: {
-        external: ['vue', '@iconify/vue', '@lezer/highlight', '@vueuse/core', 'class-variance-authority', 'clsx', 'markdown-it', 'markdown-it-container', 'markdown-it-emoji', 'markdown-it-footnote', 'markdown-it-ins', 'markdown-it-mark', 'markdown-it-mathjax3', 'markdown-it-sub', 'markdown-it-sup', 'markdown-it-task-checkbox', 'mermaid', 'radix-vue', 'tailwind-merge', 'uuid', 'vue-i18n', 'katex'],
+        external: [
+          'vue',
+          '@iconify/vue',
+          '@lezer/highlight',
+          '@vueuse/core',
+          'class-variance-authority',
+          'clsx',
+          'markdown-it',
+          'markdown-it-container',
+          'markdown-it-emoji',
+          'markdown-it-footnote',
+          'markdown-it-ins',
+          'markdown-it-mark',
+          'markdown-it-mathjax3',
+          'markdown-it-sub',
+          'markdown-it-sup',
+          'markdown-it-task-checkbox',
+          'mermaid',
+          'radix-vue',
+          'tailwind-merge',
+          'uuid',
+          'vue-i18n',
+          'katex',
+        ],
         output: {
           globals: {
             vue: 'Vue',

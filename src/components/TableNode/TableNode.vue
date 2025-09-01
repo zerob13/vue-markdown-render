@@ -5,7 +5,7 @@ import NodeRenderer from '../NodeRenderer'
 interface TableCellNode {
   type: 'table_cell'
   header: boolean
-  children: { type: string, raw: string }[]
+  children: { type: string; raw: string }[]
   raw: string
 }
 
@@ -64,7 +64,9 @@ defineEmits(['copy'])
             rowIndex % 2 === 1
               ? 'bg-gray-100 dark:bg-zinc-900 dark:border-zinc-800'
               : '',
-            rowIndex < node.rows.length - 1 ? 'border-b dark:border-zinc-800' : '',
+            rowIndex < node.rows.length - 1
+              ? 'border-b dark:border-zinc-800'
+              : '',
           ]"
         >
           <td

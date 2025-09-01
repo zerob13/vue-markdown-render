@@ -15,7 +15,10 @@ describe('preProcessMarkdown 测试', () => {
       let processed = match
 
       // 保护数学公式中的反斜杠命令
-      processed = processed.replace(/\\(text|frac|left|right|times|sqrt|sum|int|alpha|beta|gamma|delta|theta|lambda|mu|sigma|pi|infty)/g, '\\\\$1')
+      processed = processed.replace(
+        /\\(text|frac|left|right|times|sqrt|sum|int|alpha|beta|gamma|delta|theta|lambda|mu|sigma|pi|infty)/g,
+        '\\\\$1',
+      )
 
       // 保护其他常见的反斜杠字符
       processed = processed.replace(/\\([{}()[\]|&%$#_^~])/g, '\\\\$1')

@@ -37,8 +37,7 @@ globalThis.MonacoEnvironment = {
 const i18n = createI18n({
   globalInjection: true,
   locale: 'zh-CN',
-  messages: {
-  },
+  messages: {},
   legacy: false,
 })
 const app = createApp(App)

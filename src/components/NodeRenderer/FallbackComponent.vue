@@ -1,7 +1,9 @@
 <script setup lang="ts">
-defineProps<{ node: {
-  raw: string
-} }>()
+defineProps<{
+  node: {
+    raw: string
+  }
+}>()
 </script>
 
 <template>
@@ -10,5 +12,4 @@ defineProps<{ node: {
   </div>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

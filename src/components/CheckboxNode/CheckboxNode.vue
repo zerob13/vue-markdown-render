@@ -10,7 +10,12 @@ defineProps<{
 
 <template>
   <span class="checkbox-node">
-    <input type="checkbox" :checked="node.checked" disabled class="checkbox-input">
+    <input
+      type="checkbox"
+      :checked="node.checked"
+      disabled
+      class="checkbox-input"
+    />
   </span>
 </template>
 

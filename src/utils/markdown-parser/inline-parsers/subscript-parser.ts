@@ -4,7 +4,7 @@ import { parseInlineTokens } from '../index'
 export function parseSubscriptToken(
   tokens: MarkdownToken[],
   startIndex: number,
-): { node: SubscriptNode, nextIndex: number } {
+): { node: SubscriptNode; nextIndex: number } {
   const children: ParsedNode[] = []
   let subText = ''
   let i = startIndex + 1

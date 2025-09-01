@@ -19,17 +19,15 @@ export function parseBlockquote(
         raw: contentToken.content || '',
       })
       j += 3 // Skip paragraph_open, inline, paragraph_close
-    }
-    else if (
-      tokens[j].type === 'bullet_list_open'
-      || tokens[j].type === 'ordered_list_open'
+    } else if (
+      tokens[j].type === 'bullet_list_open' ||
+      tokens[j].type === 'ordered_list_open'
     ) {
       // Handle nested lists - use parseList directly for proper nested list support
       const [listNode, newIndex] = parseList(tokens, j)
       blockquoteChildren.push(listNode)
       j = newIndex
-    }
-    else {
+    } else {
       j++
     }
   }
@@ -37,7 +35,7 @@ export function parseBlockquote(
   const blockquoteNode: BlockquoteNode = {
     type: 'blockquote',
     children: blockquoteChildren,
-    raw: blockquoteChildren.map(child => child.raw).join('\n'),
+    raw: blockquoteChildren.map((child) => child.raw).join('\n'),
   }
 
   return [blockquoteNode, j + 1] // Skip blockquote_close

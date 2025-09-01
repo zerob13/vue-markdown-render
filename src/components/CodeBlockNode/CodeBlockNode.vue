@@ -9,21 +9,24 @@ import { detectLanguage, useMonaco } from 'vue-use-monaco'
 import { getLanguageIcon, languageMap } from '../../utils'
 import MermaidBlockNode from '../MermaidBlockNode'
 
-const props = withDefaults(defineProps<{
-  node: {
-    type: 'code_block'
-    language: string
-    code: string
-    raw: string
-  }
-  darkTheme?: ThemeInput
-  lightTheme?: ThemeInput
-  isShowPreview?: boolean
-}>(), {
-  isShowPreview: true,
-  darkTheme: undefined,
-  lightTheme: undefined,
-})
+const props = withDefaults(
+  defineProps<{
+    node: {
+      type: 'code_block'
+      language: string
+      code: string
+      raw: string
+    }
+    darkTheme?: ThemeInput
+    lightTheme?: ThemeInput
+    isShowPreview?: boolean
+  }>(),
+  {
+    isShowPreview: true,
+    darkTheme: undefined,
+    lightTheme: undefined,
+  },
+)
 
 const emits = defineEmits(['previewCode'])
 const { t } = useI18n()
@@ -31,12 +34,10 @@ const codeEditor = ref<HTMLElement | null>(null)
 const copyText = ref(t('common.copy'))
 const codeLanguage = ref(props.node.language || '')
 const { createEditor, updateCode } = useMonaco({
-  themes: props.darkTheme && props.lightTheme
-    ? [
-        props.darkTheme,
-        props.lightTheme,
-      ]
-    : undefined,
+  themes:
+    props.darkTheme && props.lightTheme
+      ? [props.darkTheme, props.lightTheme]
+      : undefined,
 })
 
 // 创建节流版本的语言检测函数,1秒内最多执行一次
@@ -69,8 +70,7 @@ watch(
   (newLanguage) => {
     if (newLanguage === '') {
       throttledDetectLanguage(props.node.code)
-    }
-    else {
+    } else {
       codeLanguage.value = newLanguage
     }
   },
@@ -96,23 +96,21 @@ async function copyCode() {
     setTimeout(() => {
       copyText.value = t('common.copy')
     }, 2000)
-  }
-  catch (err) {
+  } catch (err) {
     console.error('复制失败:', err)
   }
 }
 
 // 预览HTML/SVG代码
 function previewCode() {
-  if (!isPreviewable.value)
-    return
+  if (!isPreviewable.value) return
 
   const lowerLang = props.node.language.toLowerCase()
   const artifactType = lowerLang === 'html' ? 'text/html' : 'image/svg+xml'
-  const artifactTitle
-      = lowerLang === 'html'
-        ? t('artifacts.htmlPreviewTitle') || 'HTML Preview'
-        : t('artifacts.svgPreviewTitle') || 'SVG Preview'
+  const artifactTitle =
+    lowerLang === 'html'
+      ? t('artifacts.htmlPreviewTitle') || 'HTML Preview'
+      : t('artifacts.svgPreviewTitle') || 'SVG Preview'
   emits('previewCode', {
     node: props.node,
     artifactType,
@@ -129,18 +127,26 @@ watch(
   },
 )
 
-watchOnce(() => codeEditor.value, () => {
-  createEditor(codeEditor.value, props.node.code, codeLanguage.value)
-})
+watchOnce(
+  () => codeEditor.value,
+  () => {
+    createEditor(codeEditor.value, props.node.code, codeLanguage.value)
+  },
+)
 </script>
 
 <template>
   <MermaidBlockNode v-if="isMermaid" :node="node" />
-  <div v-else class="my-4 rounded-lg border border-border overflow-hidden shadow-sm">
+  <div
+    v-else
+    class="my-4 rounded-lg border border-border overflow-hidden shadow-sm"
+  >
     <div class="flex justify-between items-center p-2 bg-muted text-xs">
       <span class="flex items-center space-x-2">
         <Icon :icon="languageIcon" class="w-4 h-4" />
-        <span class="text-gray-600 dark:text-gray-400 font-mono font-bold">{{ displayLanguage }}</span>
+        <span class="text-gray-600 dark:text-gray-400 font-mono font-bold">{{
+          displayLanguage
+        }}</span>
       </span>
       <div v-if="isPreviewable" class="flex items-center space-x-2">
         <button
