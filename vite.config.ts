@@ -62,6 +62,8 @@ export default defineConfig(({ mode }) => {
           'uuid',
           'vue-i18n',
           'katex',
+          'vue-use-monaco',
+          'monaco-editor'
         ],
         output: {
           globals: {
