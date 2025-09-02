@@ -31,10 +31,10 @@ const showSource = ref(true)
 const isRendering = ref(false)
 const renderQueue = ref<Promise<void> | null>(null)
 const RENDER_DEBOUNCE_DELAY = 100
-const contentStableTimer = ref<number | null>(null)
 const CONTENT_STABLE_DELAY = 300
 const lastContentLength = ref(0)
 const isContentGenerating = ref(false)
+let contentStableTimer: number | null = null
 
 function debounce<T extends (...args: any[]) => any>(
   func: T,
@@ -61,11 +61,11 @@ function checkContentStability() {
     isContentGenerating.value = true
     lastContentLength.value = currentLength
 
-    if (contentStableTimer.value) {
-      clearTimeout(contentStableTimer.value)
+    if (contentStableTimer) {
+      clearTimeout(contentStableTimer)
     }
 
-    contentStableTimer.value = setTimeout(() => {
+    contentStableTimer = setTimeout(() => {
       if (
         isContentGenerating.value &&
         showSource.value &&
@@ -297,8 +297,8 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  if (contentStableTimer.value) {
-    clearTimeout(contentStableTimer.value)
+  if (contentStableTimer) {
+    clearTimeout(contentStableTimer)
   }
 })
 </script>
