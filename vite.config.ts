@@ -63,7 +63,7 @@ export default defineConfig(({ mode }) => {
           'vue-i18n',
           'katex',
           'vue-use-monaco',
-          'monaco-editor'
+          'monaco-editor',
         ],
         output: {
           globals: {

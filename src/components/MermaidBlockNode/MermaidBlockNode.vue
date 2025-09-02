@@ -407,7 +407,7 @@ onUnmounted(() => {
           <div
             ref="mermaidContent"
             class="mermaid w-full text-center flex items-center justify-center min-h-full"
-          ></div>
+          />
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ThemeInput } from 'vue-use-monaco'
+import type { MonacoOptions, ThemeInput } from 'vue-use-monaco'
 import { Icon } from '@iconify/vue'
 import { useThrottleFn, watchOnce } from '@vueuse/core'
 import { v4 as uuidv4 } from 'uuid'
@@ -20,6 +20,7 @@ const props = withDefaults(
     darkTheme?: ThemeInput
     lightTheme?: ThemeInput
     isShowPreview?: boolean
+    monacoOptions?: MonacoOptions
   }>(),
   {
     isShowPreview: true,
@@ -34,10 +35,14 @@ const codeEditor = ref<HTMLElement | null>(null)
 const copyText = ref(t('common.copy'))
 const codeLanguage = ref(props.node.language || '')
 const { createEditor, updateCode } = useMonaco({
+  wordWrap: 'on', // 'on' | 'off' | 'wordWrapColumn' | 'bounded'
+  wrappingIndent: 'same', // 'none' | 'same' | 'indent' | 'deepIndent'
+  scrollbar: { horizontal: 'hidden' }, // 隐藏水平滚动条
   themes:
     props.darkTheme && props.lightTheme
       ? [props.darkTheme, props.lightTheme]
       : undefined,
+  ...(props.monacoOptions || {}),
 })
 
 // 创建节流版本的语言检测函数,1秒内最多执行一次
