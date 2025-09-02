@@ -85,7 +85,8 @@
     "markdown-it-sub": "^2.0.0",
     "markdown-it-sup": "^2.0.0",
     "markdown-it-task-checkbox": "^1.0.6",
-    "mermaid": "^11.10.1"
+    "mermaid": "^11.10.1",
+    "vue-use-monaco": "^0.0.8"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^4.19.0",
@@ -117,8 +118,7 @@
     "vitest": "^3.2.4",
     "vue": "^3.5.20",
     "vue-i18n": "^11.1.11",
-    "vue-tsc": "^2.2.12",
-    "vue-use-monaco": "^0.0.8"
+    "vue-tsc": "^2.2.12"
   },
   "lint-staged": {
     "*": [
