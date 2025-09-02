@@ -37,7 +37,20 @@ globalThis.MonacoEnvironment = {
 const i18n = createI18n({
   globalInjection: true,
   locale: 'zh-CN',
-  messages: {},
+  messages: {
+    'zh-CN': {
+      common: {
+        copy: '复制',
+        copied: '已复制',
+      },
+    },
+    en: {
+      common: {
+        copy: 'Copy',
+        copied: 'Copied',
+      },
+    },
+  },
   legacy: false,
 })
 const app = createApp(App)
