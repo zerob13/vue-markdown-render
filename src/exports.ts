@@ -1,4 +1,4 @@
-import type { App, Plugin } from 'vue'
+import type { App, Component, Plugin } from 'vue'
 import AdmonitionNode from './components/AdmonitionNode'
 
 import BlockquoteNode from './components/BlockquoteNode'
@@ -67,7 +67,7 @@ export {
 
 export default MarkdownRender
 
-const componentMap = {
+const componentMap: Record<string, Component> = {
   AdmonitionNode,
   BlockquoteNode,
   CheckboxNode,

@@ -4,6 +4,7 @@ import { parseInlineTokens } from './inline-parsers'
 import { parseAdmonition } from './node-parsers/admonition-parser'
 import { parseBlockquote } from './node-parsers/blockquote-parser'
 import { parseCodeBlock, parseFence } from './node-parsers/code-block-parser'
+import { parseContainer } from './node-parsers/container-parser'
 import { parseDefinitionList } from './node-parsers/definition-list-parser'
 import { parseFootnote } from './node-parsers/footnote-parser'
 import { parseHardBreak } from './node-parsers/hardbreak-parser'
@@ -23,7 +24,6 @@ export function parseMarkdownToStructure(
   // Get tokens from markdown-it
   const tokens = md.parse(markdown, {}) as MarkdownToken[]
   // Process the tokens into our structured format
-
   const result = processTokens(tokens)
   return result
 }
@@ -37,6 +37,18 @@ export function processTokens(tokens: MarkdownToken[]): ParsedNode[] {
     const token = tokens[i]
 
     switch (token.type) {
+      case 'container_warning_open':
+      case 'container_info_open':
+      case 'container_note_open':
+      case 'container_tip_open':
+      case 'container_danger_open':
+      case 'container_caution_open': {
+        const [warningNode, newIndex] = parseContainer(tokens, i)
+        result.push(warningNode)
+        i = newIndex
+        break
+      }
+
       case 'heading_open':
         result.push(parseHeading(tokens, i))
         i += 3 // Skip heading_open, inline, heading_close

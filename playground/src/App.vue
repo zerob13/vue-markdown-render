@@ -4,6 +4,18 @@ import MarkdownRender from 'vue-renderer-markdown'
 // 模拟流式传输
 const streamContent = `I'll create a simple Electron + Vue chat application demo. Here's the structure:
 
+::: warning
+这是一个警告块。
+:::
+
+::: tip 提示标题
+这是带标题的提示。
+:::
+
+::: admonition 自定义块
+任意内容。
+:::
+
 مرحبا بكم في عالم اللغة العربية!
 1. First, let's set up the project:
 
