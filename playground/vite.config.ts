@@ -49,14 +49,7 @@ export default defineConfig({
   ],
   build: {
     rollupOptions: {
-      external: [
-        'vue-markdown-renderer'
-      ],
+      external: ['vue-markdown-renderer'],
     },
-  },
-
-  // https://github.com/vitest-dev/vitest
-  test: {
-    environment: 'jsdom',
   },
 })

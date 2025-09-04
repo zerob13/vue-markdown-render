@@ -37,7 +37,6 @@ const codeLanguage = ref(props.node.language || '')
 const { createEditor, updateCode } = useMonaco({
   wordWrap: 'on', // 'on' | 'off' | 'wordWrapColumn' | 'bounded'
   wrappingIndent: 'same', // 'none' | 'same' | 'indent' | 'deepIndent'
-  scrollbar: { horizontal: 'hidden' }, // 隐藏水平滚动条
   themes:
     props.darkTheme && props.lightTheme
       ? [props.darkTheme, props.lightTheme]

@@ -315,12 +315,107 @@ function sendMessage() {
   scrollToBottom();
 }
 
-function scrollToBottom() {
-  nextTick(() => {
-    if (messagesContainer.value) {
-      messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+// 顶层 RAF + 阻尼平滑滚动实现，放在顶层以供全文件复用
+function _smoothScrollToBottom(el: HTMLElement, timeout = 800) {
+  // 如果用户偏好减少动画，则直接跳到底部
+  try {
+    if (window && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      el.scrollTop = el.scrollHeight
+      return Promise.resolve()
     }
-  });
+  } catch (e) {
+    // ignore
+  }
+
+  return new Promise<void>((resolve) => {
+    let rafId: number | null = null
+    let finished = false
+    let startTime = performance.now()
+    let canceled = false
+
+    const cancelHandlers: Array<() => void> = []
+
+    const onUserInteract = () => {
+      canceled = true
+      cleanup()
+      resolve()
+    }
+
+    // 如果发生滚动/触摸/键盘等交互，取消动画
+    const events = ['wheel', 'touchstart', 'pointerdown', 'keydown'] as const
+    for (const ev of events) {
+      const h = onUserInteract
+      document.addEventListener(ev, h, { passive: true })
+      cancelHandlers.push(() => document.removeEventListener(ev, h))
+    }
+
+    const cleanup = () => {
+      if (finished) return
+      finished = true
+      if (rafId != null) cancelAnimationFrame(rafId)
+      for (const r of cancelHandlers) r()
+    }
+
+    // 缓动函数（easeOutCubic）
+    const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3)
+
+    // 根据距离动态计算时长（短距离更快，长距离更慢），并受 timeout 上限限制
+    const initialTarget = Math.max(0, el.scrollHeight - el.clientHeight)
+    const initialDistance = Math.abs((el.scrollTop || 0) - initialTarget)
+    const viewport = el.clientHeight || 1
+    const base = 320 // 基础时长参考（ms）
+    const duration = Math.max(120, Math.min(timeout, Math.round(base * (initialDistance / viewport + 0.2))))
+
+    const tick = (ts: number) => {
+      if (canceled) return
+      rafId = requestAnimationFrame(tick)
+
+      const now = ts
+      const elapsed = Math.max(0, now - startTime)
+      const progress = Math.min(1, elapsed / duration)
+      const eased = easeOutCubic(progress)
+
+      const current = el.scrollTop
+      const target = Math.max(0, el.scrollHeight - el.clientHeight)
+
+      // 计算插值：先把整体进度转为一个靠近目标的系数，然后以该系数移动当前值，允许目标在期间变化
+      const approach = 0.15 + 0.85 * eased
+      const next = current + (target - current) * approach
+      el.scrollTop = next
+
+      // 结束条件：已经非常接近目标或进度完成并到达容忍范围
+      if (Math.abs(target - next) <= 0.5 || (progress >= 1 && Math.abs(target - next) <= 2)) {
+        cleanup()
+        el.scrollTop = target
+        resolve()
+        return
+      }
+
+      // 兜底最大超时
+      if (elapsed >= timeout) {
+        cleanup()
+        el.scrollTop = target
+        resolve()
+        return
+      }
+    }
+
+    // 启动动画
+    startTime = performance.now()
+    rafId = requestAnimationFrame(tick)
+  })
+}
+
+// 导出给外部使用的封装函数（保持原名）
+function smoothScrollToBottom(el: HTMLElement, timeout = 800) {
+  return _smoothScrollToBottom(el, timeout)
+}
+
+function scrollToBottom() {
+  const el = (typeof scrollTarget !== 'undefined' && scrollTarget?.value) || mainRef.value
+  if (!el) return
+  // fire and forget
+  void smoothScrollToBottom(el)
 }
 <\/script>
 
@@ -529,22 +624,20 @@ useInterval(5, {
 
 // 用户是否在底部的状态
 const isUserAtBottom = ref(true)
-let isAutoScrolling = false
+let isAutoScrolling = true
 // 监听 content 的变化
 const { pause, resume, stop } = watch(content, async () => {
   // 只有当用户在底部时才自动滚动
   if (!isUserAtBottom.value) return
-
   // 等待 DOM 更新
   await nextTick()
+  if (!isAutoScrolling) return
   const el = mainRef.value
   if (el) {
     // 检查 main 元素是否真的有滚动条
     if (el.scrollHeight > el.clientHeight) {
-      isAutoScrolling = true
       // 使用平滑滚动并等待完成或超时
       await smoothScrollToBottom(el)
-      isAutoScrolling = false
     }
   }
 })
@@ -570,13 +663,14 @@ function smoothScrollToBottom(el: HTMLElement) {
     }
 
     const start = performance.now()
-    const maxDuration = 900 // ms, 超时后强制结束
+    const maxDuration = 400 // ms, 超时后强制结束
 
     function check() {
       // 如果已经在底部则完成
       const scrollTop = el.scrollTop
       const scrollHeight = el.scrollHeight
       const clientHeight = el.clientHeight
+      if (!isAutoScrolling) return resolve()
       if (scrollHeight - scrollTop - clientHeight <= 2) return resolve()
 
       if (performance.now() - start > maxDuration) {
@@ -592,14 +686,34 @@ function smoothScrollToBottom(el: HTMLElement) {
   })
 }
 
+const scrollWay = ref<'top' | 'bottom'>('bottom')
+let preTop: number | null = null
+
 // 处理用户滚动事件
 function handleUserScroll() {
-  if (isAutoScrolling) return // 如果是自动滚动触发的，不处理
-
+  if (!preTop) {
+    preTop = mainRef.value?.scrollTop
+  } else {
+    if (mainRef.value?.scrollTop > preTop) {
+      scrollWay.value = 'bottom'
+    } else if (mainRef.value?.scrollTop < preTop) {
+      scrollWay.value = 'top'
+    }
+    preTop = mainRef.value?.scrollTop
+    if (scrollWay.value === 'top') {
+      isUserAtBottom.value = false
+      pause() // 用户滚动离开底部，暂停自动滚动
+      isAutoScrolling = false
+      return
+    }
+  }
   const atBottom = checkIfAtBottom()
   if (isUserAtBottom.value !== atBottom) {
     isUserAtBottom.value = atBottom
     if (atBottom) {
+      if (scrollWay.value === 'bottom') {
+        isAutoScrolling = true
+      }
       resume() // 用户滚动到底部，恢复自动滚动
     } else {
       pause() // 用户滚动离开底部，暂停自动滚动
