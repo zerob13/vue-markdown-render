@@ -25,8 +25,9 @@ export function parseContainer(
   } else {
     // container_open: info usually contains the marker like ' warning Title'
     const info = (openToken.info || '').trim()
-    // eslint-disable-next-line regexp/no-super-linear-backtracking
+
     const match =
+      // eslint-disable-next-line regexp/no-super-linear-backtracking
       /^:{1,3}\s*(warning|info|note|tip|danger|caution)\s*(.*)$/i.exec(info)
     if (match) {
       kind = match[1]

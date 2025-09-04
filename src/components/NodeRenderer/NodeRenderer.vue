@@ -69,10 +69,10 @@ const parsedNodes = computed<BaseNode[]>(() => {
 
 // 监听内容变化，控制光标显示
 let cursorTimeout: number | null = null
-let animationFrame: number | null = null
-let updateInterval: number | null = null
+let animationFrame: number | null = null // used for requestAnimationFrame id
 let lastContentLength = 0
 let debounceTimeout: number | null = null
+let isVisible = true
 
 watch(
   () => props.content,
@@ -104,10 +104,6 @@ watch(
         debounceTimeout = setTimeout(() => {
           cursorTimeout = setTimeout(() => {
             showCursor.value = false
-            if (updateInterval) {
-              clearInterval(updateInterval)
-              updateInterval = null
-            }
           }, 3000) // 3秒后隐藏光标（比之前稍短）
         }, 100) // 100ms防抖
       }
@@ -119,42 +115,68 @@ watch(
 // 设置智能更新机制
 onMounted(() => {
   if (props.typewriterEffect) {
-    // 只在需要时启动高频更新
-    const startHighFrequencyUpdate = () => {
-      if (updateInterval) return // 已经在运行
+    // Use requestAnimationFrame loop and IntersectionObserver to minimize work.
+    const startRafLoop = () => {
+      if (animationFrame) return
 
-      updateInterval = setInterval(() => {
-        if (showCursor.value && containerRef.value) {
+      const loop = () => {
+        animationFrame = requestAnimationFrame(loop)
+        if (showCursor.value && containerRef.value && isVisible) {
           updateCursorPosition()
-        } else {
-          // 如果光标隐藏，停止高频更新
-          if (updateInterval) {
-            clearInterval(updateInterval)
-            updateInterval = null
-          }
         }
-      }, 16) // 约60FPS的更新频率
+      }
+
+      animationFrame = requestAnimationFrame(loop)
     }
 
-    // 监听内容变化来启动高频更新
+    const stopRafLoop = () => {
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame)
+        animationFrame = null
+      }
+    }
+
+    // Start/stop based on visibility of cursor
     watch(
       () => showCursor.value,
       (visible) => {
-        if (visible) {
-          startHighFrequencyUpdate()
-        }
+        if (visible) startRafLoop()
+        else stopRafLoop()
       },
       { immediate: true },
     )
+
+    // Observe container visibility to pause expensive updates when not visible
+    const observer = new IntersectionObserver((entries) => {
+      const entry = entries[0]
+      isVisible = entry ? entry.isIntersecting : true
+      if (!isVisible) {
+        // pause updates
+        if (animationFrame) {
+          cancelAnimationFrame(animationFrame)
+          animationFrame = null
+        }
+      } else if (showCursor.value) {
+        startRafLoop()
+      }
+    })
+
+    onMounted(() => {
+      if (containerRef.value) observer.observe(containerRef.value)
+    })
+
+    onUnmounted(() => {
+      observer.disconnect()
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame)
+        animationFrame = null
+      }
+    })
   }
 })
 
 onUnmounted(() => {
-  // 确保所有定时器都被清理
-  if (updateInterval) {
-    clearInterval(updateInterval)
-    updateInterval = null
-  }
+  // Ensure timers/frames are cleared
   if (animationFrame) {
     cancelAnimationFrame(animationFrame)
     animationFrame = null

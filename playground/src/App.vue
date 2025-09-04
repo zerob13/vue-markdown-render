@@ -537,14 +537,13 @@ const { pause, resume, stop } = watch(content, async () => {
 
   // 等待 DOM 更新
   await nextTick()
-  if (mainRef.value) {
+  const el = mainRef.value
+  if (el) {
     // 检查 main 元素是否真的有滚动条
-    if (mainRef.value.scrollHeight > mainRef.value.clientHeight) {
+    if (el.scrollHeight > el.clientHeight) {
       isAutoScrolling = true
-      // 滚动到底部
-      mainRef.value.scrollTop = mainRef.value.scrollHeight
-      // 等待滚动完成
-      await nextTick()
+      // 使用平滑滚动并等待完成或超时
+      await smoothScrollToBottom(el)
       isAutoScrolling = false
     }
   }
@@ -556,6 +555,41 @@ function checkIfAtBottom() {
   const { scrollTop, scrollHeight, clientHeight } = mainRef.value
   // 允许5px的误差
   return scrollHeight - scrollTop - clientHeight <= 5
+}
+
+// 平滑滚动到底部并等待滚动结束或超时
+function smoothScrollToBottom(el: HTMLElement) {
+  return new Promise<void>((resolve) => {
+    // 触发平滑滚动
+    try {
+      el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
+    } catch {
+      // 某些环境可能不支持 smooth 选项，退回到直接赋值
+      el.scrollTop = el.scrollHeight
+      return resolve()
+    }
+
+    const start = performance.now()
+    const maxDuration = 900 // ms, 超时后强制结束
+
+    function check() {
+      // 如果已经在底部则完成
+      const scrollTop = el.scrollTop
+      const scrollHeight = el.scrollHeight
+      const clientHeight = el.clientHeight
+      if (scrollHeight - scrollTop - clientHeight <= 2) return resolve()
+
+      if (performance.now() - start > maxDuration) {
+        // 超时，确保最终位置到达底部
+        el.scrollTop = el.scrollHeight
+        return resolve()
+      }
+
+      requestAnimationFrame(check)
+    }
+
+    requestAnimationFrame(check)
+  })
 }
 
 // 处理用户滚动事件
