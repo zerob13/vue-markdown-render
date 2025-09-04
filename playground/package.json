@@ -2,7 +2,6 @@
   "name": "playground",
   "type": "module",
   "private": true,
-  "packageManager": "pnpm@7.33.7",
   "scripts": {
     "build": "vite build",
     "dev": "vite --port 3333 --open",
