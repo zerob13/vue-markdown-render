@@ -1,3 +1,4 @@
+import katex from 'katex'
 import MarkdownIt from 'markdown-it'
 import { full as markdownItEmoji } from 'markdown-it-emoji'
 import markdownItFootnote from 'markdown-it-footnote'
@@ -12,8 +13,8 @@ import {
   parseMarkdownToStructure,
   processTokens,
 } from './markdown-parser'
-import { getMarkdown as factory } from './markdown/getMarkdown'
 
+import { getMarkdown as factory } from './markdown/getMarkdown'
 import 'katex/dist/katex.min.css'
 
 // Re-export the node types for backward compatibility
@@ -156,5 +157,19 @@ export function getCommonMarkdown() {
 }
 
 export function renderMarkdown(md: MarkdownIt, content: string) {
-  return md.render(content)
+  const html = md.render(content)
+
+  const newHTML = html.replace(/\([^)]*\)/g, (match) => {
+    const latex = match.slice(1, -1) // remove surrounding parentheses
+    try {
+      const data = katex.renderToString(latex, {
+        throwOnError: true,
+        displayMode: false,
+      })
+      return data
+    } catch {
+      return match
+    }
+  })
+  return newHTML
 }
