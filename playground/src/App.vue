@@ -95,7 +95,7 @@ app.on('activate', () => {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
+    "electron:dev": "concurrently \\"npm run dev\\" \\"wait-on http://localhost:5173 && electron .\\"",
     "electron:build": "vite build && electron-builder"
   },
   "dependencies": {
@@ -145,7 +145,7 @@ const emit = defineEmits(['select-contact']);
 
 const contacts = ref([
   { id: 1, name: 'Alice', lastMessage: 'Hey, how are you?' },
-  { id: 2, name: 'Bob', lastMessage: 'Let\'s meet tomorrow' },
+  { id: 2, name: 'Bob', lastMessage: 'Let\\'s meet tomorrow' },
   { id: 3, name: 'Charlie', lastMessage: 'Did you see that?' }
 ]);
 
