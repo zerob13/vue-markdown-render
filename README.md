@@ -107,6 +107,8 @@ The typewriter effect features:
 
 If you are using Monaco Editor in your project, you need to configure `vite-plugin-monaco-editor-esm` to handle global injection of workers. On Windows, you may encounter issues during the build process. To resolve this, configure `customDistPath` to ensure successful packaging.
 
+> Note: If you only need to render a Monaco editor (for editing or previewing code) and don't require this library's full Markdown rendering pipeline, you can integrate Monaco directly using `vue-use-monaco` for a lighter, more direct integration.
+
 ### Example Configuration
 
 ```ts
