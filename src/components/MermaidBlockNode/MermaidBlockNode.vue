@@ -6,19 +6,46 @@ import { useI18n } from 'vue-i18n'
 import { isDark } from '../../utils/isDark'
 import { Button } from '../button'
 
-const props = defineProps<{
-  node: {
-    type: 'code_block'
-    language: string
-    code: string
-  }
-}>()
+const props = withDefaults(
+  defineProps<{
+    node: {
+      type: 'code_block'
+      language: string
+      code: string
+    }
+    maxHeight?: string | null
+  }>(),
+  {
+    maxHeight: '500px',
+  },
+)
 
 const { t } = useI18n()
 const copyText = ref(t('common.copy'))
 const mermaidContainer = ref<HTMLElement>()
 const mermaidWrapper = ref<HTMLElement>()
 const mermaidContent = ref<HTMLElement>()
+const fixedCode = computed(() => {
+  return props.node.code.replace(/\]::([^:])/g, ']:::$1') // 将 :: 更改为 ::: 来应用类样式
+})
+
+// dynamic container sizing
+const containerHeight = ref<number | null>(null)
+const containerStyle = computed(() => {
+  const style: Record<string, string> = {}
+
+  if (containerHeight.value !== null) {
+    style.height = `${containerHeight.value}px`
+  } else {
+    style.minHeight = '360px'
+  }
+
+  if (props.maxHeight) {
+    style.maxHeight = props.maxHeight
+  }
+
+  return style
+})
 
 // Zoom state
 const zoom = ref(1)
@@ -55,7 +82,7 @@ function checkContentStability() {
     return
   }
 
-  const currentLength = props.node.code.length
+  const currentLength = fixedCode.value.length
 
   if (currentLength > lastContentLength.value) {
     isContentGenerating.value = true
@@ -69,7 +96,7 @@ function checkContentStability() {
       if (
         isContentGenerating.value &&
         showSource.value &&
-        props.node.code.trim()
+        fixedCode.value.trim()
       ) {
         isContentGenerating.value = false
         showSource.value = false
@@ -169,7 +196,7 @@ function handleWheel(event: WheelEvent) {
 // Copy functionality
 async function copyCode() {
   try {
-    await navigator.clipboard.writeText(props.node.code)
+    await navigator.clipboard.writeText(fixedCode.value)
     copyText.value = t('common.copySuccess')
     setTimeout(() => {
       copyText.value = t('common.copy')
@@ -233,13 +260,26 @@ async function initMermaid() {
 
       const { svg, bindFunctions } = await mermaid.render(
         id,
-        props.node.code,
+        fixedCode.value,
         mermaidContent.value,
       )
 
       if (mermaidContent.value) {
         mermaidContent.value.innerHTML = svg
         bindFunctions?.(mermaidContent.value)
+        // After inserting SVG, measure its rendered height and adjust container
+        await nextTick()
+        try {
+          const svgEl = mermaidContent.value.querySelector(
+            'svg',
+          ) as SVGSVGElement | null
+          if (svgEl && mermaidContainer.value) {
+            const rect = svgEl.getBoundingClientRect()
+            containerHeight.value = rect.height
+          }
+        } catch {
+          // ignore measurement errors
+        }
       }
     } catch (error) {
       console.error('Failed to render mermaid diagram:', error)
@@ -269,7 +309,7 @@ const debouncedInitMermaid = debounce(initMermaid, RENDER_DEBOUNCE_DELAY)
 
 // Watch for code changes
 watch(
-  () => props.node.code,
+  () => fixedCode.value,
   () => {
     debouncedInitMermaid()
     checkContentStability()
@@ -293,7 +333,8 @@ watch(
 onMounted(async () => {
   await nextTick()
   await initMermaid()
-  lastContentLength.value = props.node.code.length
+  lastContentLength.value = fixedCode.value.length
+  // initialize and listen for viewport changes
 })
 
 onUnmounted(() => {
@@ -361,7 +402,7 @@ onUnmounted(() => {
       </div>
     </div>
     <div v-if="showSource" class="p-4 bg-gray-50 dark:bg-zinc-900">
-      <pre class="text-sm font-mono whitespace-pre-wrap">{{ node.code }}</pre>
+      <pre class="text-sm font-mono whitespace-pre-wrap">{{ fixedCode }}</pre>
     </div>
     <div v-else class="relative">
       <div class="absolute top-2 right-2 z-10 rounded-lg">
@@ -388,7 +429,8 @@ onUnmounted(() => {
       </div>
       <div
         ref="mermaidContainer"
-        class="min-h-[360px] max-h-[500px] overflow-auto bg-gray-50 dark:bg-zinc-900 relative"
+        :style="containerStyle"
+        class="overflow-auto bg-gray-50 dark:bg-zinc-900 relative"
         @wheel="handleWheel"
         @mousedown="startDrag"
         @mousemove="onDrag"

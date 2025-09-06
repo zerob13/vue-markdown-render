@@ -21,7 +21,7 @@ function renderMath() {
       throwOnError: false,
       displayMode: false,
       output: 'html',
-      strict: 'ignore'
+      strict: 'ignore',
     })
   } catch (error) {
     console.error('KaTeX rendering error:', error)

@@ -21,7 +21,7 @@ function renderMath() {
       throwOnError: false,
       displayMode: true, // Display mode for block math
       output: 'html',
-      strict: 'ignore'
+      strict: 'ignore',
     })
   } catch (error) {
     console.error('KaTeX rendering error:', error)
