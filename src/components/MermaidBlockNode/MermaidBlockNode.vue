@@ -25,6 +25,8 @@ const copyText = ref(t('common.copy'))
 const mermaidContainer = ref<HTMLElement>()
 const mermaidWrapper = ref<HTMLElement>()
 const mermaidContent = ref<HTMLElement>()
+const modalContent = ref<HTMLElement>()
+const modalCloneWrapper = ref<HTMLElement | null>(null)
 const fixedCode = computed(() => {
   return props.node.code
     .replace(/\]::([^:])/g, ']:::$1') // 将 :: 更改为 ::: 来应用类样式
@@ -64,6 +66,58 @@ const CONTENT_STABLE_DELAY = 300
 const lastContentLength = ref(0)
 const isContentGenerating = ref(false)
 let contentStableTimer: number | null = null
+
+// Modal pseudo-fullscreen state (fixed overlay)
+const isModalOpen = ref(false)
+
+const transformStyle = computed(() => ({
+  transform: `translate(${translateX.value}px, ${translateY.value}px) scale(${zoom.value})`,
+}))
+
+function handleKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && isModalOpen.value) {
+    closeModal()
+  }
+}
+
+function openModal() {
+  isModalOpen.value = true
+  document.body.style.overflow = 'hidden'
+  window.addEventListener('keydown', handleKeydown)
+
+  nextTick(() => {
+    if (mermaidContainer.value && modalContent.value) {
+      // clone the container for modal and add fullscreen to the clone (not original)
+      const clone = mermaidContainer.value.cloneNode(true) as HTMLElement
+      clone.classList.add('fullscreen')
+
+      // find the wrapper inside the clone using the data attribute and keep a ref
+      const wrapper = clone.querySelector(
+        '[data-mermaid-wrapper]',
+      ) as HTMLElement | null
+      if (wrapper) {
+        modalCloneWrapper.value = wrapper
+        // apply current transform to the clone so it matches the original state
+        wrapper.style.transform = (transformStyle.value as any).transform
+      }
+
+      // clear any previous content and append the clone
+      modalContent.value.innerHTML = ''
+      modalContent.value.appendChild(clone)
+    }
+  })
+}
+
+function closeModal() {
+  isModalOpen.value = false
+  // remove the cloned modal content and clear clone ref
+  if (modalContent.value) {
+    modalContent.value.innerHTML = ''
+  }
+  modalCloneWrapper.value = null
+  document.body.style.overflow = ''
+  window.removeEventListener('keydown', handleKeydown)
+}
 
 function debounce<T extends (...args: any[]) => any>(
   func: T,
@@ -107,9 +161,16 @@ function checkContentStability() {
   }
 }
 
-const transformStyle = computed(() => ({
-  transform: `translate(${translateX.value}px, ${translateY.value}px) scale(${zoom.value})`,
-}))
+// keep modal clone in sync with transform changes
+watch(
+  transformStyle,
+  (newStyle) => {
+    if (isModalOpen.value && modalCloneWrapper.value) {
+      modalCloneWrapper.value.style.transform = (newStyle as any).transform
+    }
+  },
+  { immediate: true },
+)
 
 // Zoom controls
 function zoomIn() {
@@ -336,13 +397,14 @@ onMounted(async () => {
   await nextTick()
   await initMermaid()
   lastContentLength.value = fixedCode.value.length
-  // initialize and listen for viewport changes
+  // initialize
 })
 
 onUnmounted(() => {
   if (contentStableTimer) {
     clearTimeout(contentStableTimer)
   }
+  // cleanup
 })
 </script>
 
@@ -401,6 +463,17 @@ onUnmounted(() => {
         >
           <Icon icon="lucide:download" class="w-3 h-3" />
         </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors w-4 h-3"
+          @click="openModal"
+        >
+          <Icon
+            :icon="isModalOpen ? 'lucide:minimize-2' : 'lucide:maximize-2'"
+            class="w-3 h-3"
+          />
+        </Button>
       </div>
     </div>
     <div v-if="showSource" class="p-4 bg-gray-50 dark:bg-zinc-900">
@@ -444,6 +517,7 @@ onUnmounted(() => {
       >
         <div
           ref="mermaidWrapper"
+          data-mermaid-wrapper
           class="absolute inset-0 cursor-grab"
           :class="{ 'cursor-grabbing': isDragging }"
           :style="transformStyle"
@@ -454,6 +528,46 @@ onUnmounted(() => {
           />
         </div>
       </div>
+      <!-- Modal pseudo-fullscreen overlay (teleported to body) -->
+      <teleport to="body">
+        <div
+          v-if="isModalOpen"
+          class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          @click.self="closeModal"
+        >
+          <div
+            class="relative w-full h-full max-w-full max-h-full bg-white dark:bg-zinc-900 rounded shadow-lg overflow-hidden"
+          >
+            <div class="absolute top-2 right-2 z-50 flex items-center">
+              <button
+                class="px-2 py-1 text-xs rounded text-muted-foreground hover:bg-slate-200 dark:hover:bg-background transition-colors"
+                @click="zoomIn"
+              >
+                <Icon icon="lucide:zoom-in" class="w-3 h-3" />
+              </button>
+              <button
+                class="px-2 py-1 text-xs rounded text-muted-foreground hover:bg-slate-200 dark:hover:bg-background transition-colors"
+                @click="zoomOut"
+              >
+                <Icon icon="lucide:zoom-out" class="w-3 h-3" />
+              </button>
+              <button
+                class="px-2 py-1 text-xs rounded text-muted-foreground hover:bg-slate-200 dark:hover:bg-background transition-colors"
+                @click="resetZoom"
+              >
+                {{ Math.round(zoom * 100) }}%
+              </button>
+              <Button size="icon" variant="ghost" @click="closeModal">
+                <Icon icon="lucide:x" class="w-4 h-4" />
+              </Button>
+            </div>
+            <div
+              ref="modalContent"
+              class="w-full h-full flex items-center justify-center p-4 overflow-auto"
+            />
+          </div>
+        </div>
+      </teleport>
     </div>
   </div>
 </template>
@@ -466,5 +580,9 @@ onUnmounted(() => {
 .mermaid :deep(svg) {
   max-width: 100%;
   height: auto;
+}
+.fullscreen {
+  width: 100%;
+  max-height: 100% !important;
 }
 </style>
