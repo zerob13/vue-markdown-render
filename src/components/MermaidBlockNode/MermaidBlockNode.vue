@@ -33,39 +33,62 @@ const fixedCode = computed(() => {
     .replace(/:::subgraphNode$/gm, '::subgraphNode')
 })
 
-// dynamic container sizing
-const containerHeight = ref<number | null>(null)
-const containerStyle = computed(() => {
-  const style: Record<string, string> = {}
-
-  if (containerHeight.value !== null) {
-    style.height = `${containerHeight.value}px`
-  } else {
-    style.minHeight = '360px'
-  }
-
-  if (props.maxHeight) {
-    style.maxHeight = props.maxHeight
-  }
-
-  return style
-})
-
 // Zoom state
 const zoom = ref(1)
 const translateX = ref(0)
 const translateY = ref(0)
 const isDragging = ref(false)
 const dragStart = ref({ x: 0, y: 0 })
+
 // 避免直接渲染画面报错
 const showSource = ref(true)
 const isRendering = ref(false)
 const renderQueue = ref<Promise<void> | null>(null)
-const RENDER_DEBOUNCE_DELAY = 100
-const CONTENT_STABLE_DELAY = 300
+const RENDER_DEBOUNCE_DELAY = 300
+const CONTENT_STABLE_DELAY = 500
 const lastContentLength = ref(0)
 const isContentGenerating = ref(false)
 let contentStableTimer: number | null = null
+
+const containerHeight = ref<string>('360px') // 初始值与 min-h 保持一致
+let resizeObserver: ResizeObserver | null = null
+
+/**
+ * 健壮地计算并更新容器高度，优先使用viewBox，并可接收外部传入的宽度
+ * @param newContainerWidth - 可选的容器宽度，由ResizeObserver提供以确保精确
+ */
+function updateContainerHeight(newContainerWidth?: number) {
+  if (mermaidContainer.value && mermaidContent.value) {
+    const svgElement = mermaidContent.value.querySelector('svg')
+    if (svgElement) {
+      const viewBox = svgElement.getAttribute('viewBox')
+      let intrinsicWidth = Number.parseFloat(
+        svgElement.getAttribute('width') || '0',
+      )
+      let intrinsicHeight = Number.parseFloat(
+        svgElement.getAttribute('height') || '0',
+      )
+
+      // 优先使用 viewBox 获取宽高比，因为这更准确
+      if (viewBox) {
+        const parts = viewBox.split(' ')
+        if (parts.length === 4) {
+          intrinsicWidth = Number.parseFloat(parts[2])
+          intrinsicHeight = Number.parseFloat(parts[3])
+        }
+      }
+
+      if (intrinsicWidth > 0 && intrinsicHeight > 0) {
+        const aspectRatio = intrinsicHeight / intrinsicWidth
+        // 如果外部传入了宽度，则使用它，否则自己获取
+        const containerWidth =
+          newContainerWidth ?? mermaidContainer.value.clientWidth
+        const newHeight = containerWidth * aspectRatio
+        containerHeight.value = `${newHeight}px`
+      }
+    }
+  }
+}
 
 // Modal pseudo-fullscreen state (fixed overlay)
 const isModalOpen = ref(false)
@@ -310,6 +333,10 @@ async function initMermaid() {
   isRendering.value = true
 
   renderQueue.value = (async () => {
+    if (mermaidContent.value) {
+      mermaidContent.value.style.opacity = '0'
+    }
+
     try {
       const id = `mermaid-${Date.now()}-${Math.random()
         .toString(36)
@@ -330,19 +357,7 @@ async function initMermaid() {
       if (mermaidContent.value) {
         mermaidContent.value.innerHTML = svg
         bindFunctions?.(mermaidContent.value)
-        // After inserting SVG, measure its rendered height and adjust container
-        await nextTick()
-        try {
-          const svgEl = mermaidContent.value.querySelector(
-            'svg',
-          ) as SVGSVGElement | null
-          if (svgEl && mermaidContainer.value) {
-            const rect = svgEl.getBoundingClientRect()
-            containerHeight.value = rect.height
-          }
-        } catch {
-          // ignore measurement errors
-        }
+        updateContainerHeight()
       }
     } catch (error) {
       console.error('Failed to render mermaid diagram:', error)
@@ -359,7 +374,12 @@ async function initMermaid() {
         mermaidContent.value.innerHTML = ''
         mermaidContent.value.appendChild(errorDiv)
       }
+      containerHeight.value = '360px'
     } finally {
+      await nextTick()
+      if (mermaidContent.value) {
+        mermaidContent.value.style.opacity = '1'
+      }
       isRendering.value = false
       renderQueue.value = null
     }
@@ -393,6 +413,37 @@ watch(
   },
 )
 
+// 监听容器元素的变化，并设置ResizeObserver
+watch(
+  mermaidContainer,
+  (newEl) => {
+    if (resizeObserver) {
+      resizeObserver.disconnect()
+    }
+
+    console.log('Container resized, scheduling height update')
+
+    if (newEl) {
+      resizeObserver = new ResizeObserver((entries) => {
+        if (entries && entries.length > 0) {
+          // 直接使用ResizeObserver回调中提供的精确宽度
+          // const newWidth = entries[0].contentRect.width
+          // updateContainerHeight(newWidth)
+
+          // 使用 requestAnimationFrame 确保在下一次重绘前执行更新
+          // 这给了DOM充足的时间来完成SVG的内部布局更新
+          requestAnimationFrame(() => {
+            const newWidth = entries[0].contentRect.width
+            updateContainerHeight(newWidth)
+          })
+        }
+      })
+      resizeObserver.observe(newEl)
+    }
+  },
+  { immediate: true },
+)
+
 onMounted(async () => {
   await nextTick()
   await initMermaid()
@@ -404,7 +455,10 @@ onUnmounted(() => {
   if (contentStableTimer) {
     clearTimeout(contentStableTimer)
   }
-  // cleanup
+  // 在组件卸载时，确保观察者被彻底清理，防止内存泄漏
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+  }
 })
 </script>
 
@@ -504,8 +558,8 @@ onUnmounted(() => {
       </div>
       <div
         ref="mermaidContainer"
-        :style="containerStyle"
-        class="overflow-auto bg-gray-50 dark:bg-zinc-900 relative"
+        class="min-h-[360px] bg-gray-50 dark:bg-zinc-900 relative transition-all duration-100 overflow-hidden block"
+        :style="{ height: containerHeight }"
         @wheel="handleWheel"
         @mousedown="startDrag"
         @mousemove="onDrag"
@@ -575,12 +629,15 @@ onUnmounted(() => {
 <style scoped>
 .mermaid {
   font-family: inherit;
+  transition: opacity 0.2s ease-in-out;
 }
 
 .mermaid :deep(svg) {
-  max-width: 100%;
+  width: 100%;
   height: auto;
+  display: block;
 }
+
 .fullscreen {
   width: 100%;
   max-height: 100% !important;
