@@ -26,7 +26,9 @@ const mermaidContainer = ref<HTMLElement>()
 const mermaidWrapper = ref<HTMLElement>()
 const mermaidContent = ref<HTMLElement>()
 const fixedCode = computed(() => {
-  return props.node.code.replace(/\]::([^:])/g, ']:::$1') // 将 :: 更改为 ::: 来应用类样式
+  return props.node.code
+    .replace(/\]::([^:])/g, ']:::$1') // 将 :: 更改为 ::: 来应用类样式
+    .replace(/:::subgraphNode$/gm, '::subgraphNode')
 })
 
 // dynamic container sizing
