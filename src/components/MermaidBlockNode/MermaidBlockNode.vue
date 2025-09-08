@@ -7,6 +7,7 @@ import { isDark } from '../../utils/isDark'
 import { Button } from '../button'
 
 const props = withDefaults(
+// 全屏按钮禁用状态
   defineProps<{
     node: {
       type: 'code_block'
@@ -52,6 +53,9 @@ let contentStableTimer: number | null = null
 
 const containerHeight = ref<string>('360px') // 初始值与 min-h 保持一致
 let resizeObserver: ResizeObserver | null = null
+
+// 全屏按钮禁用状态
+const isFullscreenDisabled = computed(() => showSource.value || isRendering.value)
 
 /**
  * 健壮地计算并更新容器高度，优先使用viewBox，并提供getBBox作为后备
@@ -555,6 +559,8 @@ onUnmounted(() => {
           size="icon"
           class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors w-4 h-3"
           @click="openModal"
+            :disabled="isFullscreenDisabled"
+            :class="isFullscreenDisabled ? 'opacity-50 cursor-not-allowed' : ''"
         >
           <Icon
             :icon="isModalOpen ? 'lucide:minimize-2' : 'lucide:maximize-2'"
