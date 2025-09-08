@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { MonacoOptions, ThemeInput } from 'vue-use-monaco'
 import { Icon } from '@iconify/vue'
-import { useThrottleFn, watchOnce } from '@vueuse/core'
+import { useDebounceFn, useThrottleFn, watchOnce } from '@vueuse/core'
 import { v4 as uuidv4 } from 'uuid'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -43,6 +43,17 @@ const { createEditor, updateCode } = useMonaco({
       : undefined,
   ...(props.monacoOptions || {}),
 })
+
+// 防抖更新 Monaco 内容，避免流式/频繁调用导致性能或内部状态问题
+const debouncedUpdateCode = useDebounceFn(
+  (code: string, lang: string) => {
+    updateCode(code, lang)
+  },
+  200,
+  {
+    maxWait: 200,
+  },
+)
 
 // 创建节流版本的语言检测函数,1秒内最多执行一次
 const throttledDetectLanguage = useThrottleFn(
@@ -127,7 +138,8 @@ function previewCode() {
 watch(
   () => [props.node.code, codeLanguage.value],
   () => {
-    updateCode(props.node.code, codeLanguage.value)
+    // 将频繁的更新合并为 150ms 的防抖调用，可根据需要调整为 100/200ms
+    debouncedUpdateCode(props.node.code, codeLanguage.value)
   },
 )
 

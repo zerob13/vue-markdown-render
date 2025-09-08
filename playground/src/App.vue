@@ -607,7 +607,7 @@ This creates a simple chat application with a contacts sidebar and a chat window
 
 4. **差异说明**  
    $$E=mc^2$$
-	 
+
 10. Merimaid graphic:
 
 \`\`\`mermaid
@@ -667,7 +667,7 @@ const { pause, resume, stop } = watch(content, async () => {
     // 检查 main 元素是否真的有滚动条
     if (el.scrollHeight > el.clientHeight) {
       // 使用平滑滚动并等待完成或超时
-      await smoothScrollToBottom(el)
+      smoothScrollToBottom(el)
     }
   }
 })
@@ -683,28 +683,56 @@ function checkIfAtBottom() {
 // 平滑滚动到底部并等待滚动结束或超时
 function smoothScrollToBottom(el: HTMLElement) {
   return new Promise<void>((resolve) => {
-    // 触发平滑滚动
+    // 首次触发平滑滚动（若不支持则退回到直接赋值并完成）
     try {
       el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
     } catch {
-      // 某些环境可能不支持 smooth 选项，退回到直接赋值
       el.scrollTop = el.scrollHeight
       return resolve()
     }
 
     const start = performance.now()
-    const maxDuration = 400 // ms, 超时后强制结束
+    const maxDuration = 1000 // ms, 增加超时时间以应对频繁内容更新
+
+    let lastScrollTop = el.scrollTop
+    let lastScrollHeight = el.scrollHeight
+    let stallFrames = 0
 
     function check() {
-      // 如果已经在底部则完成
+      if (!isAutoScrolling) return resolve()
+
       const scrollTop = el.scrollTop
       const scrollHeight = el.scrollHeight
       const clientHeight = el.clientHeight
-      if (!isAutoScrolling) return resolve()
+
+      // 到达底部则完成
       if (scrollHeight - scrollTop - clientHeight <= 2) return resolve()
 
+      // 如果内容高度发生变化，重新触发平滑滚动以“接管”新的目标位置
+      if (scrollHeight !== lastScrollHeight) {
+        try {
+          el.scrollTo({ top: scrollHeight, behavior: 'smooth' })
+        } catch {}
+        lastScrollHeight = scrollHeight
+      }
+
+      // 如果 scrollTop 在多帧内没有变化，说明平滑滚动可能被打断或卡住，重新触发一次
+      if (scrollTop === lastScrollTop) {
+        stallFrames++
+        if (stallFrames >= 3) {
+          try {
+            el.scrollTo({ top: scrollHeight, behavior: 'smooth' })
+          } catch {}
+          stallFrames = 0
+        }
+      } else {
+        stallFrames = 0
+      }
+
+      lastScrollTop = scrollTop
+
+      // 超时保护：直接跳到底部并完成
       if (performance.now() - start > maxDuration) {
-        // 超时，确保最终位置到达底部
         el.scrollTop = el.scrollHeight
         return resolve()
       }
