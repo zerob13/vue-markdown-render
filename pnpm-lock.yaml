@@ -154,8 +154,8 @@ importers:
         specifier: ^11.1.12
         version: 11.1.12(vue@3.5.21(typescript@5.9.2))
       vue-renderer-markdown:
-        specifier: workspace:*
-        version: link:..
+        specifier: latest
+        version: 0.0.41(@iconify/vue@5.0.0(vue@3.5.21(typescript@5.9.2)))(@vueuse/core@13.9.0(vue@3.5.21(typescript@5.9.2)))(class-variance-authority@0.7.1)(clsx@2.1.1)(katex@0.16.22)(mermaid@11.11.0)(radix-vue@1.9.17(vue@3.5.21(typescript@5.9.2)))(tailwind-merge@3.3.1)(uuid@11.1.0)(vue-i18n@11.1.12(vue@3.5.21(typescript@5.9.2)))(vue-use-monaco@0.0.10(@vueuse/core@13.9.0(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2))
       vue-router:
         specifier: ^4.5.1
         version: 4.5.1(vue@3.5.21(typescript@5.9.2))
@@ -4822,6 +4822,22 @@ packages:
     engines: {node: '>= 16'}
     peerDependencies:
       vue: ^3.0.0
+
+  vue-renderer-markdown@0.0.41:
+    resolution: {integrity: sha512-+gaXTMU9fOrm7/BC4fqV9MVFZaOWVNipQnsnIlZxnfl/LbDmmt9ffTIrzYgtgxcU8wNOOTSbSqX9rOAkQQnEOg==}
+    peerDependencies:
+      '@iconify/vue': '>=5.0.0'
+      '@vueuse/core': '>=8.9.4'
+      class-variance-authority: '>=0.7.1'
+      clsx: '>=2.1.1'
+      katex: '>=0.16.22'
+      mermaid: '>=11'
+      radix-vue: '>=1.9.17'
+      tailwind-merge: '>=3.3.0'
+      uuid: '>=11.1.0'
+      vue: '>=3.0.0'
+      vue-i18n: '>=9'
+      vue-use-monaco: '>=0.0.2'
 
   vue-router@4.5.1:
     resolution: {integrity: sha512-ogAF3P97NPm8fJsE4by9dwSYtDwXIY1nFY9T6DyQnGHd1E2Da94w9JIolpe42LJGIl0DwOHBi8TcRPlPGwbTtw==}
@@ -10096,6 +10112,33 @@ snapshots:
       '@vue/devtools-api': 6.6.4
       vue: 3.5.21(typescript@5.9.2)
 
+  vue-renderer-markdown@0.0.41(@iconify/vue@5.0.0(vue@3.5.21(typescript@5.9.2)))(@vueuse/core@13.9.0(vue@3.5.21(typescript@5.9.2)))(class-variance-authority@0.7.1)(clsx@2.1.1)(katex@0.16.22)(mermaid@11.11.0)(radix-vue@1.9.17(vue@3.5.21(typescript@5.9.2)))(tailwind-merge@3.3.1)(uuid@11.1.0)(vue-i18n@11.1.12(vue@3.5.21(typescript@5.9.2)))(vue-use-monaco@0.0.10(@vueuse/core@13.9.0(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2)):
+    dependencies:
+      '@iconify/vue': 5.0.0(vue@3.5.21(typescript@5.9.2))
+      '@vueuse/core': 13.9.0(vue@3.5.21(typescript@5.9.2))
+      class-variance-authority: 0.7.1
+      clsx: 2.1.1
+      katex: 0.16.22
+      markdown-it: 14.1.0
+      markdown-it-container: 4.0.0
+      markdown-it-emoji: 3.0.0
+      markdown-it-footnote: 4.0.0
+      markdown-it-ins: 4.0.0
+      markdown-it-mark: 4.0.0
+      markdown-it-mathjax3: 4.3.2
+      markdown-it-sub: 2.0.0
+      markdown-it-sup: 2.0.0
+      markdown-it-task-checkbox: 1.0.6
+      mermaid: 11.11.0
+      radix-vue: 1.9.17(vue@3.5.21(typescript@5.9.2))
+      tailwind-merge: 3.3.1
+      uuid: 11.1.0
+      vue: 3.5.21(typescript@5.9.2)
+      vue-i18n: 11.1.12(vue@3.5.21(typescript@5.9.2))
+      vue-use-monaco: 0.0.10(@vueuse/core@13.9.0(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2))
+    transitivePeerDependencies:
+      - encoding
+
   vue-router@4.5.1(vue@3.5.21(typescript@5.9.2)):
     dependencies:
       '@vue/devtools-api': 6.6.4
@@ -10106,6 +10149,14 @@ snapshots:
       '@volar/typescript': 2.4.15
       '@vue/language-core': 2.2.12(typescript@5.9.2)
       typescript: 5.9.2
+
+  vue-use-monaco@0.0.10(@vueuse/core@13.9.0(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2)):
+    dependencies:
+      '@shikijs/monaco': 3.12.2
+      '@vueuse/core': 13.9.0(vue@3.5.21(typescript@5.9.2))
+      monaco-editor: 0.52.2
+      shiki: 3.12.2
+      vue: 3.5.21(typescript@5.9.2)
 
   vue-use-monaco@0.0.10(@vueuse/core@8.9.4(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2)):
     dependencies:
