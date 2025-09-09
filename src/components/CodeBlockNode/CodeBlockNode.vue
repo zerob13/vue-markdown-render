@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { MonacoOptions, ThemeInput } from 'vue-use-monaco'
 import { Icon } from '@iconify/vue'
-import { useDebounceFn, useThrottleFn, watchOnce } from '@vueuse/core'
+import { useThrottleFn, watchOnce } from '@vueuse/core'
 import { v4 as uuidv4 } from 'uuid'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -21,11 +21,13 @@ const props = withDefaults(
     lightTheme?: ThemeInput
     isShowPreview?: boolean
     monacoOptions?: MonacoOptions
+    maxWait?: number // 防抖最大等待时间，单位毫秒，默认50ms
   }>(),
   {
     isShowPreview: true,
     darkTheme: undefined,
     lightTheme: undefined,
+    maxWait: 50,
   },
 )
 
@@ -45,14 +47,12 @@ const { createEditor, updateCode } = useMonaco({
 })
 
 // 防抖更新 Monaco 内容，避免流式/频繁调用导致性能或内部状态问题
-const debouncedUpdateCode = useDebounceFn(
+const debouncedUpdateCode = useThrottleFn(
   (code: string, lang: string) => {
     updateCode(code, lang)
   },
-  200,
-  {
-    maxWait: 200,
-  },
+  props.maxWait,
+  true,
 )
 
 // 创建节流版本的语言检测函数,1秒内最多执行一次

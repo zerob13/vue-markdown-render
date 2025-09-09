@@ -47,9 +47,4 @@ export default defineConfig({
       ],
     }),
   ],
-  build: {
-    rollupOptions: {
-      external: ['vue-markdown-renderer'],
-    },
-  },
 })

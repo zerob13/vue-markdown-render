@@ -1,5 +1,6 @@
 import type MarkdownIt from 'markdown-it'
-import mathjax3 from 'markdown-it-mathjax3'
+// import mathjax3 from 'markdown-it-mathjax3'
+import * as mathjax3 from 'markdown-it-mathjax3'
 
 export function applyMath(md: MarkdownIt) {
   // Inline rule for \(...\) and $$...$$ and $...$
@@ -167,7 +168,8 @@ export function applyMath(md: MarkdownIt) {
   }
 
   // Configure MathJax for better rendering if available
-  md.use(mathjax3, {
+  const mathjaxPlugin = (mathjax3 as any).default ?? mathjax3
+  md.use(mathjaxPlugin, {
     tex: {
       inlineMath: [
         ['\\(', '\\)'],

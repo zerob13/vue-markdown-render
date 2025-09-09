@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import MarkdownRender from 'vue-renderer-markdown'
+import MarkdownRender from '../../src/components/NodeRenderer'
 
 // 模拟流式传输
 const streamContent = `I'll create a simple Electron + Vue chat application demo. Here's the structure:
@@ -641,7 +641,7 @@ graph TD
 // 每隔0.5秒输出一部分内容
 const content = ref('')
 const mainRef = ref<any>(null)
-useInterval(5, {
+useInterval(10, {
   callback() {
     if (content.value.length < streamContent.length) {
       content.value += streamContent.slice(

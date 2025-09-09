@@ -6,7 +6,7 @@ import markdownItIns from 'markdown-it-ins'
 import markdownItMark from 'markdown-it-mark'
 import markdownItSub from 'markdown-it-sub'
 import markdownItSup from 'markdown-it-sup'
-import markdownItCheckbox from 'markdown-it-task-checkbox'
+import * as markdownItCheckbox from 'markdown-it-task-checkbox'
 import { useI18n } from 'vue-i18n'
 import {
   parseInlineTokens,
@@ -30,7 +30,9 @@ export function getMarkdown(msgId: string) {
   md.use(markdownItSup)
   md.use(markdownItMark)
   md.use(markdownItEmoji)
-  md.use(markdownItCheckbox)
+  const markdownItCheckboxPlugin =
+    (markdownItCheckbox as any).default ?? markdownItCheckbox
+  md.use(markdownItCheckboxPlugin)
   md.use(markdownItIns)
   md.use(markdownItFootnote)
 

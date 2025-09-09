@@ -42,7 +42,7 @@
     "dist"
   ],
   "scripts": {
-    "dev": "vite --port 3333 --open",
+    "dev": "pnpm run -C playground dev",
     "test": "vitest",
     "format": "prettier --write --cache .",
     "lint": "eslint . --cache",
@@ -101,6 +101,7 @@
     "clsx": "^2.1.1",
     "eslint": "^9.35.0",
     "lint-staged": "^13.3.0",
+    "monaco-editor": "0.52.2",
     "picocolors": "^1.1.1",
     "postcss-cli": "^11.0.1",
     "prettier": "^2.8.8",
