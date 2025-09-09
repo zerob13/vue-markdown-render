@@ -1,6 +1,6 @@
 [build]
 publish = "dist"
-command = "npx pnpm in && npm run build"
+command = "npx pnpm i && npm run build"
 
 [build.environment]
 NPM_FLAGS = "--version"
