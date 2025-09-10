@@ -92,6 +92,8 @@ The typewriter effect features:
 
 > Either `content` or `nodes` must be provided.
 
+Note: when using the component in a Vue template, camelCase prop names should be written in kebab-case. For example, use `:typewriter-effect="true"` in templates (the prop name in JavaScript/TypeScript remains `typewriterEffect`).
+
 ## Advanced
 
 - **Custom Components**:
@@ -100,7 +102,7 @@ The typewriter effect features:
 - **TypeScript**:
   Full type support. Import types as needed:
   ```ts
-  import type { MyMarkdownProps } from 'vue-markdown-to-html/dist/types'
+  import type { MyMarkdownProps } from 'vue-renderer-markdown/dist/types'
   ```
 
 ## Monaco Editor Integration
