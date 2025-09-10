@@ -1,17 +1,23 @@
 # vue-renderer-markdown
 
-> A Vue 3 component that renders Markdown string content as HTML, supporting custom components and advanced markdown features.
+> Rendering Markdown is straightforward, but when you need to stream and render it in real-time, new challenges emerge. vue-renderer-markdown is built specifically to handle the unique requirements of streaming Markdown content from AI models and live updates, providing seamless formatting even with incomplete or rapidly changing Markdown blocks.
 
 [![NPM version](https://img.shields.io/npm/v/vue-renderer-markdown?color=a1b858&label=)](https://www.npmjs.com/package/vue-renderer-markdown)
 
+## 🚀 [Live Demo](https://vue-markdown-renderer.netlify.app/)
+
+Experience the power of high-performance streaming Markdown rendering in action!
+
 ## Features
 
-- 📝 **Markdown to HTML**: Render Markdown string content directly as HTML in your Vue 3 app.
-- 🧩 **Custom Components**: Support for custom Vue components inside Markdown.
-- ⚡ **Advanced Markdown**: Supports tables, math, emoji, checkboxes, and more.
-- ⌨️ **Typewriter Effect**: Built-in typewriter animation for streaming content with real-time cursor tracking.
-- 📦 **TypeScript Support**: Full type definitions for props and usage.
-- 🔌 **Easy Integration**: Plug-and-play with Vite, Vue CLI, or any Vue 3 project.
+- ⚡ **Ultra-High Performance**: Optimized for real-time streaming with minimal re-renders and efficient DOM updates
+- 🌊 **Streaming-First Design**: Built specifically to handle incomplete, rapidly updating, and tokenized Markdown content
+- ⌨️ **Smart Typewriter Effect**: Real-time cursor tracking with automatic positioning and performance-optimized animations
+- 🧩 **Custom Components**: Seamlessly integrate your Vue components within Markdown content
+- 📝 **Complete Markdown Support**: Tables, math formulas, emoji, checkboxes, code blocks, and more
+- 🔄 **Real-Time Updates**: Handles partial content and incremental updates without breaking formatting
+- 📦 **TypeScript First**: Full type definitions with intelligent auto-completion
+- 🔌 **Zero Configuration**: Drop-in component that works with any Vue 3 project out of the box
 
 ## Install
 
@@ -23,31 +29,22 @@ npm install vue-renderer-markdown
 yarn add vue-renderer-markdown
 ```
 
+## Why vue-renderer-markdown?
+
+Streaming Markdown content from AI models, live editors, or real-time updates presents unique challenges:
+
+- **Incomplete syntax blocks** can break traditional parsers
+- **Rapid content changes** cause excessive re-renders and performance issues
+- **Cursor positioning** becomes complex with dynamic content
+- **Partial tokens** need graceful handling without visual glitches
+
+vue-renderer-markdown solves these challenges with a streaming-optimized architecture that maintains perfect formatting and performance, even with the most demanding real-time scenarios.
+
 ## Usage
 
-```vue
-<script setup lang="ts">
-import MarkdownRender from 'vue-renderer-markdown'
+### Streaming Markdown (Recommended)
 
-const markdownContent = `
-# Hello Vue Markdown
-
-This is **markdown** rendered as HTML!
-
-- Supports lists
-- [x] Checkboxes
-- :smile: Emoji
-`
-</script>
-
-<template>
-  <MarkdownRender :content="markdownContent" />
-</template>
-```
-
-### Typewriter Effect
-
-Enable a typewriter animation effect perfect for streaming content or live markdown updates:
+Perfect for AI model responses, live content updates, or any scenario requiring real-time Markdown rendering:
 
 ```vue
 <script setup lang="ts">
@@ -74,12 +71,40 @@ const interval = setInterval(() => {
 </template>
 ```
 
-The typewriter effect features:
+### Basic Usage
 
-- **Real-time cursor tracking**: Cursor follows the text as it appears
-- **Smart positioning**: Automatically adjusts to different font sizes and line heights
-- **Performance optimized**: Uses efficient DOM updates and animation frames
-- **Auto-hiding cursor**: Cursor disappears after content stops updating
+For static or pre-generated Markdown content:
+
+```vue
+<script setup lang="ts">
+import MarkdownRender from 'vue-renderer-markdown'
+
+const markdownContent = `
+# Hello Vue Markdown
+
+This is **markdown** rendered as HTML!
+
+- Supports lists
+- [x] Checkboxes
+- :smile: Emoji
+`
+</script>
+
+<template>
+  <MarkdownRender :content="markdownContent" />
+</template>
+```
+
+## Performance Features
+
+The streaming-optimized engine delivers:
+
+- **Incremental Parsing Code Blocks**: Only processes changed content, not the entire code block
+- **Efficient DOM Updates**: Minimal re-renders
+- **Real-time Cursor Tracking**: Smooth cursor positioning
+- **Memory Optimized**: Intelligent cleanup prevents memory leaks during long streaming sessions
+- **Animation Frame Based**: Smooth animations
+- **Graceful Degradation**: Handles malformed or incomplete Markdown without breaking
 
 ### Props
 
