@@ -638,7 +638,7 @@ graph TD
 \`\`\`
 
 `
-// 每隔0.5秒输出一部分内容
+// 每隔 10 毫秒输出一部分内容
 const content = ref('')
 const mainRef = ref<any>(null)
 useInterval(10, {
