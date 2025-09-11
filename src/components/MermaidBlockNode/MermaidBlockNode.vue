@@ -2,7 +2,7 @@
 import { Icon } from '@iconify/vue'
 import mermaid from 'mermaid'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { useSafeI18n } from '../../composables/useSafeI18n'
 import { isDark } from '../../utils/isDark'
 import { Button } from '../button'
 
@@ -21,7 +21,7 @@ const props = withDefaults(
   },
 )
 
-const { t } = useI18n()
+const { t } = useSafeI18n()
 const copyText = ref(t('common.copy'))
 const mermaidContainer = ref<HTMLElement>()
 const mermaidWrapper = ref<HTMLElement>()

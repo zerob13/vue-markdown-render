@@ -4,8 +4,8 @@ import { Icon } from '@iconify/vue'
 import { useThrottleFn, watchOnce } from '@vueuse/core'
 import { v4 as uuidv4 } from 'uuid'
 import { computed, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { detectLanguage, useMonaco } from 'vue-use-monaco'
+import { useSafeI18n } from '../../composables/useSafeI18n'
 import { getLanguageIcon, languageMap } from '../../utils'
 import MermaidBlockNode from '../MermaidBlockNode'
 
@@ -30,7 +30,7 @@ const props = withDefaults(
 )
 
 const emits = defineEmits(['previewCode'])
-const { t } = useI18n()
+const { t } = useSafeI18n()
 const codeEditor = ref<HTMLElement | null>(null)
 const copyText = ref(t('common.copy'))
 const codeLanguage = ref(props.node.language || '')

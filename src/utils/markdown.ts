@@ -7,7 +7,7 @@ import markdownItMark from 'markdown-it-mark'
 import markdownItSub from 'markdown-it-sub'
 import markdownItSup from 'markdown-it-sup'
 import * as markdownItCheckbox from 'markdown-it-task-checkbox'
-import { useI18n } from 'vue-i18n'
+import { useSafeI18n } from '../composables/useSafeI18n'
 import {
   parseInlineTokens,
   parseMarkdownToStructure,
@@ -109,7 +109,7 @@ export function getMarkdown(msgId: string) {
 
   // custom fence that uses msgId for unique ids
   md.renderer.rules.fence = (tokens: any, idx: number) => {
-    const { t } = useI18n()
+    const { t } = useSafeI18n()
     const token = tokens[idx]
     const info = token.info ? token.info.trim() : ''
     const str = token.content
