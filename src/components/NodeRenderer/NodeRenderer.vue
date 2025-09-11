@@ -3,6 +3,7 @@ import type { BaseNode } from '../../utils'
 import { v4 as uuidv4 } from 'uuid'
 
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { preloadMonacoWorkers } from 'vue-use-monaco'
 import { getMarkdown, parseMarkdownToStructure } from '../../utils/markdown'
 import { setNodeComponents } from '../../utils/nodeComponents'
 import AdmonitionNode from '../AdmonitionNode'
@@ -28,8 +29,8 @@ import ParagraphNode from '../ParagraphNode'
 import StrikethroughNode from '../StrikethroughNode'
 import StrongNode from '../StrongNode'
 import SubscriptNode from '../SubscriptNode'
-import SuperscriptNode from '../SuperscriptNode'
 
+import SuperscriptNode from '../SuperscriptNode'
 import TableNode from '../TableNode'
 import TextNode from '../TextNode'
 import ThematicBreakNode from '../ThematicBreakNode'
@@ -53,6 +54,7 @@ const props = defineProps<
 
 // 定义事件
 defineEmits(['copy', 'handleArtifactClick', 'click', 'mouseover', 'mouseout'])
+preloadMonacoWorkers()
 const id = ref(`editor-${uuidv4()}`)
 const md = getMarkdown(id.value)
 const containerRef = ref<HTMLElement>()
