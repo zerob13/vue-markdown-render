@@ -52,7 +52,6 @@ export default defineConfig({
         'mermaid',
         'radix-vue',
         'tailwind-merge',
-        'uuid',
         'vue-i18n',
         'katex',
       ],

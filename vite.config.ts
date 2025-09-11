@@ -60,7 +60,6 @@ export default defineConfig(({ mode }) => {
           'mermaid',
           'radix-vue',
           'tailwind-merge',
-          'uuid',
           'vue-i18n',
           'katex',
           'vue-use-monaco',

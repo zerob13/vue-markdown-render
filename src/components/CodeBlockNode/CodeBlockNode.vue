@@ -2,7 +2,6 @@
 import type { MonacoOptions, ThemeInput } from 'vue-use-monaco'
 import { Icon } from '@iconify/vue'
 import { useThrottleFn, watchOnce } from '@vueuse/core'
-import { v4 as uuidv4 } from 'uuid'
 import { computed, ref, watch } from 'vue'
 import { detectLanguage, useMonaco } from 'vue-use-monaco'
 import { useSafeI18n } from '../../composables/useSafeI18n'
@@ -142,7 +141,7 @@ function previewCode() {
     node: props.node,
     artifactType,
     artifactTitle,
-    id: `temp-${lowerLang}-${uuidv4()}`,
+    id: `temp-${lowerLang}-${Date.now()}`,
   })
 }
 

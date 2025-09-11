@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { BaseNode } from '../../utils'
-import { v4 as uuidv4 } from 'uuid'
 
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { preloadMonacoWorkers } from 'vue-use-monaco'
@@ -55,7 +54,7 @@ const props = defineProps<
 // 定义事件
 defineEmits(['copy', 'handleArtifactClick', 'click', 'mouseover', 'mouseout'])
 preloadMonacoWorkers()
-const id = ref(`editor-${uuidv4()}`)
+const id = ref(`editor-${Date.now()}`)
 const md = getMarkdown(id.value)
 const containerRef = ref<HTMLElement>()
 const showCursor = ref(false)

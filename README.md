@@ -30,6 +30,36 @@ npm install vue-renderer-markdown
 yarn add vue-renderer-markdown
 ```
 
+### Install peer dependencies (important)
+
+This package declares a number of peer dependencies that your project must also install in order for `vue-renderer-markdown` to work correctly (for example: `vue`, `vue-i18n`, `mermaid`, `katex`, etc.). If these are missing you will see warnings and the component may fail at runtime.
+
+Run one of the commands below from your project root to install the common peers listed in this repository's `package.json`:
+
+pnpm (recommended):
+
+```bash
+pnpm add vue @iconify/vue @vueuse/core class-variance-authority clsx katex mermaid radix-vue tailwind-merge vue-use-monaco
+```
+
+npm:
+
+```bash
+npm install vue @iconify/vue @vueuse/core class-variance-authority clsx katex mermaid radix-vue tailwind-merge vue-use-monaco
+```
+
+yarn:
+
+```bash
+yarn add vue @iconify/vue @vueuse/core class-variance-authority clsx katex mermaid radix-vue tailwind-merge vue-use-monaco
+```
+
+Notes:
+
+- The versions installed will default to the latest matching releases; the exact peer version ranges are declared in this package's `package.json` — consult it if you need specific versions.
+- Some peers (for example `vue-use-monaco` / `monaco-editor`) are optional depending on which features you plan to use — install only the ones you need.
+- If you're installing this library inside a monorepo or using pnpm workspaces, install peers at the workspace root so they are available to consuming packages.
+
 ## Why vue-renderer-markdown?
 
 Streaming Markdown content from AI models, live editors, or real-time updates presents unique challenges:
