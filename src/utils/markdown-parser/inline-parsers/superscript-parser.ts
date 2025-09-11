@@ -4,7 +4,10 @@ import { parseInlineTokens } from '../index'
 export function parseSuperscriptToken(
   tokens: MarkdownToken[],
   startIndex: number,
-): { node: SuperscriptNode; nextIndex: number } {
+): {
+  node: SuperscriptNode
+  nextIndex: number
+} {
   const children: ParsedNode[] = []
   let supText = ''
   let i = startIndex + 1

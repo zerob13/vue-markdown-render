@@ -11,13 +11,14 @@ export function processNestedBlocks(
 
   while (i < tokens.length && depth > 0) {
     if (
-      tokens[i].type === 'bullet_list_open' ||
-      tokens[i].type === 'ordered_list_open'
+      tokens[i].type === 'bullet_list_open'
+      || tokens[i].type === 'ordered_list_open'
     ) {
       depth++
-    } else if (
-      tokens[i].type === 'bullet_list_close' ||
-      tokens[i].type === 'ordered_list_close'
+    }
+    else if (
+      tokens[i].type === 'bullet_list_close'
+      || tokens[i].type === 'ordered_list_close'
     ) {
       depth--
     }

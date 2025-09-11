@@ -16,7 +16,8 @@ export function applyContainers(md: MarkdownIt) {
         const token = tokens[idx]
         if (token.nesting === 1) {
           return `<div class="vmr-container vmr-container-${name}">`
-        } else {
+        }
+        else {
           return '</div>\n'
         }
       },
@@ -33,8 +34,10 @@ export function applyContainers(md: MarkdownIt) {
       const markerMatch = state.src
         .slice(startPos, lineMax)
         .match(/^:::\s*(\w+)/)
-      if (!markerMatch) return false
-      if (silent) return true
+      if (!markerMatch)
+        return false
+      if (silent)
+        return true
 
       const name = markerMatch[1]
       let nextLine = startLine + 1
@@ -48,7 +51,8 @@ export function applyContainers(md: MarkdownIt) {
         }
         nextLine++
       }
-      if (!found) return false
+      if (!found)
+        return false
 
       const tokenOpen = state.push('vmr_container_open', 'div', 1)
       tokenOpen.attrSet('class', `vmr-container vmr-container-${name}`)

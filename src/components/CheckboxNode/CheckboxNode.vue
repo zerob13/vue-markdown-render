@@ -15,7 +15,7 @@ defineProps<{
       :checked="node.checked"
       disabled
       class="checkbox-input"
-    />
+    >
   </span>
 </template>
 

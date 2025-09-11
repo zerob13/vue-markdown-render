@@ -19,15 +19,18 @@ export function parseTable(
     if (tokens[j].type === 'thead_open') {
       isHeader = true
       j++
-    } else if (tokens[j].type === 'thead_close') {
+    }
+    else if (tokens[j].type === 'thead_close') {
       isHeader = false
       j++
-    } else if (
-      tokens[j].type === 'tbody_open' ||
-      tokens[j].type === 'tbody_close'
+    }
+    else if (
+      tokens[j].type === 'tbody_open'
+      || tokens[j].type === 'tbody_close'
     ) {
       j++
-    } else if (tokens[j].type === 'tr_open') {
+    }
+    else if (tokens[j].type === 'tr_open') {
       const cells: TableCellNode[] = []
       let k = j + 1
 
@@ -45,7 +48,8 @@ export function parseTable(
           })
 
           k += 3 // Skip th_open/td_open, inline, th_close/td_close
-        } else {
+        }
+        else {
           k++
         }
       }
@@ -53,17 +57,19 @@ export function parseTable(
       const rowNode: TableRowNode = {
         type: 'table_row',
         cells,
-        raw: cells.map((cell) => cell.raw).join('|'),
+        raw: cells.map(cell => cell.raw).join('|'),
       }
 
       if (isHeader) {
         headerRow = rowNode
-      } else {
+      }
+      else {
         rows.push(rowNode)
       }
 
       j = k + 1 // Skip tr_close
-    } else {
+    }
+    else {
       j++
     }
   }
@@ -81,7 +87,7 @@ export function parseTable(
     type: 'table',
     header: headerRow,
     rows,
-    raw: [headerRow, ...rows].map((row) => row.raw).join('\n'),
+    raw: [headerRow, ...rows].map(row => row.raw).join('\n'),
   }
 
   return [tableNode, j + 1] // Skip table_close

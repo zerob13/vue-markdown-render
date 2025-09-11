@@ -14,8 +14,9 @@ defineEmits(['copy'])
   <span
     class="text-node"
     style="font-weight: inherit; white-space: pre-wrap; word-break: break-word"
-    >{{ props.node.content }}</span
   >
+    {{ props.node.content }}
+  </span>
 </template>
 
 <style scoped>

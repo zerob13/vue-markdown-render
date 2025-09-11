@@ -21,15 +21,17 @@ export function parseAdmonition(
         raw: contentToken.content || '',
       })
       j += 3 // Skip paragraph_open, inline, paragraph_close
-    } else if (
-      tokens[j].type === 'bullet_list_open' ||
-      tokens[j].type === 'ordered_list_open'
+    }
+    else if (
+      tokens[j].type === 'bullet_list_open'
+      || tokens[j].type === 'ordered_list_open'
     ) {
       // Handle nested lists - use parseList directly for proper nested list support
       const [listNode, newIndex] = parseList(tokens, j)
       admonitionChildren.push(listNode)
       j = newIndex
-    } else {
+    }
+    else {
       j++
     }
   }
@@ -40,7 +42,7 @@ export function parseAdmonition(
     title,
     children: admonitionChildren,
     raw: `:::${kind} ${title}\n${admonitionChildren
-      .map((child) => child.raw)
+      .map(child => child.raw)
       .join('\n')}\n:::`,
   }
 

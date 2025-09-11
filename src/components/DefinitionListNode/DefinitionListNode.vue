@@ -4,8 +4,8 @@ import NodeRenderer from '../NodeRenderer'
 // 定义定义项节点
 interface DefinitionItemNode {
   type: 'definition_item'
-  term: { type: string; raw: string }[]
-  definition: { type: string; raw: string }[]
+  term: { type: string, raw: string }[]
+  definition: { type: string, raw: string }[]
   raw: string
 }
 

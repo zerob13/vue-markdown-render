@@ -7,7 +7,7 @@ interface LinkNode {
   href: string
   title: string | null
   text: string
-  children: { type: string; raw: string }[]
+  children: { type: string, raw: string }[]
   raw: string
 }
 

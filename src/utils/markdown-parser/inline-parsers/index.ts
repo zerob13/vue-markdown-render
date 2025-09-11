@@ -20,7 +20,8 @@ import { parseTextToken } from './text-parser'
 
 // Process inline tokens (for text inside paragraphs, headings, etc.)
 export function parseInlineTokens(tokens: MarkdownToken[]): ParsedNode[] {
-  if (!tokens || tokens.length === 0) return []
+  if (!tokens || tokens.length === 0)
+    return []
 
   const result: ParsedNode[] = []
   let currentTextNode: TextNode | null = null
@@ -36,7 +37,8 @@ export function parseInlineTokens(tokens: MarkdownToken[]): ParsedNode[] {
           // Merge with the previous text node
           currentTextNode.content += textNode.content
           currentTextNode.raw += textNode.raw
-        } else {
+        }
+        else {
           // Start a new text node
           currentTextNode = textNode
           result.push(currentTextNode)

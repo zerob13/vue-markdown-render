@@ -4,7 +4,10 @@ import { parseInlineTokens } from '../index'
 export function parseEmphasisToken(
   tokens: MarkdownToken[],
   startIndex: number,
-): { node: EmphasisNode; nextIndex: number } {
+): {
+  node: EmphasisNode
+  nextIndex: number
+} {
   const children: ParsedNode[] = []
   let emText = ''
   let i = startIndex + 1

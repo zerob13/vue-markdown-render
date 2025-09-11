@@ -24,7 +24,7 @@ async function buildTailwindCSS() {
 
     // 查找生成的CSS文件并复制到目标位置
     const files = fs.readdirSync(tempDistDir)
-    const cssFile = files.find((file) => file.endsWith('.css'))
+    const cssFile = files.find(file => file.endsWith('.css'))
 
     if (cssFile) {
       const sourcePath = path.join(tempDistDir, cssFile)
@@ -33,12 +33,15 @@ async function buildTailwindCSS() {
       console.log(
         '✅ index.tailwind.css generated (with @apply directives preserved)',
       )
-    } else {
+    }
+    else {
       console.error('❌ Generated CSS file not found')
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('❌ Failed to build Tailwind CSS:', error)
-  } finally {
+  }
+  finally {
     // 删除 dist2 目录
     if (fs.existsSync(tempDistDir)) {
       fs.rmSync(tempDistDir, { recursive: true, force: true })
@@ -61,7 +64,8 @@ async function main() {
     console.log(
       '  - dist/index.compiled.css (standalone CSS, @apply directives processed)',
     )
-  } catch (error) {
+  }
+  catch (error) {
     console.error('❌ CSS build failed:', error)
     process.exit(1)
   }

@@ -61,7 +61,8 @@ const interval = setInterval(() => {
   if (index < fullContent.length) {
     content.value += fullContent[index]
     index++
-  } else {
+  }
+  else {
     clearInterval(interval)
   }
 }, 50)

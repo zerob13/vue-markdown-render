@@ -20,7 +20,7 @@ const i18n = createI18n({
         copied: '已复制',
       },
     },
-    en: {
+    'en': {
       common: {
         copy: 'Copy',
         copied: 'Copied',

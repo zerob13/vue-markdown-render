@@ -3,7 +3,7 @@ import NodeRenderer from '../NodeRenderer'
 
 interface BlockquoteNode {
   type: 'blockquote'
-  children: { type: string; raw: string }[]
+  children: { type: string, raw: string }[]
   raw: string
 }
 

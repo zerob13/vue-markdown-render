@@ -4,7 +4,10 @@ import { parseInlineTokens } from '../index'
 export function parseHighlightToken(
   tokens: MarkdownToken[],
   startIndex: number,
-): { node: HighlightNode; nextIndex: number } {
+): {
+  node: HighlightNode
+  nextIndex: number
+} {
   const children: ParsedNode[] = []
   let markText = ''
   let i = startIndex + 1

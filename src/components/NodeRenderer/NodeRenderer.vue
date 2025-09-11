@@ -39,17 +39,17 @@ import FallbackComponent from './FallbackComponent.vue'
 // 组件接收的 props
 const props = defineProps<
   | {
-      content: string
-      nodes?: undefined
-      customComponents?: Record<string, any>
-      typewriterEffect?: boolean
-    }
+    content: string
+    nodes?: undefined
+    customComponents?: Record<string, any>
+    typewriterEffect?: boolean
+  }
   | {
-      content?: undefined
-      nodes: BaseNode[]
-      customComponents?: Record<string, any>
-      typewriterEffect?: boolean
-    }
+    content?: undefined
+    nodes: BaseNode[]
+    customComponents?: Record<string, any>
+    typewriterEffect?: boolean
+  }
 >()
 
 // 定义事件
@@ -65,8 +65,8 @@ const parsedNodes = computed<BaseNode[]>(() => {
   return props.nodes?.length
     ? props.nodes
     : props.content
-    ? parseMarkdownToStructure(props.content, md)
-    : []
+      ? parseMarkdownToStructure(props.content, md)
+      : []
 })
 
 // 监听内容变化，控制光标显示
@@ -119,7 +119,8 @@ onMounted(() => {
   if (props.typewriterEffect) {
     // Use requestAnimationFrame loop and IntersectionObserver to minimize work.
     const startRafLoop = () => {
-      if (animationFrame) return
+      if (animationFrame)
+        return
 
       const loop = () => {
         animationFrame = requestAnimationFrame(loop)
@@ -142,7 +143,8 @@ onMounted(() => {
     watch(
       () => showCursor.value,
       (visible) => {
-        if (visible) startRafLoop()
+        if (visible)
+          startRafLoop()
         else stopRafLoop()
       },
       { immediate: true },
@@ -158,13 +160,15 @@ onMounted(() => {
           cancelAnimationFrame(animationFrame)
           animationFrame = null
         }
-      } else if (showCursor.value) {
+      }
+      else if (showCursor.value) {
         startRafLoop()
       }
     })
 
     onMounted(() => {
-      if (containerRef.value) observer.observe(containerRef.value)
+      if (containerRef.value)
+        observer.observe(containerRef.value)
     })
 
     onUnmounted(() => {
@@ -201,7 +205,8 @@ function updateCursorPosition() {
   const cursor = containerRef.value.querySelector(
     '.typewriter-cursor',
   ) as HTMLElement
-  if (!cursor) return
+  if (!cursor)
+    return
 
   try {
     // 查找容器内所有的文本节点
@@ -272,11 +277,14 @@ function updateCursorPosition() {
 
         if (computedLineHeight === 'normal') {
           lineHeight = fontSize * 1.2 // 默认行高倍数
-        } else if (computedLineHeight.endsWith('px')) {
+        }
+        else if (computedLineHeight.endsWith('px')) {
           lineHeight = Number.parseFloat(computedLineHeight)
-        } else if (!Number.isNaN(Number.parseFloat(computedLineHeight))) {
+        }
+        else if (!Number.isNaN(Number.parseFloat(computedLineHeight))) {
           lineHeight = fontSize * Number.parseFloat(computedLineHeight)
-        } else {
+        }
+        else {
           lineHeight = fontSize * 1.2
         }
 
@@ -289,7 +297,8 @@ function updateCursorPosition() {
       cursor.style.height = `${lineHeight}px`
       cursor.style.fontSize = `${lineHeight}px`
     }
-  } catch (error) {
+  }
+  catch (error) {
     // 如果任何步骤失败，静默处理错误
     console.warn('Failed to position cursor:', error)
   }
@@ -346,9 +355,7 @@ setNodeComponents(nodeComponents)
       @mouseout="$emit('mouseout', $event)"
     />
     <!-- 打字光标 -->
-    <span v-if="typewriterEffect && showCursor" class="typewriter-cursor"
-      >|</span
-    >
+    <span v-if="typewriterEffect && showCursor" class="typewriter-cursor">|</span>
   </div>
 </template>
 

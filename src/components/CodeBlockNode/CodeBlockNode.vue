@@ -49,10 +49,12 @@ function rafThrottle<T extends Array<any>>(fn: (...args: T) => void) {
   let lastArgs: T | null = null
   return (...args: T) => {
     lastArgs = args
-    if (rafId !== null) return
+    if (rafId !== null)
+      return
     rafId = requestAnimationFrame(() => {
       rafId = null
-      if (lastArgs) fn(...lastArgs)
+      if (lastArgs)
+        fn(...lastArgs)
       lastArgs = null
     })
   }
@@ -92,7 +94,8 @@ watch(
   (newLanguage) => {
     if (newLanguage === '') {
       throttledDetectLanguage(props.node.code)
-    } else {
+    }
+    else {
       codeLanguage.value = newLanguage
     }
   },
@@ -118,19 +121,21 @@ async function copyCode() {
     setTimeout(() => {
       copyText.value = t('common.copy')
     }, 2000)
-  } catch (err) {
+  }
+  catch (err) {
     console.error('复制失败:', err)
   }
 }
 
 // 预览HTML/SVG代码
 function previewCode() {
-  if (!isPreviewable.value) return
+  if (!isPreviewable.value)
+    return
 
   const lowerLang = props.node.language.toLowerCase()
   const artifactType = lowerLang === 'html' ? 'text/html' : 'image/svg+xml'
-  const artifactTitle =
-    lowerLang === 'html'
+  const artifactTitle
+    = lowerLang === 'html'
       ? t('artifacts.htmlPreviewTitle') || 'HTML Preview'
       : t('artifacts.svgPreviewTitle') || 'SVG Preview'
   emits('previewCode', {

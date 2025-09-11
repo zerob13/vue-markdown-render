@@ -15,7 +15,8 @@ function handleScroll() {
   const element = document.querySelector(href)
   if (element) {
     element.scrollIntoView({ behavior: 'smooth' })
-  } else {
+  }
+  else {
     console.warn(`Element with href: ${href} not found`)
   }
 }
@@ -27,8 +28,7 @@ function handleScroll() {
       :href="href"
       :title="`查看脚注 ${node.id}`"
       class="footnote-link cursor-pointer"
-      >[{{ node.id }}]</span
-    >
+    >[{{ node.id }}]</span>
   </sup>
 </template>
 

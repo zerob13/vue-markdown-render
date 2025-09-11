@@ -38,7 +38,7 @@ function handleImageLoad() {
       :title="node.title || node.alt"
       @error="handleImageError"
       @load="handleImageLoad"
-    />
+    >
     <figcaption v-if="node.alt" class="mt-2 text-sm text-gray-500 italic">
       {{ node.alt }}
     </figcaption>

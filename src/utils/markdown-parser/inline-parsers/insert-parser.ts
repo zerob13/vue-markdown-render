@@ -4,7 +4,10 @@ import { parseInlineTokens } from '../index'
 export function parseInsertToken(
   tokens: MarkdownToken[],
   startIndex: number,
-): { node: InsertNode; nextIndex: number } {
+): {
+  node: InsertNode
+  nextIndex: number
+} {
   const children: ParsedNode[] = []
   let insText = ''
   let i = startIndex + 1

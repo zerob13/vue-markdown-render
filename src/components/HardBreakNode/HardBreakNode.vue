@@ -12,7 +12,7 @@ defineProps<{
 </script>
 
 <template>
-  <br class="hard-break" />
+  <br class="hard-break">
 </template>
 
 <style scoped>

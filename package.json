@@ -44,7 +44,6 @@
   "scripts": {
     "dev": "pnpm run -C playground dev",
     "test": "vitest",
-    "format": "prettier --write --cache .",
     "lint": "eslint . --cache",
     "lint:fix": "pnpm run lint --fix",
     "test:ui": "vitest --ui",
@@ -89,7 +88,7 @@
     "mermaid": "^11.11.0"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^4.19.0",
+    "@antfu/eslint-config": "^5.3.0",
     "@iconify/vue": "^5.0.0",
     "@types/node": "^18.19.124",
     "@vitejs/plugin-vue": "^5.2.4",
@@ -104,7 +103,6 @@
     "monaco-editor": "0.52.2",
     "picocolors": "^1.1.1",
     "postcss-cli": "^11.0.1",
-    "prettier": "^2.8.8",
     "radix-vue": "^1.9.17",
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^3.4.17",
@@ -122,9 +120,6 @@
     "vue-tsc": "^2.2.12"
   },
   "lint-staged": {
-    "*": [
-      "prettier --write --cache --ignore-unknown"
-    ],
     "*.{vue,js,ts,jsx,tsx,md,json}": "eslint --fix"
   }
 }

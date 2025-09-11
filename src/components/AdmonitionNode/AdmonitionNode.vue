@@ -6,7 +6,7 @@ interface AdmonitionNode {
   type: 'admonition'
   kind: string
   title: string
-  children: { type: string; raw: string }[]
+  children: { type: string, raw: string }[]
   raw: string
 }
 

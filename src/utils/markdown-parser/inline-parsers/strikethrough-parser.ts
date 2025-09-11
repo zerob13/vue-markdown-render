@@ -8,7 +8,10 @@ import { parseInlineTokens } from '../index'
 export function parseStrikethroughToken(
   tokens: MarkdownToken[],
   startIndex: number,
-): { node: StrikethroughNode; nextIndex: number } {
+): {
+  node: StrikethroughNode
+  nextIndex: number
+} {
   const children: ParsedNode[] = []
   let sText = ''
   let i = startIndex + 1

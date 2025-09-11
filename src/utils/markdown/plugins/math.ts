@@ -12,10 +12,12 @@ export function applyMath(md: MarkdownIt) {
 
     for (const [open, close] of delimiters) {
       const start = state.pos
-      if (state.src.slice(start, start + open.length) !== open) continue
+      if (state.src.slice(start, start + open.length) !== open)
+        continue
 
       const end = state.src.indexOf(close, start + open.length)
-      if (end === -1) continue
+      if (end === -1)
+        continue
 
       if (!silent) {
         const token = state.push('math_inline', 'math', 0)
@@ -53,14 +55,14 @@ export function applyMath(md: MarkdownIt) {
         if (open === '[') {
           if (lineText === '[') {
             if (startLine + 1 < endLine) {
-              const nextLineStart =
-                state.bMarks[startLine + 1] + state.tShift[startLine + 1]
+              const nextLineStart
+                = state.bMarks[startLine + 1] + state.tShift[startLine + 1]
               const nextLineText = state.src.slice(
                 nextLineStart,
                 state.eMarks[startLine + 1],
               )
-              const hasMathContent =
-                /\\text|\\frac|\\left|\\right|\\times/.test(nextLineText)
+              const hasMathContent
+                = /\\text|\\frac|\\left|\\right|\\times/.test(nextLineText)
               if (hasMathContent) {
                 matched = true
                 openDelim = open
@@ -70,7 +72,8 @@ export function applyMath(md: MarkdownIt) {
             }
             continue
           }
-        } else {
+        }
+        else {
           matched = true
           openDelim = open
           closeDelim = close
@@ -79,12 +82,14 @@ export function applyMath(md: MarkdownIt) {
       }
     }
 
-    if (!matched) return false
-    if (silent) return true
+    if (!matched)
+      return false
+    if (silent)
+      return true
 
     if (
-      lineText.includes(closeDelim) &&
-      lineText.indexOf(closeDelim) > openDelim.length
+      lineText.includes(closeDelim)
+      && lineText.indexOf(closeDelim) > openDelim.length
     ) {
       const startDelimIndex = lineText.indexOf(openDelim)
       const endDelimIndex = lineText.indexOf(
@@ -98,8 +103,8 @@ export function applyMath(md: MarkdownIt) {
 
       const token: any = state.push('math_block', 'math', 0)
       token.content = content
-      token.markup =
-        openDelim === '$$' ? '$$' : openDelim === '[' ? '[]' : '\\[\\]'
+      token.markup
+        = openDelim === '$$' ? '$$' : openDelim === '[' ? '[]' : '\\[\\]'
       token.map = [startLine, startLine + 1]
       token.block = true
 
@@ -111,16 +116,18 @@ export function applyMath(md: MarkdownIt) {
     let content = ''
     let found = false
 
-    const firstLineContent =
-      lineText === openDelim ? '' : lineText.slice(openDelim.length)
+    const firstLineContent
+      = lineText === openDelim ? '' : lineText.slice(openDelim.length)
 
     if (firstLineContent.includes(closeDelim)) {
       const endIndex = firstLineContent.indexOf(closeDelim)
       content = firstLineContent.slice(0, endIndex)
       found = true
       nextLine = startLine
-    } else {
-      if (firstLineContent) content = firstLineContent
+    }
+    else {
+      if (firstLineContent)
+        content = firstLineContent
 
       for (nextLine = startLine + 1; nextLine < endLine; nextLine++) {
         const lineStart = state.bMarks[nextLine] + state.tShift[nextLine]
@@ -129,7 +136,8 @@ export function applyMath(md: MarkdownIt) {
         if (currentLine.trim() === closeDelim) {
           found = true
           break
-        } else if (currentLine.includes(closeDelim)) {
+        }
+        else if (currentLine.includes(closeDelim)) {
           found = true
           const endIndex = currentLine.indexOf(closeDelim)
           content += (content ? '\n' : '') + currentLine.slice(0, endIndex)
@@ -139,12 +147,13 @@ export function applyMath(md: MarkdownIt) {
       }
     }
 
-    if (!found) return false
+    if (!found)
+      return false
 
     const token: any = state.push('math_block', 'math', 0)
     token.content = content
-    token.markup =
-      openDelim === '$$' ? '$$' : openDelim === '[' ? '[]' : '\\[\\]'
+    token.markup
+      = openDelim === '$$' ? '$$' : openDelim === '[' ? '[]' : '\\[\\]'
     token.map = [startLine, nextLine + 1]
     token.block = true
 

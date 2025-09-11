@@ -17,8 +17,10 @@ export function getMarkdown(opts: GetMarkdownOptions = {}) {
     ...(opts.markdownItOptions ?? {}),
   })
 
-  if (opts.enableMath ?? true) applyMath(md)
-  if (opts.enableContainers ?? true) applyContainers(md)
+  if (opts.enableMath ?? true)
+    applyMath(md)
+  if (opts.enableContainers ?? true)
+    applyContainers(md)
   applyRenderRules(md)
 
   return md

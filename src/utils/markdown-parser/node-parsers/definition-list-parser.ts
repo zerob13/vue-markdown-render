@@ -21,7 +21,8 @@ export function parseDefinitionList(
       const termToken = tokens[j + 1]
       termNodes = parseInlineTokens(termToken.children || [])
       j += 3 // Skip dt_open, inline, dt_close
-    } else if (tokens[j].type === 'dd_open') {
+    }
+    else if (tokens[j].type === 'dd_open') {
       // Process definition
       let k = j + 1
       definitionNodes = []
@@ -35,7 +36,8 @@ export function parseDefinitionList(
             raw: contentToken.content || '',
           })
           k += 3 // Skip paragraph_open, inline, paragraph_close
-        } else {
+        }
+        else {
           k++
         }
       }
@@ -46,8 +48,8 @@ export function parseDefinitionList(
           type: 'definition_item',
           term: termNodes,
           definition: definitionNodes,
-          raw: `${termNodes.map((term) => term.raw).join('')}: ${definitionNodes
-            .map((def) => def.raw)
+          raw: `${termNodes.map(term => term.raw).join('')}: ${definitionNodes
+            .map(def => def.raw)
             .join('\n')}`,
         })
 
@@ -56,7 +58,8 @@ export function parseDefinitionList(
       }
 
       j = k + 1 // Skip dd_close
-    } else {
+    }
+    else {
       j++
     }
   }
@@ -64,7 +67,7 @@ export function parseDefinitionList(
   const definitionListNode: DefinitionListNode = {
     type: 'definition_list',
     items,
-    raw: items.map((item) => item.raw).join('\n'),
+    raw: items.map(item => item.raw).join('\n'),
   }
 
   return [definitionListNode, j + 1] // Skip dl_close

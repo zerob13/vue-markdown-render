@@ -19,7 +19,7 @@ describe('数学公式解析测试', () => {
     const tokens = md.parse(testContent, {})
 
     // 查找数学块 tokens
-    const mathBlocks = tokens.filter((token) => token.type === 'math_block')
+    const mathBlocks = tokens.filter(token => token.type === 'math_block')
 
     console.log('所有 tokens:')
     tokens.forEach((token, i) => {
@@ -71,7 +71,7 @@ $$E=mc^2$$
     const tokens = md.parse(streamContent, {})
 
     // 查找数学块 tokens
-    const mathBlocks = tokens.filter((token) => token.type === 'math_block')
+    const mathBlocks = tokens.filter(token => token.type === 'math_block')
 
     console.log('\\n=== 完整内容测试 ===')
     console.log('数学块数量:', mathBlocks.length)
@@ -123,7 +123,7 @@ $$E=mc^2$$
     const tokens = md.parse(newContent, {})
 
     // 查找数学块 tokens
-    const mathBlocks = tokens.filter((token) => token.type === 'math_block')
+    const mathBlocks = tokens.filter(token => token.type === 'math_block')
 
     console.log('\\n=== 新内容测试 ===')
     console.log('数学块数量:', mathBlocks.length)

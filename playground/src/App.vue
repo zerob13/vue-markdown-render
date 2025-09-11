@@ -658,10 +658,12 @@ let isAutoScrolling = true
 // 监听 content 的变化
 const { pause, resume, stop } = watch(content, async () => {
   // 只有当用户在底部时才自动滚动
-  if (!isUserAtBottom.value) return
+  if (!isUserAtBottom.value)
+    return
   // 等待 DOM 更新
   await nextTick()
-  if (!isAutoScrolling) return
+  if (!isAutoScrolling)
+    return
   const el = mainRef.value
   if (el) {
     // 检查 main 元素是否真的有滚动条
@@ -674,7 +676,8 @@ const { pause, resume, stop } = watch(content, async () => {
 
 // 检查用户是否在底部
 function checkIfAtBottom() {
-  if (!mainRef.value) return false
+  if (!mainRef.value)
+    return false
   const { scrollTop, scrollHeight, clientHeight } = mainRef.value
   // 允许5px的误差
   return scrollHeight - scrollTop - clientHeight <= 5
@@ -686,7 +689,8 @@ function smoothScrollToBottom(el: HTMLElement) {
     // 首次触发平滑滚动（若不支持则退回到直接赋值并完成）
     try {
       el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
-    } catch {
+    }
+    catch {
       el.scrollTop = el.scrollHeight
       return resolve()
     }
@@ -699,20 +703,23 @@ function smoothScrollToBottom(el: HTMLElement) {
     let stallFrames = 0
 
     function check() {
-      if (!isAutoScrolling) return resolve()
+      if (!isAutoScrolling)
+        return resolve()
 
       const scrollTop = el.scrollTop
       const scrollHeight = el.scrollHeight
       const clientHeight = el.clientHeight
 
       // 到达底部则完成
-      if (scrollHeight - scrollTop - clientHeight <= 2) return resolve()
+      if (scrollHeight - scrollTop - clientHeight <= 2)
+        return resolve()
 
       // 如果内容高度发生变化，重新触发平滑滚动以“接管”新的目标位置
       if (scrollHeight !== lastScrollHeight) {
         try {
           el.scrollTo({ top: scrollHeight, behavior: 'smooth' })
-        } catch {}
+        }
+        catch {}
         lastScrollHeight = scrollHeight
       }
 
@@ -722,10 +729,12 @@ function smoothScrollToBottom(el: HTMLElement) {
         if (stallFrames >= 3) {
           try {
             el.scrollTo({ top: scrollHeight, behavior: 'smooth' })
-          } catch {}
+          }
+          catch {}
           stallFrames = 0
         }
-      } else {
+      }
+      else {
         stallFrames = 0
       }
 
@@ -751,10 +760,12 @@ let preTop: number | null = null
 function handleUserScroll() {
   if (!preTop) {
     preTop = mainRef.value?.scrollTop
-  } else {
+  }
+  else {
     if (mainRef.value?.scrollTop > preTop) {
       scrollWay.value = 'bottom'
-    } else if (mainRef.value?.scrollTop < preTop) {
+    }
+    else if (mainRef.value?.scrollTop < preTop) {
       scrollWay.value = 'top'
     }
     preTop = mainRef.value?.scrollTop
@@ -773,7 +784,8 @@ function handleUserScroll() {
         isAutoScrolling = true
       }
       resume() // 用户滚动到底部，恢复自动滚动
-    } else {
+    }
+    else {
       pause() // 用户滚动离开底部，暂停自动滚动
     }
   }

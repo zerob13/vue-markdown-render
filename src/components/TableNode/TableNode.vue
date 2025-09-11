@@ -5,7 +5,10 @@ import NodeRenderer from '../NodeRenderer'
 interface TableCellNode {
   type: 'table_cell'
   header: boolean
-  children: { type: string; raw: string }[]
+  children: {
+    type: string
+    raw: string
+  }[]
   raw: string
 }
 

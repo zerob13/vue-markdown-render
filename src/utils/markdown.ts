@@ -30,8 +30,8 @@ export function getMarkdown(msgId: string) {
   md.use(markdownItSup)
   md.use(markdownItMark)
   md.use(markdownItEmoji)
-  const markdownItCheckboxPlugin =
-    (markdownItCheckbox as any).default ?? markdownItCheckbox
+  const markdownItCheckboxPlugin
+    = (markdownItCheckbox as any).default ?? markdownItCheckbox
   md.use(markdownItCheckboxPlugin)
   md.use(markdownItIns)
   md.use(markdownItFootnote)
@@ -48,13 +48,16 @@ export function getMarkdown(msgId: string) {
       const start = pos
       const marker = state.src.charCodeAt(pos)
 
-      if (silent) return false
-      if (marker !== 0x2a /* * */ && marker !== 0x5f /* _ */) return false
+      if (silent)
+        return false
+      if (marker !== 0x2A /* * */ && marker !== 0x5F /* _ */)
+        return false
       let scan = pos
       const mem = pos
       while (scan < max && state.src.charCodeAt(scan) === marker) scan++
       const len = scan - pos
-      if (len < 2) return false
+      if (len < 2)
+        return false
       pos = scan
       const markerCount = len
       while (pos < max) {
@@ -73,11 +76,11 @@ export function getMarkdown(msgId: string) {
       if (!silent) {
         state.pos = start + markerCount
         token = state.push('strong_open', 'strong', 1)
-        token.markup = marker === 0x2a ? '**' : '__'
+        token.markup = marker === 0x2A ? '**' : '__'
         token = state.push('text', '', 0)
         token.content = state.src.slice(start + markerCount, pos)
         token = state.push('strong_close', 'strong', -1)
-        token.markup = marker === 0x2a ? '**' : '__'
+        token.markup = marker === 0x2A ? '**' : '__'
       }
       state.pos = pos + markerCount
       return true
@@ -87,7 +90,8 @@ export function getMarkdown(msgId: string) {
   // wave rule (legacy)
   const waveRule = (state: any, silent: boolean) => {
     const start = state.pos
-    if (state.src[start] !== '~') return false
+    if (state.src[start] !== '~')
+      return false
     const prevChar = state.src[start - 1]
     const nextChar = state.src[start + 1]
     if (/\d/.test(prevChar) && /\d/.test(nextChar)) {
@@ -117,8 +121,8 @@ export function getMarkdown(msgId: string) {
       <div class="code-header">
         <span class="code-lang">${language.toUpperCase()}</span>
         <button class="copy-button" data-code="${encodedCode}">${t(
-      'common.copyCode',
-    )}</button>
+          'common.copyCode',
+        )}</button>
       </div>
       <div class="code-editor"></div>
     </div>`
@@ -126,9 +130,11 @@ export function getMarkdown(msgId: string) {
 
   // reference rule (legacy)
   const referenceInline = (state: any, silent: boolean) => {
-    if (state.src[state.pos] !== '[') return false
+    if (state.src[state.pos] !== '[')
+      return false
     const match = /^\[(\d+)\]/.exec(state.src.slice(state.pos))
-    if (!match) return false
+    if (!match)
+      return false
     if (!silent) {
       const id = match[1]
       const token = state.push('reference', 'span', 0)
@@ -169,7 +175,8 @@ export function renderMarkdown(md: MarkdownIt, content: string) {
         displayMode: false,
       })
       return data
-    } catch {
+    }
+    catch {
       return match
     }
   })

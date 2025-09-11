@@ -8,10 +8,10 @@ describe('math plugin (inline & block)', () => {
     const html = md.render(content)
 
     // Should render math inline - either our inline wrapper or MathJax output or raw content
-    const ok =
-      html.includes('vmr-math-inline') ||
-      html.includes('MathJax') ||
-      html.includes('a+b=3')
+    const ok
+      = html.includes('vmr-math-inline')
+        || html.includes('MathJax')
+        || html.includes('a+b=3')
     expect(ok).toBe(true)
   })
 

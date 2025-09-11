@@ -4,7 +4,10 @@ import { parseInlineTokens } from '../index'
 export function parseStrongToken(
   tokens: MarkdownToken[],
   startIndex: number,
-): { node: StrongNode; nextIndex: number } {
+): {
+  node: StrongNode
+  nextIndex: number
+} {
   const children: ParsedNode[] = []
   let strongText = ''
   let i = startIndex + 1
