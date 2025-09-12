@@ -4,7 +4,6 @@
 
 [![NPM version](https://img.shields.io/npm/v/vue-renderer-markdown?color=a1b858&label=)](https://www.npmjs.com/package/vue-renderer-markdown)
 
-
 ## 🚀 [Live Demo](https://vue-markdown-renderer.netlify.app/)
 
 Experience the power of high-performance streaming Markdown rendering in action!

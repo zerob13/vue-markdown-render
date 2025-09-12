@@ -14,12 +14,11 @@ useInterval(10, {
     }
   },
 })
-
 </script>
 
 <template>
   <main p4 h-full flex flex-col-reverse overflow-auto>
-    <div class="place-holder" flex-1></div>
+    <div class="place-holder" flex-1 />
     <MarkdownRender :content="content" :typewriter-effect="true" />
   </main>
 </template>

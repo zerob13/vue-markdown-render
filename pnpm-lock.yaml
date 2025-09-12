@@ -45,7 +45,7 @@ importers:
         specifier: ^11.11.0
         version: 11.11.0
       vue-use-monaco:
-        specifier: '>=0.0.16'
+        specifier: ^0.0.16
         version: 0.0.16(@vueuse/core@8.9.4(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2))
     devDependencies:
       '@antfu/eslint-config':
