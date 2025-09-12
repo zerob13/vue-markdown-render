@@ -3,7 +3,7 @@
 > Rendering Markdown is straightforward, but when you need to stream and render it in real-time, new challenges emerge. vue-renderer-markdown is built specifically to handle the unique requirements of streaming Markdown content from AI models and live updates, providing seamless formatting even with incomplete or rapidly changing Markdown blocks.
 
 [![NPM version](https://img.shields.io/npm/v/vue-renderer-markdown?color=a1b858&label=)](https://www.npmjs.com/package/vue-renderer-markdown)
-[![Star History](https://starchart.cc/Simon-He95/vue-markdown-render.svg)](https://star-history.com/#Simon-He95/vue-markdown-render)
+
 
 ## 🚀 [Live Demo](https://vue-markdown-renderer.netlify.app/)
 
@@ -202,6 +202,10 @@ This project is built with the help of these awesome libraries:
 - [shiki](https://github.com/shikijs/shiki) — Syntax highlighter powered by TextMate grammars and VS Code themes
 
 Thanks to the authors and contributors of these projects!
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Simon-He95/vue-markdown-render&type=Date)](https://www.star-history.com/#Simon-He95/vue-markdown-render&Date)
 
 ## License
 
