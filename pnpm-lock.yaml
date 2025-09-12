@@ -45,8 +45,8 @@ importers:
         specifier: ^11.11.0
         version: 11.11.0
       vue-use-monaco:
-        specifier: ^0.0.16
-        version: 0.0.16(@vueuse/core@8.9.4(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2))
+        specifier: ^0.0.17
+        version: 0.0.17(@vueuse/core@8.9.4(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2))
     devDependencies:
       '@antfu/eslint-config':
         specifier: ^5.3.0
@@ -152,7 +152,7 @@ importers:
         version: 11.1.12(vue@3.5.21(typescript@5.9.2))
       vue-renderer-markdown:
         specifier: latest
-        version: 0.0.45(@iconify/vue@5.0.0(vue@3.5.21(typescript@5.9.2)))(@vueuse/core@13.9.0(vue@3.5.21(typescript@5.9.2)))(class-variance-authority@0.7.1)(clsx@2.1.1)(katex@0.16.22)(mermaid@11.11.0)(radix-vue@1.9.17(vue@3.5.21(typescript@5.9.2)))(tailwind-merge@3.3.1)(uuid@11.1.0)(vue-i18n@11.1.12(vue@3.5.21(typescript@5.9.2)))(vue-use-monaco@0.0.16(@vueuse/core@13.9.0(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2))
+        version: 0.0.45(@iconify/vue@5.0.0(vue@3.5.21(typescript@5.9.2)))(@vueuse/core@13.9.0(vue@3.5.21(typescript@5.9.2)))(class-variance-authority@0.7.1)(clsx@2.1.1)(katex@0.16.22)(mermaid@11.11.0)(radix-vue@1.9.17(vue@3.5.21(typescript@5.9.2)))(tailwind-merge@3.3.1)(uuid@11.1.0)(vue-i18n@11.1.12(vue@3.5.21(typescript@5.9.2)))(vue-use-monaco@0.0.17(@vueuse/core@13.9.0(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2))
       vue-router:
         specifier: ^4.5.1
         version: 4.5.1(vue@3.5.21(typescript@5.9.2))
@@ -4181,8 +4181,8 @@ packages:
     peerDependencies:
       typescript: '>=5.0.0'
 
-  vue-use-monaco@0.0.16:
-    resolution: {integrity: sha512-GN/qnDyX0Tf6L7iedtPqHL3Gwj5JMzdDzQ1jBfrNzSZ6an8HhHCm+v1vNl4YMFhQ74zpSjxrs6waVpiYCKS1Lg==}
+  vue-use-monaco@0.0.17:
+    resolution: {integrity: sha512-YcNz0WA9xPnnGfYNuYuExcK3cFkfl3N0fM3AbSnjvHQxQXGopsw/G77/gLrOInsQe1tJ9zNuPmBBD4Os0/Xfww==}
     hasBin: true
     peerDependencies:
       '@vueuse/core': '>=8.9.4'
@@ -8774,7 +8774,7 @@ snapshots:
       '@vue/devtools-api': 6.6.4
       vue: 3.5.21(typescript@5.9.2)
 
-  vue-renderer-markdown@0.0.45(@iconify/vue@5.0.0(vue@3.5.21(typescript@5.9.2)))(@vueuse/core@13.9.0(vue@3.5.21(typescript@5.9.2)))(class-variance-authority@0.7.1)(clsx@2.1.1)(katex@0.16.22)(mermaid@11.11.0)(radix-vue@1.9.17(vue@3.5.21(typescript@5.9.2)))(tailwind-merge@3.3.1)(uuid@11.1.0)(vue-i18n@11.1.12(vue@3.5.21(typescript@5.9.2)))(vue-use-monaco@0.0.16(@vueuse/core@13.9.0(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2)):
+  vue-renderer-markdown@0.0.45(@iconify/vue@5.0.0(vue@3.5.21(typescript@5.9.2)))(@vueuse/core@13.9.0(vue@3.5.21(typescript@5.9.2)))(class-variance-authority@0.7.1)(clsx@2.1.1)(katex@0.16.22)(mermaid@11.11.0)(radix-vue@1.9.17(vue@3.5.21(typescript@5.9.2)))(tailwind-merge@3.3.1)(uuid@11.1.0)(vue-i18n@11.1.12(vue@3.5.21(typescript@5.9.2)))(vue-use-monaco@0.0.17(@vueuse/core@13.9.0(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2)):
     dependencies:
       '@iconify/vue': 5.0.0(vue@3.5.21(typescript@5.9.2))
       '@vueuse/core': 13.9.0(vue@3.5.21(typescript@5.9.2))
@@ -8797,7 +8797,7 @@ snapshots:
       uuid: 11.1.0
       vue: 3.5.21(typescript@5.9.2)
       vue-i18n: 11.1.12(vue@3.5.21(typescript@5.9.2))
-      vue-use-monaco: 0.0.16(@vueuse/core@13.9.0(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2))
+      vue-use-monaco: 0.0.17(@vueuse/core@13.9.0(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2))
     transitivePeerDependencies:
       - encoding
 
@@ -8812,7 +8812,7 @@ snapshots:
       '@vue/language-core': 2.2.12(typescript@5.9.2)
       typescript: 5.9.2
 
-  vue-use-monaco@0.0.16(@vueuse/core@13.9.0(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2)):
+  vue-use-monaco@0.0.17(@vueuse/core@13.9.0(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2)):
     dependencies:
       '@shikijs/monaco': 3.12.2
       '@vueuse/core': 13.9.0(vue@3.5.21(typescript@5.9.2))
@@ -8820,7 +8820,7 @@ snapshots:
       shiki: 3.12.2
       vue: 3.5.21(typescript@5.9.2)
 
-  vue-use-monaco@0.0.16(@vueuse/core@8.9.4(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2)):
+  vue-use-monaco@0.0.17(@vueuse/core@8.9.4(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2)):
     dependencies:
       '@shikijs/monaco': 3.12.2
       '@vueuse/core': 8.9.4(vue@3.5.21(typescript@5.9.2))

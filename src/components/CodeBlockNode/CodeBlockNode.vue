@@ -43,26 +43,6 @@ const { createEditor, updateCode } = useMonaco({
   ...(props.monacoOptions || {}),
 })
 
-function rafThrottle<T extends Array<any>>(fn: (...args: T) => void) {
-  let rafId: number | null = null
-  let lastArgs: T | null = null
-  return (...args: T) => {
-    lastArgs = args
-    if (rafId !== null)
-      return
-    rafId = requestAnimationFrame(() => {
-      rafId = null
-      if (lastArgs)
-        fn(...lastArgs)
-      lastArgs = null
-    })
-  }
-}
-
-const debouncedUpdateCode = rafThrottle((code: string, lang: string) =>
-  updateCode(code, lang),
-)
-
 // 创建节流版本的语言检测函数,1秒内最多执行一次
 const throttledDetectLanguage = useThrottleFn(
   (code: string) => {
@@ -150,7 +130,7 @@ watch(
   () => [props.node.code, codeLanguage.value],
   () => {
     // 将频繁的更新合并为 150ms 的防抖调用，可根据需要调整为 100/200ms
-    debouncedUpdateCode(props.node.code, codeLanguage.value)
+    updateCode(props.node.code, codeLanguage.value)
   },
 )
 
