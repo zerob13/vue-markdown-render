@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { MonacoOptions, ThemeInput } from 'vue-use-monaco'
+import type { MonacoOptions, MonacoTheme } from 'vue-use-monaco'
 import { Icon } from '@iconify/vue'
 import { useThrottleFn, watchOnce } from '@vueuse/core'
 import { computed, ref, watch } from 'vue'
@@ -16,8 +16,8 @@ const props = withDefaults(
       code: string
       raw: string
     }
-    darkTheme?: ThemeInput
-    lightTheme?: ThemeInput
+    darkTheme?: MonacoTheme
+    lightTheme?: MonacoTheme
     isShowPreview?: boolean
     monacoOptions?: MonacoOptions
   }>(),
