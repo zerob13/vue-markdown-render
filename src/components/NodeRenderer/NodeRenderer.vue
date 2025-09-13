@@ -96,9 +96,11 @@ watch(
           clearTimeout(debounceTimeout)
         }
 
-        // 立即更新光标位置
+        // Immediately update cursor position
         requestAnimationFrame(() => {
           updateCursorPosition()
+          // Trigger a block-level fade animation on the last child
+          triggerBlockFade()
         })
 
         // 防抖：如果短时间内有多次更新，延迟隐藏光标
@@ -303,6 +305,26 @@ function updateCursorPosition() {
   }
 }
 
+// Trigger a block-level fade on the last child of the container
+function triggerBlockFade() {
+  const el = containerRef.value
+  if (!props.typewriterEffect || !el)
+    return
+
+  // Restart the CSS animation by toggling a class
+  el.classList.remove('typing-burst')
+  // Force reflow to reset animation state
+  void el.offsetWidth
+  el.classList.add('typing-burst')
+
+  // Remove the class after the animation completes (bubbles up)
+  const onEnd = () => {
+    el.classList.remove('typing-burst')
+    el.removeEventListener('animationend', onEnd)
+  }
+  el.addEventListener('animationend', onEnd)
+}
+
 // 组件映射表
 const nodeComponents = {
   text: TextNode,
@@ -405,6 +427,25 @@ setNodeComponents(nodeComponents)
   font-style: italic;
   margin: 1rem 0;
 }
-</style>
 
-<style></style>
+</style>
+<style>
+/* Global (unscoped) CSS to reach inside child components */
+.markdown-renderer.typing-burst > :last-child {
+  opacity: 0;
+  animation: fade-in-text var(--typewriter-fade-duration, 900ms)
+    var(--typewriter-fade-ease, ease-out) forwards;
+}
+
+/* Optional: also animate last inline/text block inside the last node */
+.markdown-renderer.typing-burst > :last-child :is(p, li, blockquote, pre, code, h1, h2, h3, h4, h5, h6, td, th):last-child {
+  opacity: 0;
+  animation: fade-in-text var(--typewriter-fade-duration, 900ms)
+    var(--typewriter-fade-ease, ease-out) forwards;
+}
+
+@keyframes fade-in-text {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+</style>
