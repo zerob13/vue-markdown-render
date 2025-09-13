@@ -2,7 +2,7 @@
 import type { MonacoOptions, MonacoTheme } from 'vue-use-monaco'
 import { Icon } from '@iconify/vue'
 import { useThrottleFn, watchOnce } from '@vueuse/core'
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { detectLanguage, useMonaco } from 'vue-use-monaco'
 import { useSafeI18n } from '../../composables/useSafeI18n'
 import { getLanguageIcon, languageMap } from '../../utils'
@@ -30,7 +30,11 @@ const props = withDefaults(
 
 const emits = defineEmits(['previewCode'])
 const { t } = useSafeI18n()
+const rootRef = ref<HTMLElement | null>(null)
 const codeEditor = ref<HTMLElement | null>(null)
+const isVisible = ref(false)
+let io: IntersectionObserver | null = null
+let created = false
 const copyText = ref(t('common.copy'))
 const codeLanguage = ref(props.node.language || '')
 const { createEditor, updateCode } = useMonaco({
@@ -137,16 +141,55 @@ watch(
 watchOnce(
   () => codeEditor.value,
   () => {
-    createEditor(codeEditor.value, props.node.code, codeLanguage.value)
+    if (isVisible.value && !created) {
+      createEditor(codeEditor.value, props.node.code, codeLanguage.value)
+      created = true
+    }
+    else {
+      const stop = watch(
+        () => isVisible.value,
+        (v) => {
+          if (v && !created) {
+            createEditor(codeEditor.value, props.node.code, codeLanguage.value)
+            created = true
+            stop()
+          }
+        },
+        { immediate: true },
+      )
+    }
   },
 )
+
+onMounted(() => {
+  if (!rootRef.value)
+    return
+  io = new IntersectionObserver((entries) => {
+    const e = entries[0]
+    isVisible.value = !!e?.isIntersecting
+    // Optionally disconnect once visible to avoid extra work
+    if (isVisible.value && io) {
+      io.disconnect()
+      io = null
+    }
+  })
+  io.observe(rootRef.value)
+})
+
+onUnmounted(() => {
+  if (io) {
+    io.disconnect()
+    io = null
+  }
+})
 </script>
 
 <template>
   <MermaidBlockNode v-if="isMermaid" :node="node" />
   <div
     v-else
-    class="my-4 rounded-lg border border-border overflow-hidden shadow-sm"
+    ref="rootRef"
+    class="code-block-container my-4 rounded-lg border border-border overflow-hidden shadow-sm"
   >
     <div class="flex justify-between items-center p-2 bg-muted text-xs">
       <span class="flex items-center space-x-2">
@@ -181,4 +224,10 @@ watchOnce(
   </div>
 </template>
 
-<style></style>
+<style scoped>
+.code-block-container {
+  /* Improve transition perf and isolate editor layout */
+  contain: content;
+  will-change: opacity;
+}
+</style>

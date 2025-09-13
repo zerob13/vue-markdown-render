@@ -96,7 +96,7 @@ watch(
           clearTimeout(debounceTimeout)
         }
 
-        // 立即更新光标位置
+        // Immediately update cursor position
         requestAnimationFrame(() => {
           updateCursorPosition()
         })
@@ -303,6 +303,8 @@ function updateCursorPosition() {
   }
 }
 
+// Removed triggerBlockFade in favor of enter-only TransitionGroup animations
+
 // 组件映射表
 const nodeComponents = {
   text: TextNode,
@@ -341,18 +343,20 @@ setNodeComponents(nodeComponents)
 
 <template>
   <div ref="containerRef" class="markdown-renderer">
-    <component
-      :is="nodeComponents[node.type] || FallbackComponent"
-      v-for="(node, index) in parsedNodes"
-      :key="index"
-      :node="node"
-      :loading="node.loading"
-      @copy="$emit('copy', $event)"
-      @handle-artifact-click="$emit('handleArtifactClick', $event)"
-      @click="$emit('click', $event)"
-      @mouseover="$emit('mouseover', $event)"
-      @mouseout="$emit('mouseout', $event)"
-    />
+    <TransitionGroup name="typewriter" tag="div">
+      <component
+        :is="nodeComponents[node.type] || FallbackComponent"
+        v-for="(node, index) in parsedNodes"
+        :key="index"
+        :node="node"
+        :loading="node.loading"
+        @copy="$emit('copy', $event)"
+        @handle-artifact-click="$emit('handleArtifactClick', $event)"
+        @click="$emit('click', $event)"
+        @mouseover="$emit('mouseover', $event)"
+        @mouseout="$emit('mouseout', $event)"
+      />
+    </TransitionGroup>
     <!-- 打字光标 -->
     <span v-if="typewriterEffect && showCursor" class="typewriter-cursor">|</span>
   </div>
@@ -405,6 +409,15 @@ setNodeComponents(nodeComponents)
   font-style: italic;
   margin: 1rem 0;
 }
-</style>
 
-<style></style>
+</style>
+<style>
+/* Global (unscoped) CSS for TransitionGroup enter animations */
+.typewriter-enter-from { opacity: 0; }
+.typewriter-enter-active {
+  transition: opacity var(--typewriter-fade-duration, 900ms)
+    var(--typewriter-fade-ease, ease-out);
+  will-change: opacity;
+}
+.typewriter-enter-to { opacity: 1; }
+</style>
