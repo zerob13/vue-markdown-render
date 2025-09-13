@@ -99,8 +99,6 @@ watch(
         // Immediately update cursor position
         requestAnimationFrame(() => {
           updateCursorPosition()
-          // Trigger a block-level fade animation on the last child
-          triggerBlockFade()
         })
 
         // 防抖：如果短时间内有多次更新，延迟隐藏光标
@@ -305,25 +303,7 @@ function updateCursorPosition() {
   }
 }
 
-// Trigger a block-level fade on the last child of the container
-function triggerBlockFade() {
-  const el = containerRef.value
-  if (!props.typewriterEffect || !el)
-    return
-
-  // Restart the CSS animation by toggling a class
-  el.classList.remove('typing-burst')
-  // Force reflow to reset animation state
-  void el.offsetWidth
-  el.classList.add('typing-burst')
-
-  // Remove the class after the animation completes (bubbles up)
-  const onEnd = () => {
-    el.classList.remove('typing-burst')
-    el.removeEventListener('animationend', onEnd)
-  }
-  el.addEventListener('animationend', onEnd)
-}
+// Removed triggerBlockFade in favor of enter-only TransitionGroup animations
 
 // 组件映射表
 const nodeComponents = {
@@ -363,18 +343,20 @@ setNodeComponents(nodeComponents)
 
 <template>
   <div ref="containerRef" class="markdown-renderer">
-    <component
-      :is="nodeComponents[node.type] || FallbackComponent"
-      v-for="(node, index) in parsedNodes"
-      :key="index"
-      :node="node"
-      :loading="node.loading"
-      @copy="$emit('copy', $event)"
-      @handle-artifact-click="$emit('handleArtifactClick', $event)"
-      @click="$emit('click', $event)"
-      @mouseover="$emit('mouseover', $event)"
-      @mouseout="$emit('mouseout', $event)"
-    />
+    <TransitionGroup name="typewriter" tag="div">
+      <component
+        :is="nodeComponents[node.type] || FallbackComponent"
+        v-for="(node, index) in parsedNodes"
+        :key="index"
+        :node="node"
+        :loading="node.loading"
+        @copy="$emit('copy', $event)"
+        @handle-artifact-click="$emit('handleArtifactClick', $event)"
+        @click="$emit('click', $event)"
+        @mouseover="$emit('mouseover', $event)"
+        @mouseout="$emit('mouseout', $event)"
+      />
+    </TransitionGroup>
     <!-- 打字光标 -->
     <span v-if="typewriterEffect && showCursor" class="typewriter-cursor">|</span>
   </div>
@@ -430,22 +412,12 @@ setNodeComponents(nodeComponents)
 
 </style>
 <style>
-/* Global (unscoped) CSS to reach inside child components */
-.markdown-renderer.typing-burst > :last-child {
-  opacity: 0;
-  animation: fade-in-text var(--typewriter-fade-duration, 900ms)
-    var(--typewriter-fade-ease, ease-out) forwards;
+/* Global (unscoped) CSS for TransitionGroup enter animations */
+.typewriter-enter-from { opacity: 0; }
+.typewriter-enter-active {
+  transition: opacity var(--typewriter-fade-duration, 900ms)
+    var(--typewriter-fade-ease, ease-out);
+  will-change: opacity;
 }
-
-/* Optional: also animate last inline/text block inside the last node */
-.markdown-renderer.typing-burst > :last-child :is(p, li, blockquote, pre, code, h1, h2, h3, h4, h5, h6, td, th):last-child {
-  opacity: 0;
-  animation: fade-in-text var(--typewriter-fade-duration, 900ms)
-    var(--typewriter-fade-ease, ease-out) forwards;
-}
-
-@keyframes fade-in-text {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
-}
+.typewriter-enter-to { opacity: 1; }
 </style>
