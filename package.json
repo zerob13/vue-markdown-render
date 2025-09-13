@@ -39,11 +39,12 @@
   "module": "./dist/index.js",
   "types": "./dist/types/exports.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "scripts/check-peer-deps.cjs"
   ],
   "scripts": {
     "dev": "pnpm run -C playground dev",
-    "postinstall": "node ./scripts/check-peer-deps.cjs",
+    "postinstall": "node ./scripts/check-peer-deps.cjs || true",
     "test": "vitest",
     "lint": "eslint . --cache",
     "lint:fix": "pnpm run lint --fix",
@@ -58,7 +59,8 @@
     "build:css": "tsx build-css.ts",
     "build:demo": "vite build",
     "build:view": "vite preview",
-    "release": "bumpp --commit --push --tag && npm publish"
+    "release": "bumpp --commit --push --tag && npm publish",
+    "check:peer-deps": "node ./scripts/check-peer-deps.cjs"
   },
   "peerDependencies": {
     "@iconify/vue": ">=5.0.0",
