@@ -93,7 +93,7 @@ const displayLanguage = computed(() => {
 // Computed property for language icon
 const languageIcon = computed(() => {
   const lang = codeLanguage.value.trim().toLowerCase()
-  return getLanguageIcon(lang)
+  return getLanguageIcon(lang.split(':')[0])
 })
 
 // 复制代码

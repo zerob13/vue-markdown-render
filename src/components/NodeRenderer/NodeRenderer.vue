@@ -409,8 +409,8 @@ setNodeComponents(nodeComponents)
   font-style: italic;
   margin: 1rem 0;
 }
-
 </style>
+
 <style>
 /* Global (unscoped) CSS for TransitionGroup enter animations */
 .typewriter-enter-from { opacity: 0; }
