@@ -28,11 +28,22 @@ const mermaidWrapper = ref<HTMLElement>()
 const mermaidContent = ref<HTMLElement>()
 const modalContent = ref<HTMLElement>()
 const modalCloneWrapper = ref<HTMLElement | null>(null)
-const fixedCode = computed(() => {
+const baseFixedCode = computed(() => {
   return props.node.code
     .replace(/\]::([^:])/g, ']:::$1') // 将 :: 更改为 ::: 来应用类样式
     .replace(/:::subgraphNode$/gm, '::subgraphNode')
 })
+
+// get the code with the theme configuration
+function getCodeWithTheme(theme: 'light' | 'dark') {
+  const baseCode = baseFixedCode.value
+  const themeValue = theme === 'dark' ? 'dark' : 'default'
+  const themeConfig = `%%{init: {"theme": "${themeValue}"}}%%\n`
+  if (baseCode.trim().startsWith('%%{')) {
+    return baseCode
+  }
+  return themeConfig + baseCode
+}
 
 // Zoom state
 const zoom = ref(1)
@@ -53,6 +64,20 @@ let contentStableTimer: number | null = null
 
 const containerHeight = ref<string>('360px') // 初始值与 min-h 保持一致
 let resizeObserver: ResizeObserver | null = null
+
+// rendering state management
+const hasRenderedOnce = ref(false)
+const isThemeRendering = ref(false)
+const svgCache = ref<{
+  light?: string
+  dark?: string
+}>({})
+const savedTransformState = ref({
+  zoom: 1,
+  translateX: 0,
+  translateY: 0,
+  containerHeight: '360px'
+})
 
 // 全屏按钮禁用状态
 const isFullscreenDisabled = computed(
@@ -203,7 +228,7 @@ function checkContentStability() {
     return
   }
 
-  const currentLength = fixedCode.value.length
+  const currentLength = baseFixedCode.value.length
 
   // 只要长度不一致，就认为内容在变化
   if (currentLength !== lastContentLength.value) {
@@ -218,7 +243,7 @@ function checkContentStability() {
       if (
         isContentGenerating.value
         && showSource.value
-        && fixedCode.value.trim()
+        && baseFixedCode.value.trim()
       ) {
         isContentGenerating.value = false
         showSource.value = false
@@ -329,7 +354,7 @@ function handleWheel(event: WheelEvent) {
 // Copy functionality
 async function copyCode() {
   try {
-    await navigator.clipboard.writeText(fixedCode.value)
+    await navigator.clipboard.writeText(baseFixedCode.value)
     copyText.value = t('common.copySuccess')
     setTimeout(() => {
       copyText.value = t('common.copy')
@@ -391,22 +416,38 @@ async function initMermaid() {
         .toString(36)
         .substring(2, 11)}`
 
-      mermaid.initialize({
-        theme: isDark.value ? 'dark' : 'default',
-        securityLevel: 'loose',
-        startOnLoad: false,
-      })
-
+      if (!hasRenderedOnce.value && !isThemeRendering.value) {
+        mermaid.initialize({
+          securityLevel: 'loose',
+          startOnLoad: false,
+        })
+      }
+      const currentTheme = isDark.value ? 'dark' : 'light'
+      const codeWithTheme = getCodeWithTheme(currentTheme)
       const { svg, bindFunctions } = await mermaid.render(
         id,
-        fixedCode.value,
+        codeWithTheme,
         mermaidContent.value,
       )
 
       if (mermaidContent.value) {
         mermaidContent.value.innerHTML = svg
         bindFunctions?.(mermaidContent.value)
-        updateContainerHeight()
+        if (!hasRenderedOnce.value && !isThemeRendering.value) {
+          updateContainerHeight()
+          hasRenderedOnce.value = true
+          savedTransformState.value = {
+            zoom: zoom.value,
+            translateX: translateX.value,
+            translateY: translateY.value,
+            containerHeight: containerHeight.value
+          }
+        }
+        const currentTheme = isDark.value ? 'dark' : 'light'
+        svgCache.value[currentTheme] = svg
+        if (isThemeRendering.value) {
+          isThemeRendering.value = false
+        }
       }
     }
     catch (error) {
@@ -441,25 +482,83 @@ async function initMermaid() {
 
 const debouncedInitMermaid = debounce(initMermaid, RENDER_DEBOUNCE_DELAY)
 
-// Watch for code changes
+// Watch for code changes (only base code, not theme changes)
 watch(
-  () => fixedCode.value,
+  () => baseFixedCode.value,
   () => {
+    hasRenderedOnce.value = false
+    svgCache.value = {}
     debouncedInitMermaid()
     checkContentStability()
   },
 )
 
-// Watch for dark mode changes with debounce
-watch(isDark, debouncedInitMermaid)
+// Watch for dark mode changes with smart caching
+watch(isDark, async () => {
+  if (!hasRenderedOnce.value) {
+    return
+  }
+  const targetTheme = isDark.value ? 'dark' : 'light'
+  if (svgCache.value[targetTheme]) {
+    if (mermaidContent.value) {
+      mermaidContent.value.innerHTML = svgCache.value[targetTheme]!
+    }
+    return
+  }
+  const currentTransformState = {
+    zoom: zoom.value,
+    translateX: translateX.value,
+    translateY: translateY.value,
+    containerHeight: containerHeight.value
+  }
+  const hasUserTransform = zoom.value !== 1 || translateX.value !== 0 || translateY.value !== 0
+  isThemeRendering.value = true
+
+  if (hasUserTransform) {
+    zoom.value = 1
+    translateX.value = 0
+    translateY.value = 0
+    await nextTick()
+  }
+  await initMermaid()
+  if (hasUserTransform) {
+    await nextTick()
+    zoom.value = currentTransformState.zoom
+    translateX.value = currentTransformState.translateX
+    translateY.value = currentTransformState.translateY
+    containerHeight.value = currentTransformState.containerHeight
+    savedTransformState.value = currentTransformState
+  }
+})
 
 // Watch for source toggle with proper timing
 watch(
   () => showSource.value,
   async (newValue) => {
     if (!newValue) {
+      const currentTheme = isDark.value ? 'dark' : 'light'
+      if (hasRenderedOnce.value && svgCache.value[currentTheme]) {
+        await nextTick()
+        if (mermaidContent.value) {
+          mermaidContent.value.innerHTML = svgCache.value[currentTheme]!
+        }
+        zoom.value = savedTransformState.value.zoom
+        translateX.value = savedTransformState.value.translateX
+        translateY.value = savedTransformState.value.translateY
+        containerHeight.value = savedTransformState.value.containerHeight
+        return
+      }
       await nextTick()
       await initMermaid()
+    } else {
+      if (hasRenderedOnce.value) {
+        savedTransformState.value = {
+          zoom: zoom.value,
+          translateX: translateX.value,
+          translateY: translateY.value,
+          containerHeight: containerHeight.value
+        }
+      }
     }
   },
 )
@@ -472,15 +571,11 @@ watch(
       resizeObserver.disconnect()
     }
 
-    console.log('mermaidContainer resized, scheduling height update')
+    if (newEl && !hasRenderedOnce.value && !isThemeRendering.value) {
+      console.log('mermaidContainer resized, scheduling height update')
 
-    if (newEl) {
       resizeObserver = new ResizeObserver((entries) => {
-        if (entries && entries.length > 0) {
-          // 直接使用ResizeObserver回调中提供的精确宽度
-          // const newWidth = entries[0].contentRect.width
-          // updateContainerHeight(newWidth)
-
+        if (entries && entries.length > 0 && !hasRenderedOnce.value && !isThemeRendering.value) {
           // 使用 requestAnimationFrame 确保在下一次重绘前执行更新
           // 这给了DOM充足的时间来完成SVG的内部布局更新
           requestAnimationFrame(() => {
@@ -498,7 +593,7 @@ watch(
 onMounted(async () => {
   await nextTick()
   await initMermaid()
-  lastContentLength.value = fixedCode.value.length
+  lastContentLength.value = baseFixedCode.value.length
   // initialize
 })
 
@@ -582,7 +677,7 @@ onUnmounted(() => {
       </div>
     </div>
     <div v-if="showSource" class="p-4 bg-gray-50 dark:bg-zinc-900">
-      <pre class="text-sm font-mono whitespace-pre-wrap">{{ fixedCode }}</pre>
+      <pre class="text-sm font-mono whitespace-pre-wrap">{{ baseFixedCode }}</pre>
     </div>
     <div v-else class="relative">
       <div class="absolute top-2 right-2 z-10 rounded-lg">
