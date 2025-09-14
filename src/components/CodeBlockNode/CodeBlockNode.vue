@@ -37,7 +37,14 @@ let io: IntersectionObserver | null = null
 let created = false
 const copyText = ref(t('common.copy'))
 const codeLanguage = ref(props.node.language || '')
-const { createEditor, updateCode } = useMonaco({
+const isExpanded = ref(false)
+const isEditorReady = ref(false)
+const canExpand = ref(false)
+let contentSizeListener: { dispose: () => void } | null = null
+let availabilityListener: { dispose: () => void } | null = null
+
+// Setup Monaco before using helpers in functions below
+const { createEditor, updateCode, getEditor, getEditorView } = useMonaco({
   wordWrap: 'on', // 'on' | 'off' | 'wordWrapColumn' | 'bounded'
   wrappingIndent: 'same', // 'none' | 'same' | 'indent' | 'deepIndent'
   themes:
@@ -46,6 +53,54 @@ const { createEditor, updateCode } = useMonaco({
       : undefined,
   ...(props.monacoOptions || {}),
 })
+
+function applyExpandedHeight() {
+  const editor = getEditorView()
+  const container = codeEditor.value
+  if (!editor || !container)
+    return
+  try {
+    const monacoEditor = getEditor()
+    const lineCount = editor.getModel()?.getLineCount() ?? 1
+    const lineHeight = editor.getOption(monacoEditor.EditorOption.lineHeight)
+    const padding = 16
+    const height = lineCount * lineHeight + padding
+    container.style.height = `${height}px`
+    container.style.maxHeight = 'none'
+    container.style.overflow = 'visible'
+  }
+  catch {
+    // ignore
+  }
+}
+
+function getMaxHeightValue(): number {
+  const maxH = props.monacoOptions?.MAX_HEIGHT ?? 500
+  if (typeof maxH === 'number')
+    return maxH
+  const m = String(maxH).match(/^(\d+(?:\.\d+)?)/)
+  return m ? Number.parseFloat(m[1]) : 500
+}
+
+function updateCanExpand() {
+  const editor = getEditorView()
+  if (!editor) {
+    canExpand.value = false
+    return
+  }
+  try {
+    const monacoEditor = getEditor()
+    const lineCount = editor.getModel()?.getLineCount() ?? 1
+    const lineHeight = editor.getOption(monacoEditor.EditorOption.lineHeight)
+    const padding = 16
+    const contentHeight = lineCount * lineHeight + padding
+    const maxHeightValue = getMaxHeightValue()
+    canExpand.value = contentHeight > maxHeightValue
+  }
+  catch {
+    canExpand.value = false
+  }
+}
 
 // 创建节流版本的语言检测函数,1秒内最多执行一次
 const throttledDetectLanguage = useThrottleFn(
@@ -110,6 +165,56 @@ async function copyCode() {
   }
 }
 
+function toggleExpand() {
+  isExpanded.value = !isExpanded.value
+  const editor = getEditorView()
+  const container = codeEditor.value
+  if (!editor || !container)
+    return
+
+  if (isExpanded.value) {
+    applyExpandedHeight()
+    // keep in sync while expanded
+    try {
+      contentSizeListener?.dispose?.()
+    }
+    catch {}
+    try {
+      contentSizeListener = editor.onDidContentSizeChange?.(() => applyExpandedHeight()) ?? null
+    }
+    catch {
+      contentSizeListener = null
+    }
+  }
+  else {
+    // collapse: clean up and restore container constraints
+    try {
+      contentSizeListener?.dispose?.()
+    }
+    catch {}
+    contentSizeListener = null
+
+    const maxH = props.monacoOptions?.MAX_HEIGHT ?? 500
+    const maxHCss = typeof maxH === 'number' ? `${maxH}px` : String(maxH)
+    container.style.maxHeight = maxHCss
+    container.style.overflow = 'auto'
+    try {
+      const monacoEditor = getEditor()
+      const lineCount = editor.getModel()?.getLineCount() ?? 1
+      const lineHeight = editor.getOption(monacoEditor.EditorOption.lineHeight)
+      const padding = 16
+      const height = Math.min(
+        lineCount * lineHeight + padding,
+        typeof maxH === 'number' ? maxH : Number.MAX_SAFE_INTEGER,
+      )
+      container.style.height = `${height}px`
+    }
+    catch {
+      // ignore
+    }
+  }
+}
+
 // 预览HTML/SVG代码
 function previewCode() {
   if (!isPreviewable.value)
@@ -141,17 +246,37 @@ watch(
 watchOnce(
   () => codeEditor.value,
   () => {
-    if (isVisible.value && !created) {
-      createEditor(codeEditor.value, props.node.code, codeLanguage.value)
+    const createAndReady = async () => {
+      await createEditor(codeEditor.value!, props.node.code, codeLanguage.value)
       created = true
+      isEditorReady.value = true
+      updateCanExpand()
+      try {
+        const editor = getEditorView()
+        availabilityListener?.dispose?.()
+        availabilityListener = editor?.onDidContentSizeChange?.(() => updateCanExpand()) ?? null
+      }
+      catch {}
+      if (isExpanded.value) {
+        applyExpandedHeight()
+        try {
+          const editor = getEditorView()
+          contentSizeListener?.dispose?.()
+          contentSizeListener = editor?.onDidContentSizeChange?.(() => applyExpandedHeight()) ?? null
+        }
+        catch {}
+      }
+    }
+
+    if (isVisible.value && !created) {
+      createAndReady()
     }
     else {
       const stop = watch(
         () => isVisible.value,
         (v) => {
           if (v && !created) {
-            createEditor(codeEditor.value, props.node.code, codeLanguage.value)
-            created = true
+            createAndReady()
             stop()
           }
         },
@@ -181,6 +306,16 @@ onUnmounted(() => {
     io.disconnect()
     io = null
   }
+  try {
+    contentSizeListener?.dispose?.()
+  }
+  catch {}
+  contentSizeListener = null
+  try {
+    availabilityListener?.dispose?.()
+  }
+  catch {}
+  availabilityListener = null
 })
 </script>
 
@@ -206,19 +341,44 @@ onUnmounted(() => {
           {{ copyText }}
         </button>
         <button
+          v-if="isEditorReady && (canExpand || isExpanded)"
+          class="px-2 py-1 text-xs rounded text-muted-foreground hover:bg-slate-200 dark:hover:bg-background transition-colors"
+          :title="isExpanded ? t('common.collapse') : t('common.expand')"
+          :aria-label="isExpanded ? t('common.collapse') : t('common.expand')"
+          @click="toggleExpand"
+        >
+          <Icon
+            :icon="isExpanded ? 'lucide:minimize-2' : 'lucide:maximize-2'"
+            class="w-3 h-3"
+          />
+        </button>
+        <button
           class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
           @click="previewCode"
         >
           {{ t('artifacts.preview') }}
         </button>
       </div>
-      <button
-        v-else
-        class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-        @click="copyCode"
-      >
-        {{ copyText }}
-      </button>
+      <div v-else class="flex items-center space-x-2">
+        <button
+          class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+          @click="copyCode"
+        >
+          {{ copyText }}
+        </button>
+        <button
+          v-if="isEditorReady && (canExpand || isExpanded)"
+          class="px-2 py-1 text-xs rounded text-muted-foreground hover:bg-slate-200 dark:hover:bg-background transition-colors"
+          :title="isExpanded ? t('common.collapse') : t('common.expand')"
+          :aria-label="isExpanded ? t('common.collapse') : t('common.expand')"
+          @click="toggleExpand"
+        >
+          <Icon
+            :icon="isExpanded ? 'lucide:minimize-2' : 'lucide:maximize-2'"
+            class="w-3 h-3"
+          />
+        </button>
+      </div>
     </div>
     <div ref="codeEditor" />
   </div>
@@ -230,4 +390,6 @@ onUnmounted(() => {
   contain: content;
   will-change: opacity;
 }
+
+/* expanded height handled inline for Monaco sizing */
 </style>

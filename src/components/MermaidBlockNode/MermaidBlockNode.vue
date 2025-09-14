@@ -76,7 +76,7 @@ const savedTransformState = ref({
   zoom: 1,
   translateX: 0,
   translateY: 0,
-  containerHeight: '360px'
+  containerHeight: '360px',
 })
 
 // 全屏按钮禁用状态
@@ -440,7 +440,7 @@ async function initMermaid() {
             zoom: zoom.value,
             translateX: translateX.value,
             translateY: translateY.value,
-            containerHeight: containerHeight.value
+            containerHeight: containerHeight.value,
           }
         }
         const currentTheme = isDark.value ? 'dark' : 'light'
@@ -509,7 +509,7 @@ watch(isDark, async () => {
     zoom: zoom.value,
     translateX: translateX.value,
     translateY: translateY.value,
-    containerHeight: containerHeight.value
+    containerHeight: containerHeight.value,
   }
   const hasUserTransform = zoom.value !== 1 || translateX.value !== 0 || translateY.value !== 0
   isThemeRendering.value = true
@@ -550,13 +550,14 @@ watch(
       }
       await nextTick()
       await initMermaid()
-    } else {
+    }
+    else {
       if (hasRenderedOnce.value) {
         savedTransformState.value = {
           zoom: zoom.value,
           translateX: translateX.value,
           translateY: translateY.value,
-          containerHeight: containerHeight.value
+          containerHeight: containerHeight.value,
         }
       }
     }
