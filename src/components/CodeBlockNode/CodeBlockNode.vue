@@ -2,7 +2,7 @@
 import type { MonacoOptions, MonacoTheme } from 'vue-use-monaco'
 import { Icon } from '@iconify/vue'
 import { useThrottleFn, watchOnce } from '@vueuse/core'
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { detectLanguage, useMonaco } from 'vue-use-monaco'
 import { useSafeI18n } from '../../composables/useSafeI18n'
 import { getLanguageIcon, languageMap } from '../../utils'
@@ -26,7 +26,7 @@ const props = withDefaults(
     isShowPreview: true,
     darkTheme: undefined,
     lightTheme: undefined,
-    loading: false,
+    loading: true,
   },
 )
 
@@ -34,16 +34,12 @@ const emits = defineEmits(['previewCode', 'copy'])
 const { t } = useSafeI18n()
 const rootRef = ref<HTMLElement | null>(null)
 const codeEditor = ref<HTMLElement | null>(null)
-const isVisible = ref(false)
-let io: IntersectionObserver | null = null
-let created = false
 const copyText = ref(false)
 const codeLanguage = ref(props.node.language || '')
 const isExpanded = ref(false)
-const isEditorReady = ref(false)
 const canExpand = ref(false)
-let contentSizeListener: { dispose: () => void } | null = null
-let availabilityListener: { dispose: () => void } | null = null
+let cachedExpandedHeight: string | null = null
+let cachedNotExpandedHeight: string | null = null
 
 // Setup Monaco before using helpers in functions below
 const { createEditor, updateCode, getEditor, getEditorView } = useMonaco({
@@ -62,14 +58,20 @@ function applyExpandedHeight() {
   if (!editor || !container)
     return
   try {
+    cachedNotExpandedHeight = container.style.height || null
     const monacoEditor = getEditor()
     const lineCount = editor.getModel()?.getLineCount() ?? 1
     const lineHeight = editor.getOption(monacoEditor.EditorOption.lineHeight)
     const padding = 16
     const height = lineCount * lineHeight + padding
-    container.style.height = `${height}px`
-    container.style.maxHeight = 'none'
+    const heightCss = `${height}px`
+
+    container.style.maxHeight = heightCss
+    // container.style.maxHeight = 'none'
     container.style.overflow = 'visible'
+    // debugger
+    cachedExpandedHeight = heightCss
+    console.log({ cachedExpandedHeight })
   }
   catch {
     // ignore
@@ -97,7 +99,10 @@ function updateCanExpand() {
     const padding = 16
     const contentHeight = lineCount * lineHeight + padding
     const maxHeightValue = getMaxHeightValue()
-    canExpand.value = contentHeight > maxHeightValue
+    canExpand.value = contentHeight > maxHeightValue + 5
+    if (canExpand.value) {
+      applyExpandedHeight()
+    }
   }
   catch {
     canExpand.value = false
@@ -176,45 +181,13 @@ function toggleExpand() {
     return
 
   if (isExpanded.value) {
-    applyExpandedHeight()
-    // keep in sync while expanded
-    try {
-      contentSizeListener?.dispose?.()
-    }
-    catch {}
-    try {
-      contentSizeListener = editor.onDidContentSizeChange?.(() => applyExpandedHeight()) ?? null
-    }
-    catch {
-      contentSizeListener = null
-    }
+    container.style.height = cachedExpandedHeight
+    container.style.maxHeight = 'none'
+    container.style.overflow = 'visible'
   }
   else {
-    // collapse: clean up and restore container constraints
-    try {
-      contentSizeListener?.dispose?.()
-    }
-    catch {}
-    contentSizeListener = null
-
-    const maxH = props.monacoOptions?.MAX_HEIGHT ?? 500
-    const maxHCss = typeof maxH === 'number' ? `${maxH}px` : String(maxH)
-    container.style.maxHeight = maxHCss
     container.style.overflow = 'auto'
-    try {
-      const monacoEditor = getEditor()
-      const lineCount = editor.getModel()?.getLineCount() ?? 1
-      const lineHeight = editor.getOption(monacoEditor.EditorOption.lineHeight)
-      const padding = 16
-      const height = Math.min(
-        lineCount * lineHeight + padding,
-        typeof maxH === 'number' ? maxH : Number.MAX_SAFE_INTEGER,
-      )
-      container.style.height = `${height}px`
-    }
-    catch {
-      // ignore
-    }
+    container.style.height = cachedNotExpandedHeight ?? ''
   }
 }
 
@@ -223,7 +196,7 @@ function previewCode() {
   if (!isPreviewable.value)
     return
 
-  const lowerLang = props.node.language.toLowerCase()
+  const lowerLang = (codeLanguage.value || props.node.language).toLowerCase()
   const artifactType = lowerLang === 'html' ? 'text/html' : 'image/svg+xml'
   const artifactTitle
     = lowerLang === 'html'
@@ -241,7 +214,6 @@ function previewCode() {
 watch(
   () => [props.node.code, codeLanguage.value],
   () => {
-    // 将频繁的更新合并为 150ms 的防抖调用，可根据需要调整为 100/200ms
     updateCode(props.node.code, codeLanguage.value)
   },
 )
@@ -249,77 +221,23 @@ watch(
 watchOnce(
   () => codeEditor.value,
   () => {
-    const createAndReady = async () => {
-      await createEditor(codeEditor.value!, props.node.code, codeLanguage.value)
-      created = true
-      isEditorReady.value = true
-      updateCanExpand()
-      try {
-        const editor = getEditorView()
-        availabilityListener?.dispose?.()
-        availabilityListener = editor?.onDidContentSizeChange?.(() => updateCanExpand()) ?? null
-      }
-      catch {}
-      if (isExpanded.value) {
-        applyExpandedHeight()
-        try {
-          const editor = getEditorView()
-          contentSizeListener?.dispose?.()
-          contentSizeListener = editor?.onDidContentSizeChange?.(() => applyExpandedHeight()) ?? null
-        }
-        catch {}
-      }
-    }
-
-    if (isVisible.value && !created) {
-      createAndReady()
-    }
-    else {
-      const stop = watch(
-        () => isVisible.value,
-        (v) => {
-          if (v && !created) {
-            createAndReady()
-            stop()
-          }
-        },
-        { immediate: true },
-      )
-    }
+    createEditor(codeEditor.value!, props.node.code, codeLanguage.value).then(() => {
+      setTimeout(() => {
+        updateCanExpand()
+      }, 1000)
+    })
   },
 )
 
-onMounted(() => {
-  if (!rootRef.value)
-    return
-  io = new IntersectionObserver((entries) => {
-    const e = entries[0]
-    isVisible.value = !!e?.isIntersecting
-    // Optionally disconnect once visible to avoid extra work
-    if (isVisible.value && io) {
-      io.disconnect()
-      io = null
+// 当 loading 变为 false 时：计算并缓存一次展开高度，清理可安全移除的监听器
+watch(
+  () => props.loading,
+  (loaded) => {
+    if (loaded === false) {
+      updateCanExpand()
     }
-  })
-  io.observe(rootRef.value)
-})
-
-onUnmounted(() => {
-  if (io) {
-    io.disconnect()
-    io = null
-  }
-  try {
-    contentSizeListener?.dispose?.()
-  }
-  catch {}
-  contentSizeListener = null
-  try {
-    availabilityListener?.dispose?.()
-  }
-  catch {}
-  availabilityListener = null
-})
+  },
+)
 </script>
 
 <template>
@@ -337,9 +255,10 @@ onUnmounted(() => {
         <span class="text-sm font-medium text-gray-600 dark:text-gray-400 font-mono">{{ displayLanguage }}</span>
       </div>
 
-      <!-- 右侧操作按钮 -->
-      <div v-if="isPreviewable" class="flex items-center space-x-2">
+      <!-- 右侧操作按钮（合并重复结构） -->
+      <div class="flex items-center space-x-2">
         <button
+          type="button"
           class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           @click="copy"
         >
@@ -347,41 +266,29 @@ onUnmounted(() => {
           <Icon v-else icon="lucide:check" class="w-3 h-3" />
         </button>
         <button
-          v-if="isEditorReady && !loading && (canExpand || isExpanded)"
+          v-if="!loading && canExpand"
+          type="button"
           class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           :title="isExpanded ? t('common.collapse') : t('common.expand')"
           :aria-label="isExpanded ? t('common.collapse') : t('common.expand')"
+          :aria-pressed="isExpanded"
           @click="toggleExpand"
         >
           <Icon :icon="isExpanded ? 'lucide:minimize-2' : 'lucide:maximize-2'" class="w-3 h-3" />
         </button>
         <button
+          v-if="isPreviewable"
+          type="button"
           class="code-action-btn p-2 text-xs rounded-md bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white transition-colors"
           @click="previewCode"
         >
           {{ t('artifacts.preview') }}
         </button>
       </div>
-      <div v-else class="flex items-center space-x-2">
-        <button
-          class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-          @click="copy"
-        >
-          <Icon v-if="!copyText" icon="lucide:copy" class="w-3 h-3" />
-          <Icon v-else icon="lucide:check" class="w-3 h-3" />
-        </button>
-        <button
-          v-if="isEditorReady && !loading && (canExpand || isExpanded)"
-          class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-          :title="isExpanded ? t('common.collapse') : t('common.expand')"
-          :aria-label="isExpanded ? t('common.collapse') : t('common.expand')"
-          @click="toggleExpand"
-        >
-          <Icon :icon="isExpanded ? 'lucide:minimize-2' : 'lucide:maximize-2'" class="w-3 h-3" />
-        </button>
-      </div>
     </div>
-    <div ref="codeEditor" />
+    <div ref="codeEditor" class="code-editor-container" />
+    <!-- Copy status for screen readers -->
+    <span class="sr-only" aria-live="polite" role="status">{{ copyText ? t('common.copied') || 'Copied' : '' }}</span>
   </div>
 </template>
 
@@ -389,6 +296,10 @@ onUnmounted(() => {
 .code-block-container {
   contain: content;
   will-change: opacity;
+}
+
+.code-editor-container {
+  transition: height 180ms ease, max-height 180ms ease;
 }
 
 .code-action-btn {
