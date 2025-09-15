@@ -66,12 +66,10 @@ function applyExpandedHeight() {
     const height = lineCount * lineHeight + padding
     const heightCss = `${height}px`
 
-    container.style.maxHeight = heightCss
-    // container.style.maxHeight = 'none'
+    container.style.height = heightCss
+    container.style.maxHeight = 'none'
     container.style.overflow = 'visible'
-    // debugger
     cachedExpandedHeight = heightCss
-    console.log({ cachedExpandedHeight })
   }
   catch {
     // ignore
