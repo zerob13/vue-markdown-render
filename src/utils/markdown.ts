@@ -121,7 +121,7 @@ export function getMarkdown(msgId: string) {
       <div class="code-header">
         <span class="code-lang">${language.toUpperCase()}</span>
         <button class="copy-button" data-code="${encodedCode}">${t(
-          'common.copyCode',
+          'common.copy',
         )}</button>
       </div>
       <div class="code-editor"></div>

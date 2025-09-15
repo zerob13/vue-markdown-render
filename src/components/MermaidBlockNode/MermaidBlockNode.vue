@@ -2,10 +2,8 @@
 import { Icon } from '@iconify/vue'
 import mermaid from 'mermaid'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import { useSafeI18n } from '../../composables/useSafeI18n'
 import mermaidIconUrl from '../../icon/mermaid.svg'
 import { isDark } from '../../utils/isDark'
-import { Button } from '../button'
 
 const props = withDefaults(
   // 全屏按钮禁用状态
@@ -22,8 +20,8 @@ const props = withDefaults(
   },
 )
 
-const { t } = useSafeI18n()
-const copyText = ref(t('common.copy'))
+const emits = defineEmits(['copy'])
+const copyText = ref(false)
 const mermaidContainer = ref<HTMLElement>()
 const mermaidWrapper = ref<HTMLElement>()
 const mermaidContent = ref<HTMLElement>()
@@ -353,13 +351,14 @@ function handleWheel(event: WheelEvent) {
 }
 
 // Copy functionality
-async function copyCode() {
+async function copy() {
   try {
     await navigator.clipboard.writeText(baseFixedCode.value)
-    copyText.value = t('common.copySuccess')
+    copyText.value = true
+    emits('copy', baseFixedCode.value)
     setTimeout(() => {
-      copyText.value = t('common.copy')
-    }, 2000)
+      copyText.value = false
+    }, 1000)
   }
   catch (err) {
     console.error('Failed to copy:', err)
@@ -655,19 +654,22 @@ onUnmounted(() => {
       <!-- 右侧操作按钮 -->
       <div class="flex items-center space-x-1">
         <button
-          class="mermaid-action-btn p-1.5 text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-          @click="copyCode"
+          class="mermaid-action-btn p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          @click="copy"
         >
-          <Icon icon="lucide:copy" class="w-3 h-3" />
+          <Icon v-if="!copyText" icon="lucide:copy" class="w-3 h-3" />
+          <Icon v-else icon="lucide:check" class="w-3 h-3" />
         </button>
         <button
-          class="mermaid-action-btn p-1.5 text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+          class="mermaid-action-btn p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          :disabled="isFullscreenDisabled"
+          :class="isFullscreenDisabled ? 'opacity-50 cursor-not-allowed' : ''"
           @click="exportSvg"
         >
           <Icon icon="lucide:download" class="w-3 h-3" />
         </button>
         <button
-          class="mermaid-action-btn p-1.5 text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+          class="mermaid-action-btn p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           :disabled="isFullscreenDisabled"
           :class="isFullscreenDisabled ? 'opacity-50 cursor-not-allowed' : ''"
           @click="openModal"
@@ -687,21 +689,21 @@ onUnmounted(() => {
     <div v-else class="relative">
       <!-- ...existing preview content... -->
       <div class="absolute top-2 right-2 z-10 rounded-lg">
-        <div class="flex items-center gap-1 backdrop-blur rounded-lg">
+        <div class="flex items-center gap-2 backdrop-blur rounded-lg">
           <button
-            class="px-2 py-1 text-xs rounded text-muted-foreground hover:bg-slate-200 dark:hover:bg-background transition-colors"
+            class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
             @click="zoomIn"
           >
             <Icon icon="lucide:zoom-in" class="w-3 h-3" />
           </button>
           <button
-            class="px-2 py-1 text-xs rounded text-muted-foreground hover:bg-slate-200 dark:hover:bg-background transition-colors"
+            class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
             @click="zoomOut"
           >
             <Icon icon="lucide:zoom-out" class="w-3 h-3" />
           </button>
           <button
-            class="px-2 py-1 text-xs rounded text-muted-foreground hover:bg-slate-200 dark:hover:bg-background transition-colors"
+            class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
             @click="resetZoom"
           >
             {{ Math.round(zoom * 100) }}%
@@ -744,28 +746,31 @@ onUnmounted(() => {
           <div
             class="relative w-full h-full max-w-full max-h-full bg-white dark:bg-gray-900 rounded shadow-lg overflow-hidden"
           >
-            <div class="absolute top-4 right-4 z-50 flex items-center">
+            <div class="absolute top-6 right-6 z-50 flex items-center gap-2">
               <button
-                class="px-2 py-1 text-xs rounded text-muted-foreground hover:bg-slate-200 dark:hover:bg-background transition-colors"
+                class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                 @click="zoomIn"
               >
                 <Icon icon="lucide:zoom-in" class="w-3 h-3" />
               </button>
               <button
-                class="px-2 py-1 text-xs rounded text-muted-foreground hover:bg-slate-200 dark:hover:bg-background transition-colors"
+                class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                 @click="zoomOut"
               >
                 <Icon icon="lucide:zoom-out" class="w-3 h-3" />
               </button>
               <button
-                class="px-2 py-1 text-xs rounded text-muted-foreground hover:bg-slate-200 dark:hover:bg-background transition-colors"
+                class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                 @click="resetZoom"
               >
                 {{ Math.round(zoom * 100) }}%
               </button>
-              <Button size="icon" variant="ghost" @click="closeModal">
-                <Icon icon="lucide:x" class="w-4 h-4" />
-              </Button>
+              <button
+                class="inline-flex items-center justify-center p-2 rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                @click="closeModal"
+              >
+                <Icon icon="lucide:x" class="w-3 h-3" />
+              </button>
             </div>
             <div
               ref="modalContent"

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { MonacoOptions, MonacoTheme } from 'vue-use-monaco'
+import { Icon } from '@iconify/vue'
 import { useThrottleFn, watchOnce } from '@vueuse/core'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { detectLanguage, useMonaco } from 'vue-use-monaco'
@@ -27,14 +28,14 @@ const props = withDefaults(
   },
 )
 
-const emits = defineEmits(['previewCode'])
+const emits = defineEmits(['previewCode', 'copy'])
 const { t } = useSafeI18n()
 const rootRef = ref<HTMLElement | null>(null)
 const codeEditor = ref<HTMLElement | null>(null)
 const isVisible = ref(false)
 let io: IntersectionObserver | null = null
 let created = false
-const copyText = ref(t('common.copy'))
+const copyText = ref(false)
 const codeLanguage = ref(props.node.language || '')
 const { createEditor, updateCode } = useMonaco({
   wordWrap: 'on', // 'on' | 'off' | 'wordWrapColumn' | 'bounded'
@@ -96,13 +97,14 @@ const languageIcon = computed(() => {
 })
 
 // 复制代码
-async function copyCode() {
+async function copy() {
   try {
     await navigator.clipboard.writeText(props.node.code)
-    copyText.value = t('common.copySuccess')
+    copyText.value = true
+    emits('copy', props.node.code)
     setTimeout(() => {
-      copyText.value = t('common.copy')
-    }, 2000)
+      copyText.value = false
+    }, 1000)
   }
   catch (err) {
     console.error('复制失败:', err)
@@ -201,13 +203,14 @@ onUnmounted(() => {
       <!-- 右侧操作按钮 -->
       <div v-if="isPreviewable" class="flex items-center space-x-2">
         <button
-          class="code-action-btn px-2.5 py-1 text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-          @click="copyCode"
+          class="code-action-btn p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          @click="copy"
         >
-          {{ copyText }}
+          <Icon v-if="!copyText" icon="lucide:copy" class="w-3 h-3" />
+          <Icon v-else icon="lucide:check" class="w-3 h-3" />
         </button>
         <button
-          class="code-action-btn px-2.5 py-1 text-xs rounded bg-blue-500 hover:bg-blue-600 text-white transition-colors"
+          class="code-action-btn p-2 text-xs rounded-md bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white transition-colors"
           @click="previewCode"
         >
           {{ t('artifacts.preview') }}
@@ -215,10 +218,11 @@ onUnmounted(() => {
       </div>
       <button
         v-else
-        class="code-action-btn px-2.5 py-1 text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-        @click="copyCode"
+        class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+        @click="copy"
       >
-        {{ copyText }}
+        <Icon v-if="!copyText" icon="lucide:copy" class="w-3 h-3" />
+        <Icon v-else icon="lucide:check" class="w-3 h-3" />
       </button>
     </div>
     <div ref="codeEditor" />
