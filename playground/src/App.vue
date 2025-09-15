@@ -24,19 +24,21 @@ const toggleTheme = useToggle(isDark)
   <div class="app-container" h-screen relative>
     <!-- 主题切换按钮 -->
     <button
-      @click="toggleTheme()"
       class="theme-toggle"
-      fixed top-4 right-4 z-10
-      w-10 h-10 rounded-full
-      bg-gray-200 dark:bg-gray-700
-      hover:bg-gray-300 dark:hover:bg-gray-600
-      border border-gray-300 dark:border-gray-600
-      transition-all duration-200
-      flex items-center justify-center
-      shadow-sm hover:shadow-md
+      fixed
+      top-4 right-4 z-10 w-10
+      h-10 rounded-full bg-gray-200
+      dark:bg-gray-700 hover:bg-gray-300
+      dark:hover:bg-gray-600 border
+      border-gray-300 dark:border-gray-600 transition-all
+      duration-200 flex
+      items-center justify-center
+      shadow-sm
+      hover:shadow-md
+      @click="toggleTheme()"
     >
-      <div v-if="isDark" i-carbon-sun class="w-5 h-5 text-yellow-500" />
-      <div v-else i-carbon-moon class="w-5 h-5 text-blue-600" />
+      <div v-if="isDark" i-carbon-sun class="w5 h5 text-yellow-500" />
+      <div v-else i-carbon-moon class="w5 h5 text-blue-600" />
     </button>
 
     <main p4 h-full flex flex-col-reverse overflow-auto>

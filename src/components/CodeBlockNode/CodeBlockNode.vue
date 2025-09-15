@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { MonacoOptions, MonacoTheme } from 'vue-use-monaco'
-import { Icon } from '@iconify/vue'
 import { useThrottleFn, watchOnce } from '@vueuse/core'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { detectLanguage, useMonaco } from 'vue-use-monaco'
@@ -189,24 +188,26 @@ onUnmounted(() => {
   <div
     v-else
     ref="rootRef"
-    class="code-block-container my-4 rounded-lg border border-border overflow-hidden shadow-sm"
+    class="code-block-container my-4 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm bg-white dark:bg-gray-900"
   >
-    <div class="flex justify-between items-center p-2 bg-muted text-xs">
-      <span class="flex items-center space-x-2">
-        <Icon :icon="languageIcon" class="w-4 h-4" />
-        <span class="text-gray-600 dark:text-gray-400 font-mono font-bold">{{
-          displayLanguage
-        }}</span>
-      </span>
+    <!-- 简洁的头部区域 -->
+    <div class="code-block-header flex justify-between items-center px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+      <!-- 左侧语言标签 -->
+      <div class="flex items-center space-x-2">
+        <span class="h-4 w-4 flex-shrink-0" v-html="languageIcon" />
+        <span class="text-sm font-medium text-gray-600 dark:text-gray-400 font-mono">{{ displayLanguage }}</span>
+      </div>
+
+      <!-- 右侧操作按钮 -->
       <div v-if="isPreviewable" class="flex items-center space-x-2">
         <button
-          class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+          class="code-action-btn px-2.5 py-1 text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
           @click="copyCode"
         >
           {{ copyText }}
         </button>
         <button
-          class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+          class="code-action-btn px-2.5 py-1 text-xs rounded bg-blue-500 hover:bg-blue-600 text-white transition-colors"
           @click="previewCode"
         >
           {{ t('artifacts.preview') }}
@@ -214,7 +215,7 @@ onUnmounted(() => {
       </div>
       <button
         v-else
-        class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+        class="code-action-btn px-2.5 py-1 text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
         @click="copyCode"
       >
         {{ copyText }}
@@ -226,8 +227,15 @@ onUnmounted(() => {
 
 <style scoped>
 .code-block-container {
-  /* Improve transition perf and isolate editor layout */
   contain: content;
   will-change: opacity;
+}
+
+.code-action-btn {
+  font-family: inherit;
+}
+
+.code-action-btn:active {
+  transform: scale(0.98);
 }
 </style>
