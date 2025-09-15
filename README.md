@@ -38,19 +38,19 @@ Run one of the commands below from your project root to install the common peers
 pnpm (recommended):
 
 ```bash
-pnpm add vue @iconify/vue @vueuse/core class-variance-authority clsx katex mermaid radix-vue tailwind-merge vue-use-monaco
+pnpm add vue @iconify/vue @vueuse/core katex mermaid vue-use-monaco
 ```
 
 npm:
 
 ```bash
-npm install vue @iconify/vue @vueuse/core class-variance-authority clsx katex mermaid radix-vue tailwind-merge vue-use-monaco
+npm install vue @iconify/vue @vueuse/core katex mermaid vue-use-monaco
 ```
 
 yarn:
 
 ```bash
-yarn add vue @iconify/vue @vueuse/core class-variance-authority clsx katex mermaid radix-vue tailwind-merge vue-use-monaco
+yarn add vue @iconify/vue @vueuse/core katex mermaid vue-use-monaco
 ```
 
 Notes:

@@ -1,51 +1,110 @@
+import AdaIcon from '../icon/ada.svg?raw'
+import ApplescriptIcon from '../icon/apple.svg?raw'
+import AssemblyIcon from '../icon/assembly.svg?raw'
+import CIcon from '../icon/c.svg?raw'
+import ClojureIcon from '../icon/clojure.svg?raw'
+import CobolIcon from '../icon/cobol.svg?raw'
+import CppIcon from '../icon/cpp.svg?raw'
+import CrystalIcon from '../icon/crystal.svg?raw'
+import CsharpIcon from '../icon/csharp.svg?raw'
+import CssIcon from '../icon/css.svg?raw'
+import DartIcon from '../icon/dart.svg?raw'
+import DlangIcon from '../icon/dlang.svg?raw'
+import DockerIcon from '../icon/docker.svg?raw'
+import ElixirIcon from '../icon/elixir.svg?raw'
+import ErlangIcon from '../icon/erlang.svg?raw'
+import FortranIcon from '../icon/fortran.svg?raw'
+import GoIcon from '../icon/go.svg?raw'
+import GroovyIcon from '../icon/groovy.svg?raw'
+import HaskellIcon from '../icon/haskell.svg?raw'
+import HtmlIcon from '../icon/html.svg?raw'
+import JavaIcon from '../icon/java.svg?raw'
+import JsxReactIcon from '../icon/javascript-react.svg?raw'
+import JsIcon from '../icon/javascript.svg?raw'
+import JsonIcon from '../icon/json.svg?raw'
+import JuliaIcon from '../icon/julia.svg?raw'
+import KotlinIcon from '../icon/kotlin.svg?raw'
+import LispIcon from '../icon/lisp.svg?raw'
+import LuaIcon from '../icon/lua.svg?raw'
+import MarkdownIcon from '../icon/markdown.svg?raw'
+import MatlabIcon from '../icon/matlab.svg?raw'
+import MermaidIcon from '../icon/mermaid.svg?raw'
+import NimIcon from '../icon/nim.svg?raw'
+import ObjectivecIcon from '../icon/objectivec.svg?raw'
+import ObjectivecppIcon from '../icon/objectivecpp.svg?raw'
+import OcamlIcon from '../icon/ocaml.svg?raw'
+import PerlIcon from '../icon/perl.svg?raw'
+import PhpIcon from '../icon/php.svg?raw'
+import PrologIcon from '../icon/prolog.svg?raw'
+import PythonIcon from '../icon/python.svg?raw'
+import RIcon from '../icon/r.svg?raw'
+import RubyIcon from '../icon/ruby.svg?raw'
+import RustIcon from '../icon/rust.svg?raw'
+import SassIcon from '../icon/sass.svg?raw'
+import ScalaIcon from '../icon/scala.svg?raw'
+import ShellIcon from '../icon/shell.svg?raw'
+import SolidityIcon from '../icon/solidity.svg?raw'
+import SqlIcon from '../icon/sql.svg?raw'
+import SquareCodeIcon from '../icon/square-code.svg?raw'
+import SvgIcon from '../icon/svg.svg?raw'
+import SwiftIcon from '../icon/swift.svg?raw'
+import TerraformIcon from '../icon/terraform.svg?raw'
+import TextIcon from '../icon/text.svg?raw'
+import TsReactIcon from '../icon/typescript-react.svg?raw'
+import TsIcon from '../icon/typescript.svg?raw'
+import VbnetIcon from '../icon/vbnet.svg?raw'
+import VueIcon from '../icon/vue.svg?raw'
+import XmlIcon from '../icon/xml.svg?raw'
+import YamlIcon from '../icon/yaml.svg?raw'
+
 export function getLanguageIcon(lang: string): string {
   switch (lang) {
     case 'javascript':
     case 'js':
-      return 'vscode-icons:file-type-js-official'
+      return JsIcon
     case 'typescript':
     case 'ts':
-      return 'vscode-icons:file-type-typescript'
+      return TsIcon
     case 'jsx':
-      return 'vscode-icons:file-type-reactjs'
+      return JsxReactIcon
     case 'tsx':
-      return 'vscode-icons:file-type-reactts'
+      return TsReactIcon
     case 'html':
-      return 'vscode-icons:file-type-html'
+      return HtmlIcon
     case 'css':
-      return 'vscode-icons:file-type-css'
+      return CssIcon
     case 'scss':
-      return 'vscode-icons:file-type-scss'
+      return SassIcon
     case 'json':
-      return 'vscode-icons:file-type-json'
+      return JsonIcon
     case 'python':
     case 'py':
-      return 'vscode-icons:file-type-python'
+      return PythonIcon
     case 'ruby':
     case 'rb':
-      return 'vscode-icons:file-type-ruby'
+      return RubyIcon
     case 'go':
     case 'golang':
-      return 'vscode-icons:file-type-go'
+      return GoIcon
     case 'r':
-      return 'vscode-icons:file-type-r'
+      return RIcon
     case 'java':
-      return 'vscode-icons:file-type-java'
+      return JavaIcon
     case 'kotlin':
     case 'kt':
-      return 'vscode-icons:file-type-kotlin'
+      return KotlinIcon
     case 'c':
-      return 'vscode-icons:file-type-c'
+      return CIcon
     case 'cpp':
     case 'c++':
-      return 'vscode-icons:file-type-cpp'
+      return CppIcon
     case 'cs':
     case 'csharp':
-      return 'vscode-icons:file-type-csharp'
+      return CsharpIcon
     case 'php':
-      return 'vscode-icons:file-type-php'
+      return PhpIcon
     case 'scala':
-      return 'vscode-icons:file-type-scala'
+      return ScalaIcon
     case 'shell':
     case 'sh':
     case 'bash':
@@ -54,87 +113,88 @@ export function getLanguageIcon(lang: string): string {
     case 'ps1':
     case 'bat':
     case 'batch':
-      return 'vscode-icons:file-type-powershell'
+    case 'shellscript':
+      return ShellIcon
     case 'sql':
-      return 'vscode-icons:file-type-sql'
+      return SqlIcon
     case 'yaml':
     case 'yml':
-      return 'vscode-icons:file-type-yaml'
+      return YamlIcon
     case 'markdown':
     case 'md':
-      return 'vscode-icons:file-type-markdown'
+      return MarkdownIcon
     case 'xml':
-      return 'vscode-icons:file-type-xml'
+      return XmlIcon
     case 'rust':
     case 'rs':
-      return 'vscode-icons:file-type-rust'
+      return RustIcon
     case 'swift':
-      return 'vscode-icons:file-type-swift'
+      return SwiftIcon
     case 'perl':
-      return 'vscode-icons:file-type-perl'
+      return PerlIcon
     case 'lua':
-      return 'vscode-icons:file-type-lua'
+      return LuaIcon
     case 'haskell':
-      return 'vscode-icons:file-type-haskell'
+      return HaskellIcon
     case 'erlang':
-      return 'vscode-icons:file-type-erlang'
+      return ErlangIcon
     case 'clojure':
-      return 'vscode-icons:file-type-clojure'
+      return ClojureIcon
     case 'vue':
-      return 'vscode-icons:file-type-vue'
+      return VueIcon
     case 'svg':
-      return 'vscode-icons:file-type-svg'
+      return SvgIcon
     case 'mermaid':
-      return 'vscode-icons:file-type-mermaid' // Or 'mdi:graph' if mermaid icon missing
+      return MermaidIcon
     case 'dart':
-      return 'vscode-icons:file-type-dartlang'
+      return DartIcon
     case 'assembly':
-      return 'vscode-icons:file-type-assembly'
+      return AssemblyIcon
     case 'dockerfile':
-      return 'vscode-icons:file-type-docker'
+      return DockerIcon
     case 'fortran':
-      return 'vscode-icons:file-type-fortran'
+      return FortranIcon
     case 'lisp':
-      return 'vscode-icons:file-type-lisp'
+      return LispIcon
     case 'ocaml':
-      return 'vscode-icons:file-type-ocaml'
+      return OcamlIcon
     case 'prolog':
-      return 'vscode-icons:file-type-prolog'
+      return PrologIcon
     case 'groovy':
-      return 'vscode-icons:file-type-groovy'
+      return GroovyIcon
     case 'matlab':
-      return 'vscode-icons:file-type-matlab'
+      return MatlabIcon
     case 'cobol':
-      return 'vscode-icons:file-type-cobol'
+      return CobolIcon
     case 'ada':
-      return 'vscode-icons:file-type-ada'
+      return AdaIcon
     case 'julia':
-      return 'vscode-icons:file-type-julia'
+      return JuliaIcon
     case 'elixir':
-      return 'vscode-icons:file-type-elixir'
+      return ElixirIcon
     case 'vb.net':
-      return 'vscode-icons:file-type-vb'
+      return VbnetIcon
     case 'nim':
-      return 'vscode-icons:file-type-nim'
+      return NimIcon
     case 'crystal':
-      return 'vscode-icons:file-type-crystal'
+      return CrystalIcon
     case 'd':
-      return 'vscode-icons:file-type-dlang'
+      return DlangIcon
     case 'applescript':
-      return 'vscode-icons:file-type-applescript'
+      return ApplescriptIcon
     case 'solidity':
-      return 'vscode-icons:file-type-solidity'
+      return SolidityIcon
     case 'objectivec':
-      return 'vscode-icons:file-type-objectivec'
+      return ObjectivecIcon
     case 'objectivecpp':
-      return 'vscode-icons:file-type-objectivecpp'
+      return ObjectivecppIcon
     case 'terraform':
-      return 'vscode-icons:file-type-terraform'
+      return TerraformIcon
     case 'plain':
     case 'text':
-      return 'vscode-icons:file-type-text' // Icon for plain text
+      return TextIcon
     default:
-      return 'lucide:square-code' // Fallback icon
+      return SquareCodeIcon
   }
 }
 

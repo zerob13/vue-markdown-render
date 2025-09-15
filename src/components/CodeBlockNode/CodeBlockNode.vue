@@ -28,14 +28,14 @@ const props = withDefaults(
   },
 )
 
-const emits = defineEmits(['previewCode'])
+const emits = defineEmits(['previewCode', 'copy'])
 const { t } = useSafeI18n()
 const rootRef = ref<HTMLElement | null>(null)
 const codeEditor = ref<HTMLElement | null>(null)
 const isVisible = ref(false)
 let io: IntersectionObserver | null = null
 let created = false
-const copyText = ref(t('common.copy'))
+const copyText = ref(false)
 const codeLanguage = ref(props.node.language || '')
 const isExpanded = ref(false)
 const isEditorReady = ref(false)
@@ -152,13 +152,14 @@ const languageIcon = computed(() => {
 })
 
 // 复制代码
-async function copyCode() {
+async function copy() {
   try {
     await navigator.clipboard.writeText(props.node.code)
-    copyText.value = t('common.copySuccess')
+    copyText.value = true
+    emits('copy', props.node.code)
     setTimeout(() => {
-      copyText.value = t('common.copy')
-    }, 2000)
+      copyText.value = false
+    }, 1000)
   }
   catch (err) {
     console.error('复制失败:', err)
@@ -324,36 +325,36 @@ onUnmounted(() => {
   <div
     v-else
     ref="rootRef"
-    class="code-block-container my-4 rounded-lg border border-border overflow-hidden shadow-sm"
+    class="code-block-container my-4 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm bg-white dark:bg-gray-900"
   >
-    <div class="flex justify-between items-center p-2 bg-muted text-xs">
-      <span class="flex items-center space-x-2">
-        <Icon :icon="languageIcon" class="w-4 h-4" />
-        <span class="text-gray-600 dark:text-gray-400 font-mono font-bold">{{
-          displayLanguage
-        }}</span>
-      </span>
+    <!-- 简洁的头部区域 -->
+    <div class="code-block-header flex justify-between items-center px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+      <!-- 左侧语言标签 -->
+      <div class="flex items-center space-x-2">
+        <span class="h-4 w-4 flex-shrink-0" v-html="languageIcon" />
+        <span class="text-sm font-medium text-gray-600 dark:text-gray-400 font-mono">{{ displayLanguage }}</span>
+      </div>
+
+      <!-- 右侧操作按钮 -->
       <div v-if="isPreviewable" class="flex items-center space-x-2">
         <button
-          class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-          @click="copyCode"
+          class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          @click="copy"
         >
-          {{ copyText }}
+          <Icon v-if="!copyText" icon="lucide:copy" class="w-3 h-3" />
+          <Icon v-else icon="lucide:check" class="w-3 h-3" />
         </button>
         <button
           v-if="isEditorReady && (canExpand || isExpanded)"
-          class="px-2 py-1 text-xs rounded text-muted-foreground hover:bg-slate-200 dark:hover:bg-background transition-colors"
+          class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           :title="isExpanded ? t('common.collapse') : t('common.expand')"
           :aria-label="isExpanded ? t('common.collapse') : t('common.expand')"
           @click="toggleExpand"
         >
-          <Icon
-            :icon="isExpanded ? 'lucide:minimize-2' : 'lucide:maximize-2'"
-            class="w-3 h-3"
-          />
+          <Icon :icon="isExpanded ? 'lucide:minimize-2' : 'lucide:maximize-2'" class="w-3 h-3" />
         </button>
         <button
-          class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+          class="code-action-btn p-2 text-xs rounded-md bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white transition-colors"
           @click="previewCode"
         >
           {{ t('artifacts.preview') }}
@@ -361,22 +362,20 @@ onUnmounted(() => {
       </div>
       <div v-else class="flex items-center space-x-2">
         <button
-          class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-          @click="copyCode"
+          class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          @click="copy"
         >
-          {{ copyText }}
+          <Icon v-if="!copyText" icon="lucide:copy" class="w-3 h-3" />
+          <Icon v-else icon="lucide:check" class="w-3 h-3" />
         </button>
         <button
           v-if="isEditorReady && (canExpand || isExpanded)"
-          class="px-2 py-1 text-xs rounded text-muted-foreground hover:bg-slate-200 dark:hover:bg-background transition-colors"
+          class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           :title="isExpanded ? t('common.collapse') : t('common.expand')"
           :aria-label="isExpanded ? t('common.collapse') : t('common.expand')"
           @click="toggleExpand"
         >
-          <Icon
-            :icon="isExpanded ? 'lucide:minimize-2' : 'lucide:maximize-2'"
-            class="w-3 h-3"
-          />
+          <Icon :icon="isExpanded ? 'lucide:minimize-2' : 'lucide:maximize-2'" class="w-3 h-3" />
         </button>
       </div>
     </div>
@@ -386,10 +385,15 @@ onUnmounted(() => {
 
 <style scoped>
 .code-block-container {
-  /* Improve transition perf and isolate editor layout */
   contain: content;
   will-change: opacity;
 }
 
-/* expanded height handled inline for Monaco sizing */
+.code-action-btn {
+  font-family: inherit;
+}
+
+.code-action-btn:active {
+  transform: scale(0.98);
+}
 </style>
