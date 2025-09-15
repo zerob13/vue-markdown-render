@@ -16,6 +16,7 @@ const props = withDefaults(
       code: string
       raw: string
     }
+    loading?: boolean
     darkTheme?: MonacoTheme
     lightTheme?: MonacoTheme
     isShowPreview?: boolean
@@ -25,6 +26,7 @@ const props = withDefaults(
     isShowPreview: true,
     darkTheme: undefined,
     lightTheme: undefined,
+    loading: false,
   },
 )
 
@@ -345,7 +347,7 @@ onUnmounted(() => {
           <Icon v-else icon="lucide:check" class="w-3 h-3" />
         </button>
         <button
-          v-if="isEditorReady && (canExpand || isExpanded)"
+          v-if="isEditorReady && !loading && (canExpand || isExpanded)"
           class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           :title="isExpanded ? t('common.collapse') : t('common.expand')"
           :aria-label="isExpanded ? t('common.collapse') : t('common.expand')"
@@ -369,7 +371,7 @@ onUnmounted(() => {
           <Icon v-else icon="lucide:check" class="w-3 h-3" />
         </button>
         <button
-          v-if="isEditorReady && (canExpand || isExpanded)"
+          v-if="isEditorReady && !loading && (canExpand || isExpanded)"
           class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           :title="isExpanded ? t('common.collapse') : t('common.expand')"
           :aria-label="isExpanded ? t('common.collapse') : t('common.expand')"

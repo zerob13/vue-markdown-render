@@ -22,5 +22,6 @@ export function parseFence(token: MarkdownToken): CodeBlockNode {
     language: token.info || '',
     code: token.content || '',
     raw: token.content || '',
+    loading: Boolean((token as any).meta?.unclosed),
   }
 }
