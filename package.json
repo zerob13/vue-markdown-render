@@ -2,7 +2,7 @@
   "name": "vue-renderer-markdown",
   "type": "module",
   "version": "0.0.48",
-  "packageManager": "pnpm@10.16.0",
+  "packageManager": "pnpm@10.16.1",
   "description": "A Vue 3 component that renders Markdown string content as HTML, supporting custom components and advanced markdown features.",
   "author": "Simon He",
   "license": "MIT",
@@ -69,7 +69,7 @@
     "mermaid": ">=11",
     "vue": ">=3.0.0",
     "vue-i18n": ">=9",
-    "vue-use-monaco": ">=0.0.17"
+    "vue-use-monaco": ">=0.0.18"
   },
   "dependencies": {
     "katex": ">=0.16.22",
@@ -84,7 +84,7 @@
     "markdown-it-sup": "^2.0.0",
     "markdown-it-task-checkbox": "^1.0.6",
     "mermaid": "^11.11.0",
-    "vue-use-monaco": "^0.0.17"
+    "vue-use-monaco": "^0.0.18"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^5.3.0",
