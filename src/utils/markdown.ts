@@ -36,6 +36,33 @@ export function getMarkdown(msgId: string) {
   md.use(markdownItIns)
   md.use(markdownItFootnote)
 
+  // Annotate fence tokens with unclosed meta using a lightweight line check
+  md.core.ruler.after('block', 'mark_fence_closed', (state: any) => {
+    const src: string = state.src as string
+    const lines = src.split(/\r?\n/)
+    for (const token of state.tokens) {
+      if (token.type !== 'fence' || !token.map || !token.markup)
+        continue
+      const openLine: number = token.map[0]
+      const endLine: number = token.map[1]
+      const markup: string = token.markup
+      const marker = markup[0]
+      const minLen = markup.length
+      // The closing line, if exists, should be the last line consumed by the block
+      const lineIdx = Math.max(0, endLine - 1)
+      const line = lines[lineIdx] ?? ''
+      let i = 0
+      while (i < line.length && (line[i] === ' ' || line[i] === '\t')) i++
+      let count = 0
+      while (i + count < line.length && line[i + count] === marker) count++
+      let j = i + count
+      while (j < line.length && (line[j] === ' ' || line[j] === '\t')) j++
+      const closed = endLine > openLine + 1 && count >= minLen && j === line.length
+      token.meta = token.meta || {}
+      token.meta.unclosed = !closed
+    }
+  })
+
   // strong rule (legacy)
   md.inline.ruler.before(
     'emphasis',

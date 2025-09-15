@@ -2,7 +2,7 @@
 import type { MonacoOptions, MonacoTheme } from 'vue-use-monaco'
 import { Icon } from '@iconify/vue'
 import { useThrottleFn, watchOnce } from '@vueuse/core'
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { detectLanguage, useMonaco } from 'vue-use-monaco'
 import { useSafeI18n } from '../../composables/useSafeI18n'
 import { getLanguageIcon, languageMap } from '../../utils'
@@ -16,6 +16,7 @@ const props = withDefaults(
       code: string
       raw: string
     }
+    loading?: boolean
     darkTheme?: MonacoTheme
     lightTheme?: MonacoTheme
     isShowPreview?: boolean
@@ -25,6 +26,7 @@ const props = withDefaults(
     isShowPreview: true,
     darkTheme: undefined,
     lightTheme: undefined,
+    loading: true,
   },
 )
 
@@ -32,12 +34,15 @@ const emits = defineEmits(['previewCode', 'copy'])
 const { t } = useSafeI18n()
 const rootRef = ref<HTMLElement | null>(null)
 const codeEditor = ref<HTMLElement | null>(null)
-const isVisible = ref(false)
-let io: IntersectionObserver | null = null
-let created = false
 const copyText = ref(false)
 const codeLanguage = ref(props.node.language || '')
-const { createEditor, updateCode } = useMonaco({
+const isExpanded = ref(false)
+const canExpand = ref(false)
+let cachedExpandedHeight: string | null = null
+let cachedNotExpandedHeight: string | null = null
+
+// Setup Monaco before using helpers in functions below
+const { createEditor, updateCode, getEditor, getEditorView } = useMonaco({
   wordWrap: 'on', // 'on' | 'off' | 'wordWrapColumn' | 'bounded'
   wrappingIndent: 'same', // 'none' | 'same' | 'indent' | 'deepIndent'
   themes:
@@ -46,6 +51,63 @@ const { createEditor, updateCode } = useMonaco({
       : undefined,
   ...(props.monacoOptions || {}),
 })
+
+function applyExpandedHeight() {
+  const editor = getEditorView()
+  const container = codeEditor.value
+  if (!editor || !container)
+    return
+  try {
+    cachedNotExpandedHeight = container.style.height || null
+    const monacoEditor = getEditor()
+    const lineCount = editor.getModel()?.getLineCount() ?? 1
+    const lineHeight = editor.getOption(monacoEditor.EditorOption.lineHeight)
+    const padding = 16
+    const height = lineCount * lineHeight + padding
+    const heightCss = `${height}px`
+
+    container.style.maxHeight = heightCss
+    // container.style.maxHeight = 'none'
+    container.style.overflow = 'visible'
+    // debugger
+    cachedExpandedHeight = heightCss
+    console.log({ cachedExpandedHeight })
+  }
+  catch {
+    // ignore
+  }
+}
+
+function getMaxHeightValue(): number {
+  const maxH = props.monacoOptions?.MAX_HEIGHT ?? 500
+  if (typeof maxH === 'number')
+    return maxH
+  const m = String(maxH).match(/^(\d+(?:\.\d+)?)/)
+  return m ? Number.parseFloat(m[1]) : 500
+}
+
+function updateCanExpand() {
+  const editor = getEditorView()
+  if (!editor) {
+    canExpand.value = false
+    return
+  }
+  try {
+    const monacoEditor = getEditor()
+    const lineCount = editor.getModel()?.getLineCount() ?? 1
+    const lineHeight = editor.getOption(monacoEditor.EditorOption.lineHeight)
+    const padding = 16
+    const contentHeight = lineCount * lineHeight + padding
+    const maxHeightValue = getMaxHeightValue()
+    canExpand.value = contentHeight > maxHeightValue + 5
+    if (canExpand.value) {
+      applyExpandedHeight()
+    }
+  }
+  catch {
+    canExpand.value = false
+  }
+}
 
 // 创建节流版本的语言检测函数,1秒内最多执行一次
 const throttledDetectLanguage = useThrottleFn(
@@ -111,12 +173,30 @@ async function copy() {
   }
 }
 
+function toggleExpand() {
+  isExpanded.value = !isExpanded.value
+  const editor = getEditorView()
+  const container = codeEditor.value
+  if (!editor || !container)
+    return
+
+  if (isExpanded.value) {
+    container.style.height = cachedExpandedHeight
+    container.style.maxHeight = 'none'
+    container.style.overflow = 'visible'
+  }
+  else {
+    container.style.overflow = 'auto'
+    container.style.height = cachedNotExpandedHeight ?? ''
+  }
+}
+
 // 预览HTML/SVG代码
 function previewCode() {
   if (!isPreviewable.value)
     return
 
-  const lowerLang = props.node.language.toLowerCase()
+  const lowerLang = (codeLanguage.value || props.node.language).toLowerCase()
   const artifactType = lowerLang === 'html' ? 'text/html' : 'image/svg+xml'
   const artifactTitle
     = lowerLang === 'html'
@@ -134,7 +214,6 @@ function previewCode() {
 watch(
   () => [props.node.code, codeLanguage.value],
   () => {
-    // 将频繁的更新合并为 150ms 的防抖调用，可根据需要调整为 100/200ms
     updateCode(props.node.code, codeLanguage.value)
   },
 )
@@ -142,47 +221,23 @@ watch(
 watchOnce(
   () => codeEditor.value,
   () => {
-    if (isVisible.value && !created) {
-      createEditor(codeEditor.value, props.node.code, codeLanguage.value)
-      created = true
-    }
-    else {
-      const stop = watch(
-        () => isVisible.value,
-        (v) => {
-          if (v && !created) {
-            createEditor(codeEditor.value, props.node.code, codeLanguage.value)
-            created = true
-            stop()
-          }
-        },
-        { immediate: true },
-      )
-    }
+    createEditor(codeEditor.value!, props.node.code, codeLanguage.value).then(() => {
+      setTimeout(() => {
+        updateCanExpand()
+      }, 1000)
+    })
   },
 )
 
-onMounted(() => {
-  if (!rootRef.value)
-    return
-  io = new IntersectionObserver((entries) => {
-    const e = entries[0]
-    isVisible.value = !!e?.isIntersecting
-    // Optionally disconnect once visible to avoid extra work
-    if (isVisible.value && io) {
-      io.disconnect()
-      io = null
+// 当 loading 变为 false 时：计算并缓存一次展开高度，清理可安全移除的监听器
+watch(
+  () => props.loading,
+  (loaded) => {
+    if (loaded === false) {
+      updateCanExpand()
     }
-  })
-  io.observe(rootRef.value)
-})
-
-onUnmounted(() => {
-  if (io) {
-    io.disconnect()
-    io = null
-  }
-})
+  },
+)
 </script>
 
 <template>
@@ -200,32 +255,40 @@ onUnmounted(() => {
         <span class="text-sm font-medium text-gray-600 dark:text-gray-400 font-mono">{{ displayLanguage }}</span>
       </div>
 
-      <!-- 右侧操作按钮 -->
-      <div v-if="isPreviewable" class="flex items-center space-x-2">
+      <!-- 右侧操作按钮（合并重复结构） -->
+      <div class="flex items-center space-x-2">
         <button
-          class="code-action-btn p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          type="button"
+          class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           @click="copy"
         >
           <Icon v-if="!copyText" icon="lucide:copy" class="w-3 h-3" />
           <Icon v-else icon="lucide:check" class="w-3 h-3" />
         </button>
         <button
+          v-if="!loading && canExpand"
+          type="button"
+          class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          :title="isExpanded ? t('common.collapse') : t('common.expand')"
+          :aria-label="isExpanded ? t('common.collapse') : t('common.expand')"
+          :aria-pressed="isExpanded"
+          @click="toggleExpand"
+        >
+          <Icon :icon="isExpanded ? 'lucide:minimize-2' : 'lucide:maximize-2'" class="w-3 h-3" />
+        </button>
+        <button
+          v-if="isPreviewable"
+          type="button"
           class="code-action-btn p-2 text-xs rounded-md bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white transition-colors"
           @click="previewCode"
         >
           {{ t('artifacts.preview') }}
         </button>
       </div>
-      <button
-        v-else
-        class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-        @click="copy"
-      >
-        <Icon v-if="!copyText" icon="lucide:copy" class="w-3 h-3" />
-        <Icon v-else icon="lucide:check" class="w-3 h-3" />
-      </button>
     </div>
-    <div ref="codeEditor" />
+    <div ref="codeEditor" class="code-editor-container" />
+    <!-- Copy status for screen readers -->
+    <span class="sr-only" aria-live="polite" role="status">{{ copyText ? t('common.copied') || 'Copied' : '' }}</span>
   </div>
 </template>
 
@@ -233,6 +296,10 @@ onUnmounted(() => {
 .code-block-container {
   contain: content;
   will-change: opacity;
+}
+
+.code-editor-container {
+  transition: height 180ms ease, max-height 180ms ease;
 }
 
 .code-action-btn {
