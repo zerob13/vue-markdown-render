@@ -102,7 +102,7 @@ export function applyMath(md: MarkdownIt) {
       )
 
       const token: any = state.push('math_block', 'math', 0)
-      token.content = content
+      token.content = normalizeStandaloneBackslashT(content) // 规范化 \t -> \\t
       token.markup
         = openDelim === '$$' ? '$$' : openDelim === '[' ? '[]' : '\\[\\]'
       token.map = [startLine, startLine + 1]
@@ -130,7 +130,7 @@ export function applyMath(md: MarkdownIt) {
         content = firstLineContent
 
       for (nextLine = startLine + 1; nextLine < endLine; nextLine++) {
-        const lineStart = state.bMarks[nextLine] + state.tShift[nextLine]
+        const lineStart = state.bMarks[nextLine] + state.tShift[nextLine] - 1
         const lineEnd = state.eMarks[nextLine]
         const currentLine = state.src.slice(lineStart, lineEnd)
         if (currentLine.trim() === closeDelim) {
@@ -151,7 +151,8 @@ export function applyMath(md: MarkdownIt) {
       return false
 
     const token: any = state.push('math_block', 'math', 0)
-    token.content = content
+
+    token.content = normalizeStandaloneBackslashT(content) // 规范化 \t -> \\t
     token.markup
       = openDelim === '$$' ? '$$' : openDelim === '[' ? '[]' : '\\[\\]'
     token.map = [startLine, nextLine + 1]
@@ -200,5 +201,13 @@ export function applyMath(md: MarkdownIt) {
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
+  }
+
+  // 将单个 \t 规范化为 \\t；若已为 \\t 则保持不变
+  function normalizeStandaloneBackslashT(s: string) {
+    // 匹配前面不是反斜杠的单个 \t，替换为 \\t
+    return s
+      .replace(/(^|[^\\])\t/g, (_m, p1) => `${p1}\\t`)
+      .replace(/!/g, '\\!') // 处理 ! 符号
   }
 }

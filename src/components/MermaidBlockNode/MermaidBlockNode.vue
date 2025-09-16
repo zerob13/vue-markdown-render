@@ -287,70 +287,6 @@ async function canParseOffthread(
   }
 }
 
-async function findLastRenderablePrefixOffthread(
-  code: string,
-  theme: 'light' | 'dark',
-  opts?: { signal?: AbortSignal, timeoutMs?: number },
-) {
-  try {
-    return await callWorker<string | null>('findPrefix', { code, theme }, {
-      signal: opts?.signal,
-      timeoutMs: opts?.timeoutMs ?? WORKER_TIMEOUT_MS,
-    })
-  }
-  catch {
-    // Implement a simple main-thread bisection as a fallback
-    function findHeaderIndex(lines: string[]) {
-      const headerRe = /^(?:graph|flowchart|sequenceDiagram|gantt|classDiagram|stateDiagram(?:-v2)?|erDiagram|journey|pie|quadrantChart|timeline|xychart(?:-beta)?)\b/
-      for (let i = 0; i < lines.length; i++) {
-        const l = lines[i].trim()
-        if (!l)
-          continue
-        if (l.startsWith('%%'))
-          continue
-        if (headerRe.test(l))
-          return i
-      }
-      return -1
-    }
-
-    const lines = code.split('\n')
-    const headerIdx = findHeaderIndex(lines)
-    if (headerIdx === -1)
-      return null
-    const head = lines.slice(0, headerIdx + 1)
-
-    try {
-      await canParseOnMain(head.join('\n'), theme, opts)
-    }
-    catch {
-      return null
-    }
-
-    let low = headerIdx + 1
-    let high = lines.length
-    let lastGood = headerIdx + 1
-    let tries = 0
-    const MAX_TRIES = 12
-
-    while (low <= high && tries < MAX_TRIES) {
-      const mid = Math.floor((low + high) / 2)
-      const candidate = [...head, ...lines.slice(headerIdx + 1, mid)].join('\n')
-      tries++
-      try {
-        await canParseOnMain(candidate, theme, opts)
-        lastGood = mid
-        low = mid + 1
-      }
-      catch {
-        high = mid - 1
-      }
-    }
-
-    return [...head, ...lines.slice(headerIdx + 1, lastGood)].join('\n')
-  }
-}
-
 // 全屏按钮禁用状态
 const isFullscreenDisabled = computed(
   () => showSource.value || isRendering.value,
@@ -754,7 +690,7 @@ const requestIdle
   = (globalThis as any).requestIdleCallback
     ?? ((cb: any, _opts?: any) => setTimeout(() => cb({ didTimeout: true }), 16))
 
-// Progressive render: if full parse passes -> run initMermaid; else render last good prefix
+// Progressive render: if full parse passes -> run initMermaid; else restore last success (no prefix render)
 async function progressiveRender() {
   const token = ++renderToken.value
   // cancel any previous ongoing progressive work
@@ -782,36 +718,21 @@ async function progressiveRender() {
       return
     }
   }
-  catch {
-    // ignore and try prefix path
+  catch (e: any) {
+    // aborted -> do nothing
+    if (e?.name === 'AbortError')
+      return
+    // fallthrough to restore last success
   }
 
-  const prefix = await findLastRenderablePrefixOffthread(base, theme, { signal, timeoutMs: WORKER_TIMEOUT_MS })
-  if (!prefix) {
-    // No valid prefix -> ensure Partial badge is hidden
+  // Worker/main parse failed -> restore last successful full SVG (if any), do not render prefix
+  if (renderToken.value !== token)
     return
+  const cached = svgCache.value[theme]
+  if (cached && mermaidContent.value) {
+    mermaidContent.value.innerHTML = cached
   }
-  const id = `mermaid-progress-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
-  try {
-    const { svg, bindFunctions } = await withTimeoutSignal(
-      () => mermaid.render(
-        id,
-        applyThemeTo(prefix, theme),
-      ),
-      { timeoutMs: RENDER_TIMEOUT_MS, signal },
-    )
-    if (renderToken.value !== token)
-      return
-    if (mermaidContent.value) {
-      if (lastSvgSnapshot.value === svg)
-        return
-      mermaidContent.value.innerHTML = svg
-      bindFunctions?.(mermaidContent.value)
-      updateContainerHeight()
-      lastSvgSnapshot.value = svg
-    }
-  }
-  catch {}
+  // else: keep current DOM (could be empty on very first run)
 }
 
 const debouncedProgressiveRender = debounce(() => {
