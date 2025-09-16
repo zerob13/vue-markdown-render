@@ -14,9 +14,11 @@ const props = withDefaults(
       code: string
     }
     maxHeight?: string | null
+    loading?: boolean
   }>(),
   {
     maxHeight: '500px',
+    loading: true,
   },
 )
 
@@ -50,9 +52,7 @@ const translateX = ref(0)
 const translateY = ref(0)
 const isDragging = ref(false)
 const dragStart = ref({ x: 0, y: 0 })
-
-// 避免直接渲染画面报错
-const showSource = ref(true)
+const showSource = ref(false)
 const isRendering = ref(false)
 const renderQueue = ref<Promise<void> | null>(null)
 const RENDER_DEBOUNCE_DELAY = 300
@@ -71,12 +71,287 @@ const svgCache = ref<{
   light?: string
   dark?: string
 }>({})
+
+const lastSvgSnapshot = ref<string | null>(null)
+const renderToken = ref(0)
+// Abort/cancellation state for ongoing progressive work
+let currentWorkController: AbortController | null = null
 const savedTransformState = ref({
   zoom: 1,
   translateX: 0,
   translateY: 0,
   containerHeight: '360px',
 })
+
+// Timeouts (ms)
+const WORKER_TIMEOUT_MS = 1400
+const PARSE_TIMEOUT_MS = 1800
+const RENDER_TIMEOUT_MS = 2500
+const FULL_RENDER_TIMEOUT_MS = 4000
+
+// Helper: wrap an async operation with timeout and AbortSignal support
+function withTimeoutSignal<T>(
+  run: () => Promise<T>,
+  opts?: { timeoutMs?: number, signal?: AbortSignal },
+): Promise<T> {
+  const timeoutMs = opts?.timeoutMs
+  const signal = opts?.signal
+
+  if (signal?.aborted) {
+    return Promise.reject(new DOMException('Aborted', 'AbortError'))
+  }
+
+  let timer: number | null = null
+  let settled = false
+  let abortHandler: ((this: AbortSignal, ev: Event) => any) | null = null
+
+  return new Promise<T>((resolve, reject) => {
+    const cleanup = () => {
+      if (timer != null)
+        clearTimeout(timer)
+      if (abortHandler && signal)
+        signal.removeEventListener('abort', abortHandler)
+    }
+
+    if (timeoutMs && timeoutMs > 0) {
+      timer = window.setTimeout(() => {
+        if (settled)
+          return
+        settled = true
+        cleanup()
+        reject(new Error('Operation timed out'))
+      }, timeoutMs)
+    }
+
+    if (signal) {
+      abortHandler = () => {
+        if (settled)
+          return
+        settled = true
+        cleanup()
+        reject(new DOMException('Aborted', 'AbortError'))
+      }
+      signal.addEventListener('abort', abortHandler)
+    }
+
+    run()
+      .then((res) => {
+        if (settled)
+          return
+        settled = true
+        cleanup()
+        resolve(res)
+      })
+      .catch((err) => {
+        if (settled)
+          return
+        settled = true
+        cleanup()
+        reject(err)
+      })
+  })
+}
+
+// Unified error renderer (only used when props.loading === false)
+function renderErrorToContainer(error: unknown) {
+  if (!mermaidContent.value)
+    return
+  const errorDiv = document.createElement('div')
+  errorDiv.className = 'text-red-500 p-4'
+  errorDiv.textContent = 'Failed to render diagram: '
+  const errorSpan = document.createElement('span')
+  errorSpan.textContent = error instanceof Error ? error.message : 'Unknown error'
+  errorDiv.appendChild(errorSpan)
+  mermaidContent.value.innerHTML = ''
+  mermaidContent.value.appendChild(errorDiv)
+  containerHeight.value = '360px'
+}
+
+// Worker-backed off-thread parsing (to reduce main-thread jank)
+let parserWorker: Worker | null = null
+const rpcMap = new Map<string, { resolve: (v: any) => void, reject: (e: any) => void }>()
+function ensureParserWorker() {
+  if (parserWorker)
+    return
+  try {
+    parserWorker = new Worker(
+      new URL('../../workers/mermaidParser.worker.ts', import.meta.url),
+      { type: 'module' },
+    )
+    parserWorker.onmessage = (ev: MessageEvent<any>) => {
+      const { id, ok, result, error } = ev.data || {}
+      const entry = rpcMap.get(id)
+      if (!entry)
+        return
+      if (ok)
+        entry.resolve(result)
+      else entry.reject(new Error(error ?? 'Worker error'))
+      rpcMap.delete(id)
+    }
+  }
+  catch (e) {
+    console.warn('Parser worker unavailable, will fall back to main thread:', e)
+    parserWorker = null
+  }
+}
+function callWorker<T>(
+  action: 'canParse' | 'findPrefix',
+  payload: any,
+  options?: { signal?: AbortSignal, timeoutMs?: number },
+) {
+  ensureParserWorker()
+  return new Promise<T>((resolve, reject) => {
+    if (!parserWorker)
+      return reject(new Error('worker not available'))
+    const id = Math.random().toString(36).slice(2)
+    rpcMap.set(id, { resolve, reject })
+    parserWorker.postMessage({ id, action, payload })
+
+    let timeoutId: number | null = null
+    const onAbort = () => {
+      if (rpcMap.has(id))
+        rpcMap.delete(id)
+      reject(new DOMException('Aborted', 'AbortError'))
+    }
+    if (options?.timeoutMs && options.timeoutMs > 0) {
+      timeoutId = window.setTimeout(() => {
+        if (rpcMap.has(id))
+          rpcMap.delete(id)
+        reject(new Error('Worker call timed out'))
+      }, options.timeoutMs)
+    }
+    if (options?.signal) {
+      if (options.signal.aborted) {
+        if (timeoutId)
+          clearTimeout(timeoutId)
+        if (rpcMap.has(id))
+          rpcMap.delete(id)
+        reject(new DOMException('Aborted', 'AbortError'))
+        return
+      }
+      const handler = () => {
+        if (timeoutId)
+          clearTimeout(timeoutId)
+        onAbort()
+      }
+      options.signal.addEventListener('abort', handler, { once: true })
+    }
+  })
+}
+
+// Apply theme header to arbitrary code snippet
+function applyThemeTo(code: string, theme: 'light' | 'dark') {
+  const themeValue = theme === 'dark' ? 'dark' : 'default'
+  const themeConfig = `%%{init: {"theme": "${themeValue}"}}%%\n`
+  const trimmed = code.trimStart()
+  if (trimmed.startsWith('%%{'))
+    return code
+  return themeConfig + code
+}
+
+// Main-thread fallback parse when worker not available
+async function canParseOnMain(
+  code: string,
+  theme: 'light' | 'dark',
+  opts?: { signal?: AbortSignal, timeoutMs?: number },
+) {
+  const anyMermaid = mermaid as any
+  const themed = applyThemeTo(code, theme)
+  if (typeof anyMermaid.parse === 'function') {
+    await withTimeoutSignal(() => anyMermaid.parse(themed), {
+      timeoutMs: opts?.timeoutMs ?? PARSE_TIMEOUT_MS,
+      signal: opts?.signal,
+    })
+    return true
+  }
+  // Fallback: try a headless render (no target element) just to validate
+  const id = `mermaid-parse-${Math.random().toString(36).slice(2, 9)}`
+  await withTimeoutSignal(() => mermaid.render(id, themed), {
+    timeoutMs: opts?.timeoutMs ?? RENDER_TIMEOUT_MS,
+    signal: opts?.signal,
+  })
+  return true
+}
+
+async function canParseOffthread(
+  code: string,
+  theme: 'light' | 'dark',
+  opts?: { signal?: AbortSignal, timeoutMs?: number },
+) {
+  try {
+    return await callWorker<boolean>('canParse', { code, theme }, {
+      signal: opts?.signal,
+      timeoutMs: opts?.timeoutMs ?? WORKER_TIMEOUT_MS,
+    })
+  }
+  catch {
+    return await canParseOnMain(code, theme, opts)
+  }
+}
+
+async function findLastRenderablePrefixOffthread(
+  code: string,
+  theme: 'light' | 'dark',
+  opts?: { signal?: AbortSignal, timeoutMs?: number },
+) {
+  try {
+    return await callWorker<string | null>('findPrefix', { code, theme }, {
+      signal: opts?.signal,
+      timeoutMs: opts?.timeoutMs ?? WORKER_TIMEOUT_MS,
+    })
+  }
+  catch {
+    // Implement a simple main-thread bisection as a fallback
+    function findHeaderIndex(lines: string[]) {
+      const headerRe = /^(?:graph|flowchart|sequenceDiagram|gantt|classDiagram|stateDiagram(?:-v2)?|erDiagram|journey|pie|quadrantChart|timeline|xychart(?:-beta)?)\b/
+      for (let i = 0; i < lines.length; i++) {
+        const l = lines[i].trim()
+        if (!l)
+          continue
+        if (l.startsWith('%%'))
+          continue
+        if (headerRe.test(l))
+          return i
+      }
+      return -1
+    }
+
+    const lines = code.split('\n')
+    const headerIdx = findHeaderIndex(lines)
+    if (headerIdx === -1)
+      return null
+    const head = lines.slice(0, headerIdx + 1)
+
+    try {
+      await canParseOnMain(head.join('\n'), theme, opts)
+    }
+    catch {
+      return null
+    }
+
+    let low = headerIdx + 1
+    let high = lines.length
+    let lastGood = headerIdx + 1
+    let tries = 0
+    const MAX_TRIES = 12
+
+    while (low <= high && tries < MAX_TRIES) {
+      const mid = Math.floor((low + high) / 2)
+      const candidate = [...head, ...lines.slice(headerIdx + 1, mid)].join('\n')
+      tries++
+      try {
+        await canParseOnMain(candidate, theme, opts)
+        lastGood = mid
+        low = mid + 1
+      }
+      catch {
+        high = mid - 1
+      }
+    }
+
+    return [...head, ...lines.slice(headerIdx + 1, lastGood)].join('\n')
+  }
+}
 
 // 全屏按钮禁用状态
 const isFullscreenDisabled = computed(
@@ -424,15 +699,19 @@ async function initMermaid() {
       }
       const currentTheme = isDark.value ? 'dark' : 'light'
       const codeWithTheme = getCodeWithTheme(currentTheme)
-      const { svg, bindFunctions } = await mermaid.render(
-        id,
-        codeWithTheme,
-        mermaidContent.value,
+      const { svg, bindFunctions } = await withTimeoutSignal(
+        () => mermaid.render(
+          id,
+          codeWithTheme,
+          mermaidContent.value,
+        ),
+        { timeoutMs: FULL_RENDER_TIMEOUT_MS },
       )
 
       if (mermaidContent.value) {
         mermaidContent.value.innerHTML = svg
         bindFunctions?.(mermaidContent.value)
+        // Successful full render clears Partial preview state
         if (!hasRenderedOnce.value && !isThemeRendering.value) {
           updateContainerHeight()
           hasRenderedOnce.value = true
@@ -452,20 +731,10 @@ async function initMermaid() {
     }
     catch (error) {
       console.error('Failed to render mermaid diagram:', error)
-      if (mermaidContent.value) {
-        const errorDiv = document.createElement('div')
-        errorDiv.className = 'text-red-500 p-4'
-        errorDiv.textContent = 'Failed to render diagram: '
-
-        const errorSpan = document.createElement('span')
-        errorSpan.textContent
-          = error instanceof Error ? error.message : 'Unknown error'
-        errorDiv.appendChild(errorSpan)
-
-        mermaidContent.value.innerHTML = ''
-        mermaidContent.value.appendChild(errorDiv)
+      // 在渐进/生成中（props.loading === true）不展示错误，避免打断预览体验
+      if (!props.loading) {
+        renderErrorToContainer(error)
       }
-      containerHeight.value = '360px'
     }
     finally {
       await nextTick()
@@ -480,7 +749,157 @@ async function initMermaid() {
   return renderQueue.value
 }
 
-const debouncedInitMermaid = debounce(initMermaid, RENDER_DEBOUNCE_DELAY)
+// Note: debouncedInitMermaid is no longer needed; progressive path handles debouncing
+
+// Schedule progressive work in idle time
+const requestIdle
+  = (globalThis as any).requestIdleCallback
+    ?? ((cb: any, _opts?: any) => setTimeout(() => cb({ didTimeout: true }), 16))
+
+// Progressive render: if full parse passes -> run initMermaid; else render last good prefix
+async function progressiveRender() {
+  const token = ++renderToken.value
+  // cancel any previous ongoing progressive work
+  if (currentWorkController) {
+    currentWorkController.abort()
+  }
+  currentWorkController = new AbortController()
+  const signal = currentWorkController.signal
+  const theme = isDark.value ? 'dark' : 'light'
+  const base = baseFixedCode.value
+  if (!base.trim()) {
+    if (mermaidContent.value)
+      mermaidContent.value.innerHTML = ''
+    lastSvgSnapshot.value = null
+    return
+  }
+  try {
+    const ok = await canParseOffthread(base, theme, { signal, timeoutMs: WORKER_TIMEOUT_MS })
+    if (ok) {
+      await initMermaid()
+      // Guard against race: if a newer render started, skip flag changes
+      if (renderToken.value === token) {
+        lastSvgSnapshot.value = mermaidContent.value?.innerHTML ?? null
+      }
+      return
+    }
+  }
+  catch {
+    // ignore and try prefix path
+  }
+
+  const prefix = await findLastRenderablePrefixOffthread(base, theme, { signal, timeoutMs: WORKER_TIMEOUT_MS })
+  if (!prefix) {
+    // No valid prefix -> ensure Partial badge is hidden
+    return
+  }
+  const id = `mermaid-progress-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+  try {
+    const { svg, bindFunctions } = await withTimeoutSignal(
+      () => mermaid.render(
+        id,
+        applyThemeTo(prefix, theme),
+      ),
+      { timeoutMs: RENDER_TIMEOUT_MS, signal },
+    )
+    if (renderToken.value !== token)
+      return
+    if (mermaidContent.value) {
+      if (lastSvgSnapshot.value === svg)
+        return
+      mermaidContent.value.innerHTML = svg
+      bindFunctions?.(mermaidContent.value)
+      updateContainerHeight()
+      lastSvgSnapshot.value = svg
+    }
+  }
+  catch {}
+}
+
+const debouncedProgressiveRender = debounce(() => {
+  requestIdle(() => {
+    progressiveRender()
+  }, { timeout: 500 })
+}, RENDER_DEBOUNCE_DELAY)
+
+// Background polling while in Preview to upgrade prefix -> full render automatically
+const cancelIdle
+  = (globalThis as any).cancelIdleCallback ?? ((id: any) => clearTimeout(id))
+let previewPollTimeoutId: number | null = null
+let previewPollIdleId: number | null = null
+let isPreviewPolling = false
+let previewPollDelay = 800
+let previewPollController: AbortController | null = null
+
+function stopPreviewPolling() {
+  if (!isPreviewPolling)
+    return
+  isPreviewPolling = false
+  previewPollDelay = 800
+  if (previewPollController) {
+    previewPollController.abort()
+    previewPollController = null
+  }
+  if (previewPollTimeoutId) {
+    clearTimeout(previewPollTimeoutId)
+    previewPollTimeoutId = null
+  }
+  if (previewPollIdleId) {
+    cancelIdle(previewPollIdleId)
+    previewPollIdleId = null
+  }
+}
+
+function scheduleNextPreviewPoll(delay = 800) {
+  if (!isPreviewPolling)
+    return
+  if (previewPollTimeoutId)
+    clearTimeout(previewPollTimeoutId)
+  previewPollTimeoutId = window.setTimeout(() => {
+    previewPollIdleId = requestIdle(async () => {
+      if (!isPreviewPolling)
+        return
+      if (showSource.value || hasRenderedOnce.value) {
+        stopPreviewPolling()
+        return
+      }
+      const theme = isDark.value ? 'dark' : 'light'
+      const base = baseFixedCode.value
+      if (!base.trim()) {
+        scheduleNextPreviewPoll(previewPollDelay)
+        return
+      }
+      // abort previous poll try
+      if (previewPollController)
+        previewPollController.abort()
+      previewPollController = new AbortController()
+      try {
+        const ok = await canParseOffthread(base, theme, { signal: previewPollController.signal, timeoutMs: WORKER_TIMEOUT_MS })
+        if (ok) {
+          await initMermaid()
+          if (hasRenderedOnce.value) {
+            stopPreviewPolling()
+            return
+          }
+        }
+      }
+      catch {
+        // ignore and keep polling
+      }
+      previewPollDelay = Math.min(Math.floor(previewPollDelay * 1.5), 4000)
+      scheduleNextPreviewPoll(previewPollDelay)
+    }, { timeout: 500 }) as unknown as number
+  }, delay)
+}
+
+function startPreviewPolling() {
+  if (isPreviewPolling)
+    return
+  if (showSource.value || hasRenderedOnce.value)
+    return
+  isPreviewPolling = true
+  scheduleNextPreviewPoll(500)
+}
 
 // Watch for code changes (only base code, not theme changes)
 watch(
@@ -488,7 +907,11 @@ watch(
   () => {
     hasRenderedOnce.value = false
     svgCache.value = {}
-    debouncedInitMermaid()
+    // Use idle progressive path; will call initMermaid when full code becomes valid
+    debouncedProgressiveRender()
+    // Ensure background polling while previewing (to upgrade to full render when ready)
+    if (!showSource.value)
+      startPreviewPolling()
     checkContentStability()
   },
 )
@@ -542,6 +965,7 @@ watch(
         if (mermaidContent.value) {
           mermaidContent.value.innerHTML = svgCache.value[currentTheme]!
         }
+        // Restoring full render from cache -> hide Partial badge
         zoom.value = savedTransformState.value.zoom
         translateX.value = savedTransformState.value.translateX
         translateY.value = savedTransformState.value.translateY
@@ -549,9 +973,13 @@ watch(
         return
       }
       await nextTick()
-      await initMermaid()
+      // Use progressive path to avoid throwing on incomplete code
+      await progressiveRender()
+      // Start background polling to auto-upgrade to full render when ready
+      startPreviewPolling()
     }
     else {
+      stopPreviewPolling()
       if (hasRenderedOnce.value) {
         savedTransformState.value = {
           zoom: zoom.value,
@@ -560,6 +988,20 @@ watch(
           containerHeight: containerHeight.value,
         }
       }
+    }
+  },
+)
+
+// 当外部 loading -> false：尝试一次最终完整解析；若失败才展示错误
+watch(
+  () => props.loading,
+  async (loaded, prev) => {
+    if (prev === true && loaded === false) {
+      const base = baseFixedCode.value
+      if (!base.trim())
+        return
+      // 直接尝试最终渲染：成功则展示完整图；失败则在 loading=false 时展示错误
+      await initMermaid()
     }
   },
 )
@@ -573,7 +1015,7 @@ watch(
     }
 
     if (newEl && !hasRenderedOnce.value && !isThemeRendering.value) {
-      console.log('mermaidContainer resized, scheduling height update')
+      // container resized; schedule height update
 
       resizeObserver = new ResizeObserver((entries) => {
         if (entries && entries.length > 0 && !hasRenderedOnce.value && !isThemeRendering.value) {
@@ -593,9 +1035,9 @@ watch(
 
 onMounted(async () => {
   await nextTick()
-  await initMermaid()
+  // Prefer progressive path to avoid throwing on incomplete code at mount
+  debouncedProgressiveRender()
   lastContentLength.value = baseFixedCode.value.length
-  // initialize
 })
 
 onUnmounted(() => {
@@ -606,6 +1048,15 @@ onUnmounted(() => {
   if (resizeObserver) {
     resizeObserver.disconnect()
   }
+  if (currentWorkController) {
+    currentWorkController.abort()
+    currentWorkController = null
+  }
+  if (parserWorker) {
+    parserWorker.terminate()
+    parserWorker = null
+  }
+  stopPreviewPolling()
 })
 </script>
 
@@ -690,6 +1141,14 @@ onUnmounted(() => {
       <!-- ...existing preview content... -->
       <div class="absolute top-2 right-2 z-10 rounded-lg">
         <div class="flex items-center gap-2 backdrop-blur rounded-lg">
+          <span
+            v-if="!showSource && props.loading"
+            class="px-2.5 py-1 text-[10px] rounded-full bg-gradient-to-r from-sky-500/90 to-indigo-500/90 text-white select-none inline-flex items-center gap-1.5 shadow-sm ring-1 ring-white/20 backdrop-blur-sm"
+            title="Rendering in progress"
+          >
+            <Icon icon="lucide:loader-2" class="w-3 h-3 animate-spin" />
+            Rendering
+          </span>
           <button
             class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
             @click="zoomIn"

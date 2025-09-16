@@ -220,7 +220,7 @@ watchOnce(
 </script>
 
 <template>
-  <MermaidBlockNode v-if="isMermaid" :node="node" />
+  <MermaidBlockNode v-if="isMermaid" :node="node" :loading="props.loading" />
   <div
     v-else
     class="code-block-container my-4 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm bg-white dark:bg-gray-900"

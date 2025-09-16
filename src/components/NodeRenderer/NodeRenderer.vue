@@ -58,6 +58,7 @@ const id = ref(`editor-${Date.now()}`)
 const md = getMarkdown(id.value)
 const containerRef = ref<HTMLElement>()
 const showCursor = ref(false)
+const hasMermaidPreview = ref(false)
 
 const parsedNodes = computed<BaseNode[]>(() => {
   // 解析 content 字符串为节点数组
@@ -79,6 +80,12 @@ watch(
   () => props.content,
   (newContent) => {
     if (props.typewriterEffect && newContent) {
+      // 如果处于 Mermaid 预览（SVG 渲染）状态，则不显示打字光标
+      hasMermaidPreview.value = detectMermaidPreview()
+      if (hasMermaidPreview.value) {
+        showCursor.value = false
+        return
+      }
       const currentLength = newContent.length
       // 只有当内容实际增加时才更新光标
       if (currentLength > lastContentLength) {
@@ -116,6 +123,9 @@ watch(
 // 设置智能更新机制
 onMounted(() => {
   if (props.typewriterEffect) {
+    // 初始化一次检测
+    hasMermaidPreview.value = detectMermaidPreview()
+
     // Use requestAnimationFrame loop and IntersectionObserver to minimize work.
     const startRafLoop = () => {
       if (animationFrame)
@@ -177,6 +187,25 @@ onMounted(() => {
         animationFrame = null
       }
     })
+
+    // 监听容器 DOM 变化，及时识别 Mermaid 预览出现/消失
+    let mo: MutationObserver | null = null
+    if (containerRef.value) {
+      mo = new MutationObserver(() => {
+        hasMermaidPreview.value = detectMermaidPreview()
+        if (hasMermaidPreview.value) {
+          showCursor.value = false
+        }
+      })
+      mo.observe(containerRef.value, { childList: true, subtree: true, attributes: true })
+    }
+
+    onUnmounted(() => {
+      if (mo) {
+        mo.disconnect()
+        mo = null
+      }
+    })
   }
 })
 
@@ -199,6 +228,10 @@ onUnmounted(() => {
 // 获取最后一个文本元素的位置来放置光标
 function updateCursorPosition() {
   if (!props.typewriterEffect || !containerRef.value || !showCursor.value)
+    return
+
+  // Mermaid 预览时不更新/不显示光标
+  if (hasMermaidPreview.value)
     return
 
   const cursor = containerRef.value.querySelector(
@@ -300,6 +333,30 @@ function updateCursorPosition() {
   catch (error) {
     // 如果任何步骤失败，静默处理错误
     console.warn('Failed to position cursor:', error)
+  }
+}
+
+// 检测容器内是否存在可见的 Mermaid SVG（预览模式）
+function detectMermaidPreview(): boolean {
+  try {
+    const root = containerRef.value
+    if (!root)
+      return false
+    const svg = root.querySelector('.mermaid svg') as SVGElement | null
+    if (!svg)
+      return false
+    // 粗略判断可见性：不在 display:none 的层级内
+    let el: HTMLElement | null = svg as any
+    while (el && el !== root) {
+      const style = window.getComputedStyle(el)
+      if (style.display === 'none' || style.visibility === 'hidden')
+        return false
+      el = el.parentElement
+    }
+    return true
+  }
+  catch {
+    return false
   }
 }
 
