@@ -186,7 +186,7 @@ watch(
   () => {
     if (!editorCreated)
       return
-    if(isMermaid.value){
+    if (isMermaid.value) {
       cleanupEditor()
       return
     }
