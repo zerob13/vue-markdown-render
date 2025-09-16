@@ -1,7 +1,7 @@
 {
   "name": "vue-renderer-markdown",
   "type": "module",
-  "version": "0.0.50",
+  "version": "0.0.50-alpha.4",
   "packageManager": "pnpm@10.16.1",
   "description": "A Vue 3 component that renders Markdown string content as HTML, supporting custom components and advanced markdown features.",
   "author": "Simon He",
@@ -32,7 +32,6 @@
       "require": "./dist/index.cjs"
     },
     "./index.css": "./dist/index.css",
-    "./index.tailwind.css": "./dist/index.tailwind.css",
     "./tailwind": "./dist/tailwind.ts"
   },
   "main": "./dist/index.js",
@@ -55,8 +54,7 @@
     "play": "pnpm run -C playground dev",
     "play:build": "pnpm run -C playground build",
     "preview": "pnpm run -C playground preview",
-    "build": "vite build --mode npm & npm run build:css",
-    "build:css": "tsx build-css.ts",
+    "build": "vite build --mode npm",
     "build:demo": "vite build",
     "build:view": "vite preview",
     "release": "bumpp --commit --push --tag && npm publish",
