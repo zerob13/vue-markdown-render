@@ -4,6 +4,7 @@ import mermaid from 'mermaid'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import mermaidIconUrl from '../../icon/mermaid.svg'
 import { isDark } from '../../utils/isDark'
+import parserWorkerUrl from '../../workers/mermaidParser.worker?worker&url'
 
 const props = withDefaults(
   // 全屏按钮禁用状态
@@ -174,10 +175,7 @@ function ensureParserWorker() {
   if (parserWorker)
     return
   try {
-    parserWorker = new Worker(
-      new URL('../../workers/mermaidParser.worker.ts', import.meta.url),
-      { type: 'module' },
-    )
+    parserWorker = new Worker(parserWorkerUrl, { type: 'module' })
     parserWorker.onmessage = (ev: MessageEvent<any>) => {
       const { id, ok, result, error } = ev.data || {}
       const entry = rpcMap.get(id)
