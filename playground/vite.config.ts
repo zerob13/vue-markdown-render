@@ -11,6 +11,10 @@ import Pages from 'vite-plugin-pages'
 
 export default defineConfig({
   base: './',
+  worker: {
+    // Avoid IIFE/UMD for workers; use ESM which supports code-splitting
+    format: 'es',
+  },
   resolve: {
     alias: {
       '~/': `${path.resolve(__dirname, 'src')}/`,

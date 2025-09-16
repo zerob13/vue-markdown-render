@@ -75,6 +75,10 @@ export default defineConfig(({ mode }) => {
     base,
     plugins,
     build,
+    worker: {
+      // Ensure web workers are bundled as ESM; IIFE/UMD are invalid with code-splitting
+      format: 'es',
+    },
     css: {
       postcss: mode === 'npm' ? './postcss.config.cjs' : undefined,
     },
