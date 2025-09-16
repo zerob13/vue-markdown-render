@@ -1,9 +1,10 @@
 import type MarkdownIt from 'markdown-it'
 import type { MarkdownToken, ParsedNode } from '../../types'
 import { parseInlineTokens } from './inline-parsers'
+import { parseFenceToken } from './inline-parsers/fence-parser'
 import { parseAdmonition } from './node-parsers/admonition-parser'
 import { parseBlockquote } from './node-parsers/blockquote-parser'
-import { parseCodeBlock, parseFence } from './node-parsers/code-block-parser'
+import { parseCodeBlock } from './node-parsers/code-block-parser'
 import { parseContainer } from './node-parsers/container-parser'
 import { parseDefinitionList } from './node-parsers/definition-list-parser'
 import { parseFootnote } from './node-parsers/footnote-parser'
@@ -35,7 +36,6 @@ export function processTokens(tokens: MarkdownToken[]): ParsedNode[] {
 
   while (i < tokens.length) {
     const token = tokens[i]
-
     switch (token.type) {
       case 'container_warning_open':
       case 'container_info_open':
@@ -66,7 +66,7 @@ export function processTokens(tokens: MarkdownToken[]): ParsedNode[] {
         break
 
       case 'fence':
-        result.push(parseFence(tokens[i]))
+        result.push(parseFenceToken(tokens[i]))
         i += 1
         break
 

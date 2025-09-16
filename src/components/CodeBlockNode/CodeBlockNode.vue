@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { MonacoOptions, MonacoTheme } from 'vue-use-monaco'
 import { Icon } from '@iconify/vue'
-import { useThrottleFn, watchOnce } from '@vueuse/core'
+import { watchOnce } from '@vueuse/core'
 import { computed, ref, watch } from 'vue'
 import { detectLanguage, useMonaco } from 'vue-use-monaco'
 import { useSafeI18n } from '../../composables/useSafeI18n'
@@ -32,7 +32,6 @@ const props = withDefaults(
 
 const emits = defineEmits(['previewCode', 'copy'])
 const { t } = useSafeI18n()
-const rootRef = ref<HTMLElement | null>(null)
 const codeEditor = ref<HTMLElement | null>(null)
 const copyText = ref(false)
 const codeLanguage = ref(props.node.language || '')
@@ -40,9 +39,10 @@ const isExpanded = ref(false)
 const canExpand = ref(false)
 let cachedExpandedHeight: string | null = null
 let cachedNotExpandedHeight: string | null = null
+let editorCreated = false
 
 // Setup Monaco before using helpers in functions below
-const { createEditor, updateCode, getEditor, getEditorView } = useMonaco({
+const { createEditor, updateCode, getEditor, getEditorView, safeClean, cleanupEditor } = useMonaco({
   wordWrap: 'on', // 'on' | 'off' | 'wordWrapColumn' | 'bounded'
   wrappingIndent: 'same', // 'none' | 'same' | 'indent' | 'deepIndent'
   themes:
@@ -51,30 +51,6 @@ const { createEditor, updateCode, getEditor, getEditorView } = useMonaco({
       : undefined,
   ...(props.monacoOptions || {}),
 })
-
-function applyExpandedHeight() {
-  const editor = getEditorView()
-  const container = codeEditor.value
-  if (!editor || !container)
-    return
-  try {
-    cachedNotExpandedHeight = container.style.height || null
-    const monacoEditor = getEditor()
-    const lineCount = editor.getModel()?.getLineCount() ?? 1
-    const lineHeight = editor.getOption(monacoEditor.EditorOption.lineHeight)
-    const padding = 16
-    const height = lineCount * lineHeight + padding
-    const heightCss = `${height}px`
-
-    container.style.height = heightCss
-    container.style.maxHeight = 'none'
-    container.style.overflow = 'visible'
-    cachedExpandedHeight = heightCss
-  }
-  catch {
-    // ignore
-  }
-}
 
 function getMaxHeightValue(): number {
   const maxH = props.monacoOptions?.MAX_HEIGHT ?? 500
@@ -85,13 +61,10 @@ function getMaxHeightValue(): number {
 }
 
 function updateCanExpand() {
-  const editor = getEditorView()
-  if (!editor) {
-    canExpand.value = false
-    return
-  }
   try {
+    const editor = getEditorView()
     const monacoEditor = getEditor()
+    cachedNotExpandedHeight = codeEditor.value?.style.height || null
     const lineCount = editor.getModel()?.getLineCount() ?? 1
     const lineHeight = editor.getOption(monacoEditor.EditorOption.lineHeight)
     const padding = 16
@@ -99,7 +72,8 @@ function updateCanExpand() {
     const maxHeightValue = getMaxHeightValue()
     canExpand.value = contentHeight > maxHeightValue + 5
     if (canExpand.value) {
-      applyExpandedHeight()
+      const height = lineCount * lineHeight + padding
+      cachedExpandedHeight = `${height}px`
     }
   }
   catch {
@@ -107,18 +81,9 @@ function updateCanExpand() {
   }
 }
 
-// 创建节流版本的语言检测函数,1秒内最多执行一次
-const throttledDetectLanguage = useThrottleFn(
-  (code: string) => {
-    codeLanguage.value = detectLanguage(code)
-  },
-  1000,
-  true,
-)
-
-// Initialize language detection if needed, after the function is defined
-if (props.node.language === '') {
-  throttledDetectLanguage(props.node.code)
+// 初始化语言检测：若未指定语言则立即检测一次，避免不必要的编辑器创建
+if (!props.node.language) {
+  codeLanguage.value = detectLanguage(props.node.code)
 }
 
 // Check if the language is previewable (HTML or SVG)
@@ -135,12 +100,19 @@ const isMermaid = computed(
 watch(
   () => props.node.language,
   (newLanguage) => {
-    if (newLanguage === '') {
-      throttledDetectLanguage(props.node.code)
-    }
-    else {
+    if (!newLanguage)
+      codeLanguage.value = detectLanguage(props.node.code)
+    else
       codeLanguage.value = newLanguage
-    }
+  },
+)
+
+// 如果外部仅提供代码但语言为空，代码变化时也重新检测一次语言
+watch(
+  () => props.node.code,
+  (newCode, oldCode) => {
+    if (newCode !== oldCode && !props.node.language)
+      codeLanguage.value = detectLanguage(newCode)
   },
 )
 
@@ -208,31 +180,40 @@ function previewCode() {
   })
 }
 
-// 监听代码变化
+// 监听代码/语言变化：仅在非 Mermaid 且编辑器已创建时更新，避免重复无效更新
 watch(
-  () => [props.node.code, codeLanguage.value],
+  () => [props.node.code, codeLanguage.value, isMermaid.value] as const,
   () => {
+    if (!editorCreated)
+      return
+    if(isMermaid.value){
+      cleanupEditor()
+      return
+    }
     updateCode(props.node.code, codeLanguage.value)
   },
+  { flush: 'post', immediate: false },
 )
 
-watchOnce(
-  () => codeEditor.value,
-  () => {
-    createEditor(codeEditor.value!, props.node.code, codeLanguage.value).then(() => {
-      setTimeout(() => {
-        updateCanExpand()
-      }, 1000)
-    })
+// 延迟创建编辑器：仅当不是 Mermaid 时才创建，避免无意义的初始化
+watch(
+  () => [codeEditor.value, isMermaid.value] as const,
+  async ([el, mermaid]) => {
+    if (!el || mermaid || editorCreated)
+      return
+    editorCreated = true
+    createEditor(el as HTMLElement, props.node.code, codeLanguage.value)
   },
+  { immediate: true },
 )
 
 // 当 loading 变为 false 时：计算并缓存一次展开高度，清理可安全移除的监听器
-watch(
+watchOnce(
   () => props.loading,
   (loaded) => {
     if (loaded === false) {
       updateCanExpand()
+      safeClean()
     }
   },
 )
@@ -242,7 +223,6 @@ watch(
   <MermaidBlockNode v-if="isMermaid" :node="node" />
   <div
     v-else
-    ref="rootRef"
     class="code-block-container my-4 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm bg-white dark:bg-gray-900"
   >
     <!-- 简洁的头部区域 -->
@@ -264,7 +244,7 @@ watch(
           <Icon v-else icon="lucide:check" class="w-3 h-3" />
         </button>
         <button
-          v-if="!loading && canExpand"
+          v-if="canExpand"
           type="button"
           class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           :title="isExpanded ? t('common.collapse') : t('common.expand')"
@@ -293,7 +273,9 @@ watch(
 <style scoped>
 .code-block-container {
   contain: content;
-  will-change: opacity;
+    /* 新增：显著减少离屏 codeblock 的布局/绘制与样式计算 */
+  content-visibility: auto;
+  contain-intrinsic-size: 320px 180px;
 }
 
 .code-editor-container {

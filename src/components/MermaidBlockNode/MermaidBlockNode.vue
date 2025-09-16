@@ -719,9 +719,9 @@ onUnmounted(() => {
         @mousemove="onDrag"
         @mouseup="stopDrag"
         @mouseleave="stopDrag"
-        @touchstart="startDrag"
-        @touchmove="onDrag"
-        @touchend="stopDrag"
+        @touchstart.passive="startDrag"
+        @touchmove.passive="onDrag"
+        @touchend.passive="stopDrag"
       >
         <div
           ref="mermaidWrapper"

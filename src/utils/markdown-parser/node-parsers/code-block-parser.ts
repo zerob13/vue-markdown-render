@@ -8,20 +8,12 @@ export function parseCodeBlock(token: MarkdownToken): CodeBlockNode {
       .replace(/<antArtifact[^>]*>/g, '')
       .replace(/<\/antArtifact>/g, '')
   }
+  const hasMap = Array.isArray(token.map) && token.map.length === 2
   return {
     type: 'code_block',
-    language: match ? match[1] : '',
+    language: match ? match[1] : (token.info || ''),
     code: token.content || '',
     raw: token.content || '',
-  }
-}
-
-export function parseFence(token: MarkdownToken): CodeBlockNode {
-  return {
-    type: 'code_block',
-    language: token.info || '',
-    code: token.content || '',
-    raw: token.content || '',
-    loading: Boolean((token as any).meta?.unclosed),
+    loading: !hasMap,
   }
 }

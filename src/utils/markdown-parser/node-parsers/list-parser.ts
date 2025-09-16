@@ -5,9 +5,10 @@ import type {
   ParsedNode,
 } from '../../../types'
 import { parseInlineTokens } from '../inline-parsers'
+import { parseFenceToken } from '../inline-parsers/fence-parser'
 import { parseAdmonition } from './admonition-parser'
 import { parseBlockquote } from './blockquote-parser'
-import { parseCodeBlock, parseFence } from './code-block-parser'
+import { parseCodeBlock } from './code-block-parser'
 import { parseDefinitionList } from './definition-list-parser'
 import { parseFootnote } from './footnote-parser'
 import { parseHeading } from './heading-parser'
@@ -31,7 +32,6 @@ export function parseList(
     if (tokens[j].type === 'list_item_open') {
       const itemChildren: ParsedNode[] = []
       let k = j + 1
-
       while (k < tokens.length && tokens[k].type !== 'list_item_close') {
         // Handle different block types inside list items
         if (tokens[k].type === 'paragraph_open') {
@@ -65,7 +65,7 @@ export function parseList(
         }
         else if (tokens[k].type === 'fence') {
           // Parse fenced code block
-          itemChildren.push(parseFence(tokens[k]))
+          itemChildren.push(parseFenceToken(tokens[k]))
           k += 1
         }
         else if (tokens[k].type === 'math_block') {
@@ -190,7 +190,7 @@ function parseNestedList(
           k += 1
         }
         else if (tokens[k].type === 'fence') {
-          itemChildren.push(parseFence(tokens[k]))
+          itemChildren.push(parseFenceToken(tokens[k]))
           k += 1
         }
         else if (tokens[k].type === 'math_block') {

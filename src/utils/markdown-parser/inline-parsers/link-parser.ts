@@ -50,17 +50,3 @@ export function parseLinkToken(
 
   return { node, nextIndex }
 }
-
-// Helper function to identify block-level tokens
-// function isBlockLevelToken(type: string): boolean {
-//   return [
-//     'paragraph_open',
-//     'heading_open',
-//     'blockquote_open',
-//     'list_open',
-//     'table_open',
-//     'code_block',
-//     'fence',
-//     'hr'
-//   ].includes(type)
-// }
