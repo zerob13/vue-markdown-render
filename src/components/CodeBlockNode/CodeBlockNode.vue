@@ -59,6 +59,7 @@ const codeFontMax = 36
 const codeFontStep = 1
 const defaultCodeFontSize = Number(props.monacoOptions?.fontSize ?? 14)
 const codeFontSize = ref<number>(defaultCodeFontSize)
+const CONTENT_PADDING = 16
 function increaseCodeFont() {
   codeFontSize.value = Math.min(codeFontMax, codeFontSize.value + codeFontStep)
 }
@@ -67,6 +68,19 @@ function decreaseCodeFont() {
 }
 function resetCodeFont() {
   codeFontSize.value = defaultCodeFontSize
+}
+
+function computeContentHeight(): number | null {
+  try {
+    const editor = getEditorView()
+    const monacoEditor = getEditor()
+    const lineCount = editor.getModel()?.getLineCount() ?? 1
+    const lineHeight = editor.getOption(monacoEditor.EditorOption.lineHeight)
+    return lineCount * lineHeight + CONTENT_PADDING
+  }
+  catch {
+    return null
+  }
 }
 
 function getMaxHeightValue(): number {
@@ -79,18 +93,16 @@ function getMaxHeightValue(): number {
 
 function updateCanExpand() {
   try {
-    const editor = getEditorView()
-    const monacoEditor = getEditor()
     cachedNotExpandedHeight = codeEditor.value?.style.height || null
-    const lineCount = editor.getModel()?.getLineCount() ?? 1
-    const lineHeight = editor.getOption(monacoEditor.EditorOption.lineHeight)
-    const padding = 16
-    const contentHeight = lineCount * lineHeight + padding
+    const contentHeight = computeContentHeight()
+    if (contentHeight == null) {
+      canExpand.value = false
+      return
+    }
     const maxHeightValue = getMaxHeightValue()
     canExpand.value = contentHeight > maxHeightValue + 5
     if (canExpand.value) {
-      const height = lineCount * lineHeight + padding
-      cachedExpandedHeight = `${height}px`
+      cachedExpandedHeight = `${contentHeight}px`
     }
   }
   catch {
@@ -187,12 +199,9 @@ watch(
     editor.updateOptions({ fontSize: size })
     updateCanExpand()
     if (isExpanded.value && cachedExpandedHeight) {
-      const monacoEditor = getEditor()
-      const lineCount = editor.getModel()?.getLineCount() ?? 1
-      const lineHeight = editor.getOption(monacoEditor.EditorOption.lineHeight)
-      const padding = 16
-      const height = lineCount * lineHeight + padding
-      cachedExpandedHeight = `${height}px`
+      const height = computeContentHeight()
+      if (height != null)
+        cachedExpandedHeight = `${height}px`
       const container = codeEditor.value
       if (container) {
         container.style.height = cachedExpandedHeight
