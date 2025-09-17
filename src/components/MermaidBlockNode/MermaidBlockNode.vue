@@ -30,6 +30,8 @@ const mermaidWrapper = ref<HTMLElement>()
 const mermaidContent = ref<HTMLElement>()
 const modalContent = ref<HTMLElement>()
 const modalCloneWrapper = ref<HTMLElement | null>(null)
+// Mode container used to animate height between Source and Preview
+const modeContainerRef = ref<HTMLElement>()
 const baseFixedCode = computed(() => {
   return props.node.code
     .replace(/\]::([^:])/g, ']:::$1') // 将 :: 更改为 ::: 来应用类样式
@@ -247,6 +249,35 @@ function applyThemeTo(code: string, theme: 'light' | 'dark') {
   return themeConfig + code
 }
 
+// NEW: heuristically trim trailing incomplete lines for worker/preview usage
+function getSafePrefixCandidate(code: string): string {
+  const lines = code.split(/\r?\n/)
+  // drop trailing empty or dangling edge lines
+  while (lines.length > 0) {
+    const lastRaw = lines[lines.length - 1]
+    const last = lastRaw.trimEnd()
+    if (last === '') {
+      lines.pop()
+      continue
+    }
+    // common mermaid "dangling/incomplete" patterns at line end
+    const looksDangling = /^[-=~>|<\s]+$/.test(last.trim())
+    // ends with typical edge operators
+      || /(?:--|==|~~|->|<-|-\||-\)|-x|o-|\|-|\.-)\s*$/.test(last)
+    // ends with a single connector char
+      || /[-|><]$/.test(last)
+    // diagram header started but incomplete
+      || /(?:graph|flowchart|sequenceDiagram|classDiagram|stateDiagram|erDiagram|gantt)\s*$/i.test(last)
+
+    if (looksDangling) {
+      lines.pop()
+      continue
+    }
+    break
+  }
+  return lines.join('\n')
+}
+
 // Main-thread fallback parse when worker not available
 async function canParseOnMain(
   code: string,
@@ -285,6 +316,51 @@ async function canParseOffthread(
   catch {
     return await canParseOnMain(code, theme, opts)
   }
+}
+
+// Try full, then safe prefix. Report which one worked.
+async function canParseOrPrefix(
+  code: string,
+  theme: 'light' | 'dark',
+  opts?: { signal?: AbortSignal, timeoutMs?: number },
+): Promise<{ fullOk: boolean, prefixOk: boolean, prefix?: string }> {
+  try {
+    const fullOk = await canParseOffthread(code, theme, opts)
+    if (fullOk)
+      return { fullOk: true, prefixOk: false }
+  }
+  catch (e) {
+    if ((e as any)?.name === 'AbortError')
+      throw e
+  }
+
+  // compute a safe prefix locally; optionally try worker 'findPrefix' if available
+  let prefix = getSafePrefixCandidate(code)
+  if (prefix && prefix.trim() && prefix !== code) {
+    try {
+      // prefer worker to refine, if supported
+      try {
+        const found = await callWorker<string>('findPrefix', { code, theme }, {
+          signal: opts?.signal,
+          timeoutMs: opts?.timeoutMs ?? WORKER_TIMEOUT_MS,
+        })
+        if (found && found.trim())
+          prefix = found
+      }
+      catch {
+        // ignore, use heuristic prefix
+      }
+      const ok = await canParseOffthread(prefix, theme, opts)
+      if (ok)
+        return { fullOk: false, prefixOk: true, prefix }
+    }
+    catch (e) {
+      if ((e as any)?.name === 'AbortError')
+        throw e
+    }
+  }
+
+  return { fullOk: false, prefixOk: false }
 }
 
 // 全屏按钮禁用状态
@@ -454,7 +530,8 @@ function checkContentStability() {
         && baseFixedCode.value.trim()
       ) {
         isContentGenerating.value = false
-        showSource.value = false
+        // Smoothly switch to Preview when content stabilizes
+        switchMode('preview')
       }
     }, CONTENT_STABLE_DELAY)
   }
@@ -599,6 +676,43 @@ async function exportSvg() {
   }
 }
 
+// Smooth mode switch with animated height to avoid layout jump
+async function switchMode(target: 'source' | 'preview') {
+  const el = modeContainerRef.value
+  if (!el) {
+    showSource.value = (target === 'source')
+    return
+  }
+  // Lock current height
+  const from = el.getBoundingClientRect().height
+  el.style.height = `${from}px`
+  el.style.overflow = 'hidden'
+
+  // Toggle mode
+  showSource.value = (target === 'source')
+  await nextTick()
+
+  // Measure target content natural height
+  const to = el.scrollHeight
+  // Animate
+  el.style.transition = 'height 180ms ease'
+  // Force reflow
+  void el.offsetHeight
+  el.style.height = `${to}px`
+  const cleanup = () => {
+    el.style.transition = ''
+    el.style.height = ''
+    el.style.overflow = ''
+    el.removeEventListener('transitionend', onEnd)
+  }
+  function onEnd() {
+    cleanup()
+  }
+  el.addEventListener('transitionend', onEnd)
+  // Fallback cleanup in case transitionend doesn't fire
+  setTimeout(() => cleanup(), 220)
+}
+
 // 优化的 mermaid 渲染函数
 async function initMermaid() {
   if (isRendering.value) {
@@ -685,12 +799,52 @@ async function initMermaid() {
 
 // Note: debouncedInitMermaid is no longer needed; progressive path handles debouncing
 
+// Lightweight partial render that does NOT flip hasRenderedOnce or cache
+async function renderPartial(code: string) {
+  if (!mermaidContent.value) {
+    await nextTick()
+    if (!mermaidContent.value)
+      return
+  }
+  if (isRendering.value)
+    return
+
+  isRendering.value = true
+  try {
+    const id = `mermaid-partial-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+    const theme = isDark.value ? 'dark' : 'light'
+    const codeWithTheme = applyThemeTo(code, theme)
+    if (mermaidContent.value)
+      mermaidContent.value.style.opacity = '0'
+
+    const { svg, bindFunctions } = await withTimeoutSignal(
+      () => mermaid.render(id, codeWithTheme, mermaidContent.value!),
+      { timeoutMs: RENDER_TIMEOUT_MS },
+    )
+    if (mermaidContent.value) {
+      mermaidContent.value.innerHTML = svg
+      bindFunctions?.(mermaidContent.value)
+      updateContainerHeight()
+    }
+  }
+  catch {
+    // swallow partial errors to keep preview resilient
+  }
+  finally {
+    await nextTick()
+    if (mermaidContent.value)
+      mermaidContent.value.style.opacity = '1'
+    isRendering.value = false
+  }
+}
+
 // Schedule progressive work in idle time
 const requestIdle
   = (globalThis as any).requestIdleCallback
     ?? ((cb: any, _opts?: any) => setTimeout(() => cb({ didTimeout: true }), 16))
 
 // Progressive render: if full parse passes -> run initMermaid; else restore last success (no prefix render)
+// Progressive render: if full parse passes -> run initMermaid; else try safe prefix preview; else restore last success
 async function progressiveRender() {
   const token = ++renderToken.value
   // cancel any previous ongoing progressive work
@@ -708,13 +862,18 @@ async function progressiveRender() {
     return
   }
   try {
-    const ok = await canParseOffthread(base, theme, { signal, timeoutMs: WORKER_TIMEOUT_MS })
-    if (ok) {
+    const res = await canParseOrPrefix(base, theme, { signal, timeoutMs: WORKER_TIMEOUT_MS })
+    if (res.fullOk) {
       await initMermaid()
       // Guard against race: if a newer render started, skip flag changes
       if (renderToken.value === token) {
         lastSvgSnapshot.value = mermaidContent.value?.innerHTML ?? null
       }
+      return
+    }
+    if (res.prefixOk && res.prefix && !showSource.value) {
+      // render a best-effort partial preview
+      await renderPartial(res.prefix)
       return
     }
   }
@@ -911,16 +1070,34 @@ watch(
   },
 )
 
-// 当外部 loading -> false：尝试一次最终完整解析；若失败才展示错误
+// 当外部 loading -> false：若已完整渲染则不再重复渲染；否则尝试一次最终完整解析，失败才展示错误
 watch(
   () => props.loading,
   async (loaded, prev) => {
     if (prev === true && loaded === false) {
-      const base = baseFixedCode.value
-      if (!base.trim())
+      const base = baseFixedCode.value.trim()
+      if (!base)
         return
-      // 直接尝试最终渲染：成功则展示完整图；失败则在 loading=false 时展示错误
-      await initMermaid()
+      const theme = isDark.value ? 'dark' : 'light'
+
+      // 如果之前已完成一次完整渲染，避免重复渲染带来的闪烁
+      if (hasRenderedOnce.value) {
+        await nextTick()
+        // 保险：如果 DOM 被清空但有缓存，恢复一次，不触发重新渲染
+        if (mermaidContent.value && !mermaidContent.value.querySelector('svg') && svgCache.value[theme]) {
+          mermaidContent.value.innerHTML = svgCache.value[theme]!
+        }
+        return
+      }
+
+      // 否则：进行一次最终完整解析，成功则完整渲染；失败才展示错误
+      try {
+        await canParseOffthread(base, theme, { timeoutMs: WORKER_TIMEOUT_MS })
+        await initMermaid()
+      }
+      catch (err) {
+        renderErrorToContainer(err)
+      }
     }
   },
 )
@@ -998,7 +1175,7 @@ onUnmounted(() => {
               ? 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 shadow-sm'
               : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
           ]"
-          @click="showSource = false"
+          @click="switchMode('preview')"
         >
           <div class="flex items-center space-x-1">
             <Icon icon="lucide:eye" class="w-3 h-3" />
@@ -1012,7 +1189,7 @@ onUnmounted(() => {
               ? 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 shadow-sm'
               : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
           ]"
-          @click="showSource = true"
+          @click="switchMode('source')"
         >
           <div class="flex items-center space-x-1">
             <Icon icon="lucide:code" class="w-3 h-3" />
@@ -1052,119 +1229,123 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- 内容区域 -->
-    <div v-if="showSource" class="p-4 bg-gray-50 dark:bg-gray-900">
-      <pre class="text-sm font-mono whitespace-pre-wrap text-gray-700 dark:text-gray-300">{{ baseFixedCode }}</pre>
-    </div>
-    <div v-else class="relative">
-      <!-- ...existing preview content... -->
-      <div class="absolute top-2 right-2 z-10 rounded-lg">
-        <div class="flex items-center gap-2 backdrop-blur rounded-lg">
-          <span
-            v-if="!showSource && props.loading"
-            class="px-2.5 py-1 text-[10px] rounded-full bg-gradient-to-r from-sky-500/90 to-indigo-500/90 text-white select-none inline-flex items-center gap-1.5 shadow-sm ring-1 ring-white/20 backdrop-blur-sm"
-            title="Rendering in progress"
-          >
-            <Icon icon="lucide:loader-2" class="w-3 h-3 animate-spin" />
-            Rendering
-          </span>
-          <button
-            class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-            @click="zoomIn"
-          >
-            <Icon icon="lucide:zoom-in" class="w-3 h-3" />
-          </button>
-          <button
-            class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-            @click="zoomOut"
-          >
-            <Icon icon="lucide:zoom-out" class="w-3 h-3" />
-          </button>
-          <button
-            class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-            @click="resetZoom"
-          >
-            {{ Math.round(zoom * 100) }}%
-          </button>
-        </div>
+    <!-- 内容区域（带高度过渡的容器） -->
+    <div ref="modeContainerRef">
+      <div v-if="showSource" class="p-4 bg-gray-50 dark:bg-gray-900">
+        <pre class="text-sm font-mono whitespace-pre-wrap text-gray-700 dark:text-gray-300">{{ baseFixedCode }}</pre>
       </div>
-      <div
-        ref="mermaidContainer"
-        class="min-h-[360px] bg-gray-50 dark:bg-gray-900 relative transition-all duration-100 overflow-hidden block"
-        :style="{ height: containerHeight }"
-        @wheel="handleWheel"
-        @mousedown="startDrag"
-        @mousemove="onDrag"
-        @mouseup="stopDrag"
-        @mouseleave="stopDrag"
-        @touchstart.passive="startDrag"
-        @touchmove.passive="onDrag"
-        @touchend.passive="stopDrag"
-      >
+      <div v-else class="relative">
+        <!-- ...existing preview content... -->
+        <div class="absolute top-2 right-2 z-10 rounded-lg">
+          <div class="flex items-center gap-2 backdrop-blur rounded-lg">
+            <span
+              v-if="!showSource && props.loading"
+              class="px-2.5 py-1 text-[10px] rounded-full bg-gradient-to-r from-sky-500/90 to-indigo-500/90 text-white select-none inline-flex items-center gap-1.5 shadow-sm ring-1 ring-white/20 backdrop-blur-sm"
+              title="Rendering in progress"
+            >
+              <Icon icon="lucide:loader-2" class="w-3 h-3 animate-spin" />
+              Rendering
+            </span>
+            <button
+              class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              @click="zoomIn"
+            >
+              <Icon icon="lucide:zoom-in" class="w-3 h-3" />
+            </button>
+            <button
+              class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              @click="zoomOut"
+            >
+              <Icon icon="lucide:zoom-out" class="w-3 h-3" />
+            </button>
+            <button
+              class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              @click="resetZoom"
+            >
+              {{ Math.round(zoom * 100) }}%
+            </button>
+          </div>
+        </div>
         <div
-          ref="mermaidWrapper"
-          data-mermaid-wrapper
-          class="absolute inset-0 cursor-grab"
-          :class="{ 'cursor-grabbing': isDragging }"
-          :style="transformStyle"
+          ref="mermaidContainer"
+          class="min-h-[360px] bg-gray-50 dark:bg-gray-900 relative transition-all duration-100 overflow-hidden block"
+          :style="{ height: containerHeight }"
+          @wheel="handleWheel"
+          @mousedown="startDrag"
+          @mousemove="onDrag"
+          @mouseup="stopDrag"
+          @mouseleave="stopDrag"
+          @touchstart.passive="startDrag"
+          @touchmove.passive="onDrag"
+          @touchend.passive="stopDrag"
         >
           <div
-            ref="mermaidContent"
-            class="mermaid w-full text-center flex items-center justify-center min-h-full"
-          />
-        </div>
-      </div>
-      <!-- Modal pseudo-fullscreen overlay (teleported to body) -->
-      <teleport to="body">
-        <div
-          v-if="isModalOpen"
-          class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
-          @click.self="closeModal"
-        >
-          <div
-            class="relative w-full h-full max-w-full max-h-full bg-white dark:bg-gray-900 rounded shadow-lg overflow-hidden"
+            ref="mermaidWrapper"
+            data-mermaid-wrapper
+            class="absolute inset-0 cursor-grab"
+            :class="{ 'cursor-grabbing': isDragging }"
+            :style="transformStyle"
           >
-            <div class="absolute top-6 right-6 z-50 flex items-center gap-2">
-              <button
-                class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                @click="zoomIn"
-              >
-                <Icon icon="lucide:zoom-in" class="w-3 h-3" />
-              </button>
-              <button
-                class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                @click="zoomOut"
-              >
-                <Icon icon="lucide:zoom-out" class="w-3 h-3" />
-              </button>
-              <button
-                class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                @click="resetZoom"
-              >
-                {{ Math.round(zoom * 100) }}%
-              </button>
-              <button
-                class="inline-flex items-center justify-center p-2 rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                @click="closeModal"
-              >
-                <Icon icon="lucide:x" class="w-3 h-3" />
-              </button>
-            </div>
             <div
-              ref="modalContent"
-              class="w-full h-full flex items-center justify-center p-4 overflow-hidden"
-              @wheel="handleWheel"
-              @mousedown="startDrag"
-              @mousemove="onDrag"
-              @mouseup="stopDrag"
-              @mouseleave="stopDrag"
-              @touchstart="startDrag"
-              @touchmove="onDrag"
-              @touchend="stopDrag"
+              ref="mermaidContent"
+              class="mermaid w-full text-center flex items-center justify-center min-h-full"
             />
           </div>
         </div>
-      </teleport>
+        <!-- Modal pseudo-fullscreen overlay (teleported to body) -->
+        <teleport to="body">
+          <transition name="mermaid-dialog" appear>
+            <div
+              v-if="isModalOpen"
+              class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+              @click.self="closeModal"
+            >
+              <div
+                class="dialog-panel relative w-full h-full max-w-full max-h-full bg-white dark:bg-gray-900 rounded shadow-lg overflow-hidden"
+              >
+                <div class="absolute top-6 right-6 z-50 flex items-center gap-2">
+                  <button
+                    class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    @click="zoomIn"
+                  >
+                    <Icon icon="lucide:zoom-in" class="w-3 h-3" />
+                  </button>
+                  <button
+                    class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    @click="zoomOut"
+                  >
+                    <Icon icon="lucide:zoom-out" class="w-3 h-3" />
+                  </button>
+                  <button
+                    class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    @click="resetZoom"
+                  >
+                    {{ Math.round(zoom * 100) }}%
+                  </button>
+                  <button
+                    class="inline-flex items-center justify-center p-2 rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    @click="closeModal"
+                  >
+                    <Icon icon="lucide:x" class="w-3 h-3" />
+                  </button>
+                </div>
+                <div
+                  ref="modalContent"
+                  class="w-full h-full flex items-center justify-center p-4 overflow-hidden"
+                  @wheel="handleWheel"
+                  @mousedown="startDrag"
+                  @mousemove="onDrag"
+                  @mouseup="stopDrag"
+                  @mouseleave="stopDrag"
+                  @touchstart="startDrag"
+                  @touchmove="onDrag"
+                  @touchend="stopDrag"
+                />
+              </div>
+            </div>
+          </transition>
+        </teleport>
+      </div>
     </div>
   </div>
 </template>
@@ -1173,6 +1354,9 @@ onUnmounted(() => {
 .mermaid {
   font-family: inherit;
   transition: opacity 0.2s ease-in-out;
+  content-visibility: auto;
+  contain: content;
+  contain-intrinsic-size: 360px 240px;
 }
 
 .mermaid :deep(svg) {
@@ -1193,5 +1377,29 @@ onUnmounted(() => {
 
 .mermaid-action-btn:active {
   transform: scale(0.98);
+}
+
+/* Dialog transition inspired by shadcn (fade + zoom) */
+.mermaid-dialog-enter-from,
+.mermaid-dialog-leave-to {
+  opacity: 0;
+}
+.mermaid-dialog-enter-active,
+.mermaid-dialog-leave-active {
+  transition: opacity 200ms ease;
+}
+.mermaid-dialog-enter-from .dialog-panel,
+.mermaid-dialog-leave-to .dialog-panel {
+  transform: translateY(8px) scale(0.98);
+  opacity: 0.98;
+}
+.mermaid-dialog-enter-to .dialog-panel,
+.mermaid-dialog-leave-from .dialog-panel {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+.mermaid-dialog-enter-active .dialog-panel,
+.mermaid-dialog-leave-active .dialog-panel {
+  transition: transform 200ms ease, opacity 200ms ease;
 }
 </style>
