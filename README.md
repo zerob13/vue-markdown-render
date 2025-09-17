@@ -171,8 +171,8 @@ Plugin usage:
 
 ```ts
 import { createApp } from 'vue'
-import App from './App.vue'
 import { VueRendererMarkdown } from 'vue-renderer-markdown'
+import App from './App.vue'
 
 const app = createApp(App)
 
@@ -191,8 +191,9 @@ app.use(VueRendererMarkdown, {
       || l === 'ps1'
       || l === 'bat'
       || l === 'batch'
-    )
+    ) {
       return `<img src="${SHELL_ICON_URL}" alt="${l}" />`
+    }
     // return empty/undefined to use the library default icon
     return undefined
   },
@@ -203,8 +204,8 @@ Local file example (import inline SVG):
 
 ```ts
 import { createApp } from 'vue'
-import App from './App.vue'
 import { VueRendererMarkdown } from 'vue-renderer-markdown'
+import App from './App.vue'
 import JsIcon from './assets/javascript.svg?raw'
 
 const app = createApp(App)

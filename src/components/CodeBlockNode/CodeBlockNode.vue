@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import type { WatchStopHandle } from 'vue'
 import type { MonacoOptions, MonacoTheme } from 'vue-use-monaco'
 import { Icon } from '@iconify/vue'
-import { watchOnce } from '@vueuse/core'
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { detectLanguage, useMonaco } from 'vue-use-monaco'
 import { useSafeI18n } from '../../composables/useSafeI18n'
 import { getLanguageIcon, languageMap } from '../../utils'
@@ -42,6 +42,9 @@ const canExpand = ref(false)
 let cachedExpandedHeight: string | null = null
 let cachedNotExpandedHeight: string | null = null
 let editorCreated = false
+let expandRafId: number | null = null
+// 仅当用户主动点击展开后，才进入自动展开检测模式
+let autoExpandActive = false
 
 // Setup Monaco before using helpers in functions below
 const { createEditor, updateCode, getEditor, getEditorView, cleanupEditor } = useMonaco({
@@ -180,11 +183,18 @@ function toggleExpand() {
     return
 
   if (isExpanded.value) {
+    autoExpandActive = true
+    // 先计算一次当前内容高度，确保有初始高度
+    updateCanExpand()
     container.style.height = cachedExpandedHeight
     container.style.maxHeight = 'none'
     container.style.overflow = 'visible'
+    if (props.loading && autoExpandActive)
+      startExpandAutoResize()
   }
   else {
+    autoExpandActive = false
+    stopExpandAutoResize()
     container.style.overflow = 'auto'
     container.style.height = cachedNotExpandedHeight ?? ''
   }
@@ -255,19 +265,83 @@ watch(
     createEditor(el as HTMLElement, props.node.code, codeLanguage.value)
     const editor = getEditorView()
     editor?.updateOptions({ fontSize: codeFontSize.value })
+    // 若初始化时 loading 已为 false，等待一帧后再计算展开高度
+    if (props.loading === false) {
+      await nextTick()
+      requestAnimationFrame(() => {
+        updateCanExpand()
+      })
+    }
+    // 若已展开且仍在加载，则开始逐帧自适应高度
+    if (isExpanded.value && props.loading && autoExpandActive) {
+      await nextTick()
+      startExpandAutoResize()
+    }
   },
   { immediate: true },
 )
 
-// 当 loading 变为 false 时：计算并缓存一次展开高度，清理可安全移除的监听器
-watchOnce(
+// 当 loading 变为 false 时：计算并缓存一次展开高度，随后停止观察
+let stopLoadingWatch: WatchStopHandle | undefined
+stopLoadingWatch = watch(
   () => props.loading,
-  (loaded) => {
+  async (loaded) => {
     if (loaded === false) {
-      updateCanExpand()
+      await nextTick()
+      requestAnimationFrame(() => {
+        updateCanExpand()
+        stopLoadingWatch?.()
+        stopLoadingWatch = undefined
+      })
+      stopExpandAutoResize()
+    }
+    else if (loaded === true) {
+      if (isExpanded.value && autoExpandActive) {
+        await nextTick()
+        startExpandAutoResize()
+      }
     }
   },
+  { immediate: true, flush: 'post' },
 )
+
+function startExpandAutoResize() {
+  stopExpandAutoResize()
+  const container = codeEditor.value
+  if (!container)
+    return
+  const tick = () => {
+    const contentHeight = computeContentHeight()
+    if (contentHeight != null) {
+      const nextHeight = `${contentHeight}px`
+      const currentHeightNum = cachedExpandedHeight ? Number.parseFloat(cachedExpandedHeight) : 0
+      if (!cachedExpandedHeight || contentHeight > currentHeightNum) {
+        cachedExpandedHeight = nextHeight
+        container.style.height = nextHeight
+        container.style.maxHeight = 'none'
+        container.style.overflow = 'visible'
+      }
+    }
+    if (props.loading && isExpanded.value) {
+      expandRafId = requestAnimationFrame(tick)
+    }
+    else {
+      expandRafId = null
+    }
+  }
+  expandRafId = requestAnimationFrame(tick)
+}
+
+function stopExpandAutoResize() {
+  if (expandRafId != null) {
+    cancelAnimationFrame(expandRafId)
+    expandRafId = null
+  }
+}
+
+onBeforeUnmount(() => {
+  stopExpandAutoResize()
+})
 </script>
 
 <template>
@@ -327,7 +401,6 @@ watchOnce(
           <Icon v-else icon="lucide:check" class="w-3 h-3" />
         </button>
         <button
-          v-if="canExpand"
           type="button"
           class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           :title="isExpanded ? t('common.collapse') : t('common.expand')"

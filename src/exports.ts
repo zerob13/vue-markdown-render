@@ -1,9 +1,8 @@
 import type { App, Component, Plugin } from 'vue'
 import type { LanguageIconResolver } from './utils/languageIcon'
-import { setLanguageIconResolver } from './utils/languageIcon'
 import AdmonitionNode from './components/AdmonitionNode'
-
 import BlockquoteNode from './components/BlockquoteNode'
+
 import CheckboxNode from './components/CheckboxNode'
 import CodeBlockNode from './components/CodeBlockNode'
 import DefinitionListNode from './components/DefinitionListNode'
@@ -31,6 +30,7 @@ import SuperscriptNode from './components/SuperscriptNode'
 import TableNode from './components/TableNode'
 import TextNode from './components/TextNode'
 import ThematicBreakNode from './components/ThematicBreakNode'
+import { setLanguageIconResolver } from './utils/languageIcon'
 import './index.css'
 
 export * from './utils'
