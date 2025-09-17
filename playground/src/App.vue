@@ -43,7 +43,7 @@ const toggleTheme = useToggle(isDark)
 
     <main p4 h-full flex flex-col-reverse overflow-auto>
       <div class="place-holder" flex-1 />
-      <MarkdownRender :content="content" :typewriter-effect="true" />
+      <MarkdownRender :content="content" />
     </main>
   </div>
 </template>

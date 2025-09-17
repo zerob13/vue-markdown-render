@@ -12,7 +12,8 @@ Experience the power of high-performance streaming Markdown rendering in action!
 
 - ⚡ **Ultra-High Performance**: Optimized for real-time streaming with minimal re-renders and efficient DOM updates
 - 🌊 **Streaming-First Design**: Built specifically to handle incomplete, rapidly updating, and tokenized Markdown content
-- ⌨️ **Smart Typewriter Effect**: Real-time cursor tracking with automatic positioning and performance-optimized animations
+- 🧠 **Monaco Streaming Updates**: High-performance Monaco integration with smooth, incremental updates for large code blocks
+- 🪄 **Progressive Mermaid Rendering**: Diagrams render as they become valid and update incrementally without jank
 - 🧩 **Custom Components**: Seamlessly integrate your Vue components within Markdown content
 - 📝 **Complete Markdown Support**: Tables, math formulas, emoji, checkboxes, code blocks, and more
 - 🔄 **Real-Time Updates**: Handles partial content and incremental updates without breaking formatting
@@ -98,7 +99,7 @@ const interval = setInterval(() => {
 </script>
 
 <template>
-  <MarkdownRender :content="content" :typewriter-effect="true" />
+  <MarkdownRender :content="content" />
 </template>
 ```
 
@@ -132,23 +133,23 @@ The streaming-optimized engine delivers:
 
 - **Incremental Parsing Code Blocks**: Only processes changed content, not the entire code block
 - **Efficient DOM Updates**: Minimal re-renders
-- **Real-time Cursor Tracking**: Smooth cursor positioning
+- **Monaco Streaming**: Fast, incremental updates for large code snippets without blocking the UI
+- **Progressive Mermaid**: Diagrams render as soon as syntax is valid and refine as content streams in
 - **Memory Optimized**: Intelligent cleanup prevents memory leaks during long streaming sessions
 - **Animation Frame Based**: Smooth animations
 - **Graceful Degradation**: Handles malformed or incomplete Markdown without breaking
 
 ### Props
 
-| Name               | Type                  | Required | Description                                         |
-| ------------------ | --------------------- | -------- | --------------------------------------------------- |
-| `content`          | `string`              | ✓        | Markdown string to render                           |
-| `nodes`            | `BaseNode[]`          |          | Parsed markdown AST nodes (alternative to content)  |
-| `customComponents` | `Record<string, any>` |          | Custom Vue components for rendering                 |
-| `typewriterEffect` | `boolean`             |          | Enable typewriter animation effect (default: false) |
+| Name               | Type                  | Required | Description                                        |
+| ------------------ | --------------------- | -------- | -------------------------------------------------- |
+| `content`          | `string`              | ✓        | Markdown string to render                          |
+| `nodes`            | `BaseNode[]`          |          | Parsed markdown AST nodes (alternative to content) |
+| `customComponents` | `Record<string, any>` |          | Custom Vue components for rendering                |
 
 > Either `content` or `nodes` must be provided.
 
-Note: when using the component in a Vue template, camelCase prop names should be written in kebab-case. For example, use `:typewriter-effect="true"` in templates (the prop name in JavaScript/TypeScript remains `typewriterEffect`).
+Note: when using the component in a Vue template, camelCase prop names should be written in kebab-case. For example, `customComponents` becomes `custom-components` in templates.
 
 ## Advanced
 
@@ -163,7 +164,7 @@ Note: when using the component in a Vue template, camelCase prop names should be
 
 ## Monaco Editor Integration
 
-If you are using Monaco Editor in your project, you need to configure `vite-plugin-monaco-editor-esm` to handle global injection of workers. On Windows, you may encounter issues during the build process. To resolve this, configure `customDistPath` to ensure successful packaging.
+If you are using Monaco Editor in your project, configure `vite-plugin-monaco-editor-esm` to handle global injection of workers. Our renderer is optimized for streaming updates to large code blocks—when content changes incrementally, only the necessary parts are updated for smooth, responsive rendering. On Windows, you may encounter issues during the build process. To resolve this, configure `customDistPath` to ensure successful packaging.
 
 > Note: If you only need to render a Monaco editor (for editing or previewing code) and don't require this library's full Markdown rendering pipeline, you can integrate Monaco directly using `vue-use-monaco` for a lighter, more direct integration.
 
@@ -192,6 +193,41 @@ export default {
 ```
 
 This configuration ensures that Monaco Editor workers are correctly packaged and accessible in your project.
+
+### Mermaid: Progressive Rendering Example
+
+Mermaid diagrams can be streamed progressively. The diagram renders as soon as the syntax becomes valid and refines as more content arrives.
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import MarkdownRender from 'vue-renderer-markdown'
+
+const content = ref('')
+const steps = [
+  '```mermaid\n',
+  'graph TD\n',
+  'A[Start]-->B{Is valid?}\n',
+  'B -- Yes --> C[Render]\n',
+  'B -- No  --> D[Wait]\n',
+  '```\n',
+]
+
+let i = 0
+const id = setInterval(() => {
+  content.value += steps[i] || ''
+  i++
+  if (i >= steps.length)
+    clearInterval(id)
+}, 120)
+</script>
+
+<template>
+  <MarkdownRender :content="content" />
+  <!-- Diagram progressively appears as content streams in -->
+  <!-- Mermaid must be installed as a peer dependency -->
+</template>
+```
 
 ## Thanks
 
