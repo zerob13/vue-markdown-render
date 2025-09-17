@@ -60,6 +60,8 @@ export function getMarkdown(msgId: string) {
       const closed = endLine > openLine + 1 && count >= minLen && j === line.length
       token.meta = token.meta || {}
       token.meta.unclosed = !closed
+      // also set a explicit `closed` boolean for compatibility with plugins/tests
+      token.meta.closed = !!closed
     }
   })
 
