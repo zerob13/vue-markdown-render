@@ -76,6 +76,8 @@ const svgCache = ref<{
 }>({})
 
 const lastSvgSnapshot = ref<string | null>(null)
+// 新增：记录上一次渲染的 code（去除所有空白字符）
+const lastRenderedCode = ref<string>('')
 const renderToken = ref(0)
 // Abort/cancellation state for ongoing progressive work
 let currentWorkController: AbortController | null = null
@@ -855,10 +857,17 @@ async function progressiveRender() {
   const signal = currentWorkController.signal
   const theme = isDark.value ? 'dark' : 'light'
   const base = baseFixedCode.value
+  // 新增：去除所有空白字符后做比较
+  const normalizedBase = base.replace(/\s+/g, '')
   if (!base.trim()) {
     if (mermaidContent.value)
       mermaidContent.value.innerHTML = ''
     lastSvgSnapshot.value = null
+    lastRenderedCode.value = ''
+    return
+  }
+  // 如果和上一次渲染的 code（去除空白）一致，则跳过渲染
+  if (normalizedBase === lastRenderedCode.value) {
     return
   }
   try {
@@ -868,6 +877,8 @@ async function progressiveRender() {
       // Guard against race: if a newer render started, skip flag changes
       if (renderToken.value === token) {
         lastSvgSnapshot.value = mermaidContent.value?.innerHTML ?? null
+        // 记录本次渲染的 code（去除空白）
+        lastRenderedCode.value = normalizedBase
       }
       return
     }
@@ -1079,9 +1090,10 @@ watch(
       if (!base)
         return
       const theme = isDark.value ? 'dark' : 'light'
+      const normalizedBase = base.replace(/\s+/g, '')
 
-      // 如果之前已完成一次完整渲染，避免重复渲染带来的闪烁
-      if (hasRenderedOnce.value) {
+      // 如果之前已完成一次完整渲染，且内容只有空格差异，避免重复渲染带来的闪烁
+      if (hasRenderedOnce.value && normalizedBase === lastRenderedCode.value) {
         await nextTick()
         // 保险：如果 DOM 被清空但有缓存，恢复一次，不触发重新渲染
         if (mermaidContent.value && !mermaidContent.value.querySelector('svg') && svgCache.value[theme]) {
@@ -1094,6 +1106,8 @@ watch(
       try {
         await canParseOffthread(base, theme, { timeoutMs: WORKER_TIMEOUT_MS })
         await initMermaid()
+        // 记录本次渲染的 code（去除空白）
+        lastRenderedCode.value = normalizedBase
       }
       catch (err) {
         renderErrorToContainer(err)
@@ -1288,7 +1302,7 @@ onUnmounted(() => {
           >
             <div
               ref="mermaidContent"
-              class="mermaid w-full text-center flex items-center justify-center min-h-full"
+              class="_mermaid w-full text-center flex items-center justify-center min-h-full"
             />
           </div>
         </div>
@@ -1351,7 +1365,7 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.mermaid {
+._mermaid {
   font-family: inherit;
   transition: opacity 0.2s ease-in-out;
   content-visibility: auto;
@@ -1359,7 +1373,7 @@ onUnmounted(() => {
   contain-intrinsic-size: 360px 240px;
 }
 
-.mermaid :deep(svg) {
+._mermaid :deep(svg) {
   width: 100%;
   height: auto;
   display: block;
