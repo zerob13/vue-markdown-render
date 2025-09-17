@@ -21,12 +21,14 @@ const props = withDefaults(
     lightTheme?: MonacoTheme
     isShowPreview?: boolean
     monacoOptions?: MonacoOptions
+    enableFontSizeControl?: boolean
   }>(),
   {
     isShowPreview: true,
     darkTheme: undefined,
     lightTheme: undefined,
     loading: true,
+    enableFontSizeControl: true,
   },
 )
 
@@ -42,7 +44,7 @@ let cachedNotExpandedHeight: string | null = null
 let editorCreated = false
 
 // Setup Monaco before using helpers in functions below
-const { createEditor, updateCode, getEditor, getEditorView, safeClean, cleanupEditor } = useMonaco({
+const { createEditor, updateCode, getEditor, getEditorView, cleanupEditor } = useMonaco({
   wordWrap: 'on', // 'on' | 'off' | 'wordWrapColumn' | 'bounded'
   wrappingIndent: 'same', // 'none' | 'same' | 'indent' | 'deepIndent'
   themes:
@@ -51,6 +53,21 @@ const { createEditor, updateCode, getEditor, getEditorView, safeClean, cleanupEd
       : undefined,
   ...(props.monacoOptions || {}),
 })
+
+const codeFontMin = 10
+const codeFontMax = 36
+const codeFontStep = 1
+const defaultCodeFontSize = Number(props.monacoOptions?.fontSize ?? 14)
+const codeFontSize = ref<number>(defaultCodeFontSize)
+function increaseCodeFont() {
+  codeFontSize.value = Math.min(codeFontMax, codeFontSize.value + codeFontStep)
+}
+function decreaseCodeFont() {
+  codeFontSize.value = Math.max(codeFontMin, codeFontSize.value - codeFontStep)
+}
+function resetCodeFont() {
+  codeFontSize.value = defaultCodeFontSize
+}
 
 function getMaxHeightValue(): number {
   const maxH = props.monacoOptions?.MAX_HEIGHT ?? 500
@@ -161,6 +178,30 @@ function toggleExpand() {
   }
 }
 
+watch(
+  () => codeFontSize.value,
+  (size) => {
+    const editor = getEditorView()
+    if (!editor)
+      return
+    editor.updateOptions({ fontSize: size })
+    updateCanExpand()
+    if (isExpanded.value && cachedExpandedHeight) {
+      const monacoEditor = getEditor()
+      const lineCount = editor.getModel()?.getLineCount() ?? 1
+      const lineHeight = editor.getOption(monacoEditor.EditorOption.lineHeight)
+      const padding = 16
+      const height = lineCount * lineHeight + padding
+      cachedExpandedHeight = `${height}px`
+      const container = codeEditor.value
+      if (container) {
+        container.style.height = cachedExpandedHeight
+      }
+    }
+  },
+  { flush: 'post', immediate: false },
+)
+
 // 预览HTML/SVG代码
 function previewCode() {
   if (!isPreviewable.value)
@@ -203,6 +244,8 @@ watch(
       return
     editorCreated = true
     createEditor(el as HTMLElement, props.node.code, codeLanguage.value)
+    const editor = getEditorView()
+    editor?.updateOptions({ fontSize: codeFontSize.value })
   },
   { immediate: true },
 )
@@ -213,7 +256,6 @@ watchOnce(
   (loaded) => {
     if (loaded === false) {
       updateCanExpand()
-      safeClean()
     }
   },
 )
@@ -235,6 +277,38 @@ watchOnce(
 
       <!-- 右侧操作按钮（合并重复结构） -->
       <div class="flex items-center space-x-2">
+        <template v-if="props.enableFontSizeControl">
+          <button
+            type="button"
+            class="code-action-btn px-2 py-1 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            :title="t('common.decrease') || 'Decrease font size'"
+            :aria-label="t('common.decrease') || 'Decrease font size'"
+            :disabled="codeFontSize <= codeFontMin"
+            @click="decreaseCodeFont()"
+          >
+            <Icon icon="lucide:minus" class="w-3 h-3" />
+          </button>
+          <button
+            type="button"
+            class="code-action-btn px-2 py-1 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            :title="t('common.reset') || 'Reset font size'"
+            :aria-label="t('common.reset') || 'Reset font size'"
+            :disabled="codeFontSize === defaultCodeFontSize"
+            @click="resetCodeFont()"
+          >
+            <Icon icon="lucide:rotate-ccw" class="w-3 h-3" />
+          </button>
+          <button
+            type="button"
+            class="code-action-btn px-2 py-1 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            :title="t('common.increase') || 'Increase font size'"
+            :aria-label="t('common.increase') || 'Increase font size'"
+            :disabled="codeFontSize >= codeFontMax"
+            @click="increaseCodeFont()"
+          >
+            <Icon icon="lucide:plus" class="w-3 h-3" />
+          </button>
+        </template>
         <button
           type="button"
           class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -288,5 +362,14 @@ watchOnce(
 
 .code-action-btn:active {
   transform: scale(0.98);
+}
+
+.code-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.code-action-btn:disabled:hover {
+  background-color: transparent;
 }
 </style>
