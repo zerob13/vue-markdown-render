@@ -81,6 +81,8 @@ const lastRenderedCode = ref<string>('')
 const renderToken = ref(0)
 // Abort/cancellation state for ongoing progressive work
 let currentWorkController: AbortController | null = null
+// Track whether an error is currently rendered to avoid being overwritten
+const hasRenderError = ref(false)
 const savedTransformState = ref({
   zoom: 1,
   translateX: 0,
@@ -93,6 +95,16 @@ const WORKER_TIMEOUT_MS = 1400
 const PARSE_TIMEOUT_MS = 1800
 const RENDER_TIMEOUT_MS = 2500
 const FULL_RENDER_TIMEOUT_MS = 4000
+// Background polling while in Preview to upgrade prefix -> full render automatically
+const cancelIdle
+  = (globalThis as any).cancelIdleCallback ?? ((id: any) => clearTimeout(id))
+let previewPollTimeoutId: number | null = null
+let previewPollIdleId: number | null = null
+let isPreviewPolling = false
+let previewPollDelay = 800
+let previewPollController: AbortController | null = null
+let lastPreviewStopAt = 0
+let allowPartialPreview = true
 
 // Helper: wrap an async operation with timeout and AbortSignal support
 function withTimeoutSignal<T>(
@@ -170,6 +182,9 @@ function renderErrorToContainer(error: unknown) {
   mermaidContent.value.innerHTML = ''
   mermaidContent.value.appendChild(errorDiv)
   containerHeight.value = '360px'
+  hasRenderError.value = true
+  // 在错误显示时，停止任何预览轮询，避免错误被覆盖
+  stopPreviewPolling()
 }
 
 // Worker-backed off-thread parsing (to reduce main-thread jank)
@@ -249,6 +264,15 @@ function applyThemeTo(code: string, theme: 'light' | 'dark') {
   if (trimmed.startsWith('%%{'))
     return code
   return themeConfig + code
+}
+
+// Whether we are allowed to apply a partial preview update safely
+function canApplyPartialPreview() {
+  // Only when:
+  // - not showing source
+  // - no previous successful full render (to avoid downgrading)
+  // - not currently in an error display state
+  return allowPartialPreview && !showSource.value && !hasRenderedOnce.value && !hasRenderError.value
 }
 
 // NEW: heuristically trim trailing incomplete lines for worker/preview usage
@@ -777,14 +801,14 @@ async function initMermaid() {
         if (isThemeRendering.value) {
           isThemeRendering.value = false
         }
+        // clear error state on successful render
+        hasRenderError.value = false
       }
     }
     catch (error) {
       console.error('Failed to render mermaid diagram:', error)
-      // 在渐进/生成中（props.loading === true）不展示错误，避免打断预览体验
-      if (!props.loading) {
+      if (props.loading === false)
         renderErrorToContainer(error)
-      }
     }
     finally {
       await nextTick()
@@ -803,6 +827,8 @@ async function initMermaid() {
 
 // Lightweight partial render that does NOT flip hasRenderedOnce or cache
 async function renderPartial(code: string) {
+  if (!canApplyPartialPreview())
+    return
   if (!mermaidContent.value) {
     await nextTick()
     if (!mermaidContent.value)
@@ -815,7 +841,11 @@ async function renderPartial(code: string) {
   try {
     const id = `mermaid-partial-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
     const theme = isDark.value ? 'dark' : 'light'
-    const codeWithTheme = applyThemeTo(code, theme)
+    // 如果最后一行是不完整的（如以 |、-、> 等连接符结尾），则剪裁到上一行，
+    // 提高在输入过程中可渲染出图像的概率
+    const safePrefix = getSafePrefixCandidate(code)
+    const codeForRender = safePrefix && safePrefix.trim() ? safePrefix : code
+    const codeWithTheme = applyThemeTo(codeForRender, theme)
     if (mermaidContent.value)
       mermaidContent.value.style.opacity = '0'
 
@@ -848,6 +878,7 @@ const requestIdle
 // Progressive render: if full parse passes -> run initMermaid; else restore last success (no prefix render)
 // Progressive render: if full parse passes -> run initMermaid; else try safe prefix preview; else restore last success
 async function progressiveRender() {
+  const scheduledAt = Date.now()
   const token = ++renderToken.value
   // cancel any previous ongoing progressive work
   if (currentWorkController) {
@@ -864,6 +895,7 @@ async function progressiveRender() {
       mermaidContent.value.innerHTML = ''
     lastSvgSnapshot.value = null
     lastRenderedCode.value = ''
+    hasRenderError.value = false
     return
   }
   // 如果和上一次渲染的 code（去除空白）一致，则跳过渲染
@@ -879,10 +911,13 @@ async function progressiveRender() {
         lastSvgSnapshot.value = mermaidContent.value?.innerHTML ?? null
         // 记录本次渲染的 code（去除空白）
         lastRenderedCode.value = normalizedBase
+        hasRenderError.value = false
       }
       return
     }
-    if (res.prefixOk && res.prefix && !showSource.value) {
+    // If stopPreviewPolling just happened after this work was queued, avoid partials
+    const justStopped = lastPreviewStopAt && scheduledAt <= lastPreviewStopAt
+    if (res.prefixOk && res.prefix && canApplyPartialPreview() && !justStopped) {
       // render a best-effort partial preview
       await renderPartial(res.prefix)
       return
@@ -898,6 +933,10 @@ async function progressiveRender() {
   // Worker/main parse failed -> restore last successful full SVG (if any), do not render prefix
   if (renderToken.value !== token)
     return
+  // 若当前处于错误显示状态，避免用缓存覆盖错误，直到下一次成功渲染
+  if (hasRenderError.value)
+    return
+  // If we cannot apply partial and also shouldn't restore cached (e.g., error state), bail
   const cached = svgCache.value[theme]
   if (cached && mermaidContent.value) {
     mermaidContent.value.innerHTML = cached
@@ -911,20 +950,12 @@ const debouncedProgressiveRender = debounce(() => {
   }, { timeout: 500 })
 }, RENDER_DEBOUNCE_DELAY)
 
-// Background polling while in Preview to upgrade prefix -> full render automatically
-const cancelIdle
-  = (globalThis as any).cancelIdleCallback ?? ((id: any) => clearTimeout(id))
-let previewPollTimeoutId: number | null = null
-let previewPollIdleId: number | null = null
-let isPreviewPolling = false
-let previewPollDelay = 800
-let previewPollController: AbortController | null = null
-
 function stopPreviewPolling() {
   if (!isPreviewPolling)
     return
   isPreviewPolling = false
   previewPollDelay = 800
+  allowPartialPreview = false
   if (previewPollController) {
     previewPollController.abort()
     previewPollController = null
@@ -936,6 +967,38 @@ function stopPreviewPolling() {
   if (previewPollIdleId) {
     cancelIdle(previewPollIdleId)
     previewPollIdleId = null
+  }
+  // record when we stopped to help skip stale idle work
+  lastPreviewStopAt = Date.now()
+}
+
+// Cleanup helpers when loading has settled and we no longer need background work
+function cleanupAfterLoadingSettled() {
+  // stop background upgrade/prefix polling
+  stopPreviewPolling()
+  // abort any in-flight progressive work
+  if (currentWorkController) {
+    try {
+      currentWorkController.abort()
+    }
+    catch {}
+    currentWorkController = null
+  }
+  // ensure any pending preview poll attempt is cancelled
+  if (previewPollController) {
+    try {
+      previewPollController.abort()
+    }
+    catch {}
+    previewPollController = null
+  }
+  // terminate parser worker to free resources; it will be recreated on demand
+  if (parserWorker) {
+    try {
+      parserWorker.terminate()
+    }
+    catch {}
+    parserWorker = null
   }
 }
 
@@ -987,6 +1050,8 @@ function startPreviewPolling() {
   if (showSource.value || hasRenderedOnce.value)
     return
   isPreviewPolling = true
+  lastPreviewStopAt = 0
+  allowPartialPreview = true
   scheduleNextPreviewPoll(500)
 }
 
@@ -1008,6 +1073,10 @@ watch(
 // Watch for dark mode changes with smart caching
 watch(isDark, async () => {
   if (!hasRenderedOnce.value) {
+    return
+  }
+  // 如果当前是错误展示，则等待下一次有效内容渲染再切换主题，避免覆盖错误信息
+  if (hasRenderError.value) {
     return
   }
   const targetTheme = isDark.value ? 'dark' : 'light'
@@ -1048,6 +1117,10 @@ watch(
   () => showSource.value,
   async (newValue) => {
     if (!newValue) {
+      if (hasRenderError.value) {
+        // 如果当前展示错误，保持错误展示，不去恢复缓存
+        return
+      }
       const currentTheme = isDark.value ? 'dark' : 'light'
       if (hasRenderedOnce.value && svgCache.value[currentTheme]) {
         await nextTick()
@@ -1088,7 +1161,7 @@ watch(
     if (prev === true && loaded === false) {
       const base = baseFixedCode.value.trim()
       if (!base)
-        return
+        return cleanupAfterLoadingSettled()
       const theme = isDark.value ? 'dark' : 'light'
       const normalizedBase = base.replace(/\s+/g, '')
 
@@ -1099,6 +1172,8 @@ watch(
         if (mermaidContent.value && !mermaidContent.value.querySelector('svg') && svgCache.value[theme]) {
           mermaidContent.value.innerHTML = svgCache.value[theme]!
         }
+        // 渲染已完成，清理后台任务
+        cleanupAfterLoadingSettled()
         return
       }
 
@@ -1108,8 +1183,13 @@ watch(
         await initMermaid()
         // 记录本次渲染的 code（去除空白）
         lastRenderedCode.value = normalizedBase
+        hasRenderError.value = false
+        // 完整渲染成功后，停止轮询并中止未完成任务
+        cleanupAfterLoadingSettled()
       }
       catch (err) {
+        // 出错时也清理后台任务，避免错误被后续任务覆盖
+        cleanupAfterLoadingSettled()
         renderErrorToContainer(err)
       }
     }
