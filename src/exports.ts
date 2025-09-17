@@ -1,4 +1,6 @@
 import type { App, Component, Plugin } from 'vue'
+import type { LanguageIconResolver } from './utils/languageIcon'
+import { setLanguageIconResolver } from './utils/languageIcon'
 import AdmonitionNode from './components/AdmonitionNode'
 
 import BlockquoteNode from './components/BlockquoteNode'
@@ -99,9 +101,11 @@ const componentMap: Record<string, Component> = {
 }
 
 export const VueRendererMarkdown: Plugin = {
-  install(app: App) {
+  install(app: App, options?: { getLanguageIcon?: LanguageIconResolver }) {
     Object.entries(componentMap).forEach(([name, component]) => {
       app.component(name, component)
     })
+    if (options?.getLanguageIcon)
+      setLanguageIconResolver(options.getLanguageIcon)
   },
 }

@@ -280,7 +280,7 @@ watchOnce(
     <div class="code-block-header flex justify-between items-center px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
       <!-- 左侧语言标签 -->
       <div class="flex items-center space-x-2">
-        <span class="h-4 w-4 flex-shrink-0" v-html="languageIcon" />
+        <span class="icon-slot h-4 w-4 flex-shrink-0" v-html="languageIcon" />
         <span class="text-sm font-medium text-gray-600 dark:text-gray-400 font-mono">{{ displayLanguage }}</span>
       </div>
 
@@ -380,5 +380,18 @@ watchOnce(
 
 .code-action-btn:disabled:hover {
   background-color: transparent;
+}
+
+/* Ensure injected icons align consistently whether img or inline svg */
+.icon-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.icon-slot :deep(svg),
+.icon-slot :deep(img) {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 </style>

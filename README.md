@@ -162,6 +162,70 @@ Note: when using the component in a Vue template, camelCase prop names should be
   import type { MyMarkdownProps } from 'vue-renderer-markdown/dist/types'
   ```
 
+### Override Language Icons
+
+Override how code language icons are resolved via the plugin option `getLanguageIcon`.
+This keeps your usage unchanged and centralizes customization.
+
+Plugin usage:
+
+```ts
+import { createApp } from 'vue'
+import App from './App.vue'
+import { VueRendererMarkdown } from 'vue-renderer-markdown'
+
+const app = createApp(App)
+
+// Example 1: replace shell/Shellscript icon with a remote SVG URL
+const SHELL_ICON_URL = 'https://raw.githubusercontent.com/catppuccin/vscode-icons/refs/heads/main/icons/mocha/bash.svg'
+app.use(VueRendererMarkdown, {
+  getLanguageIcon(lang) {
+    const l = (lang || '').toLowerCase()
+    if (
+      l === 'shell'
+      || l === 'shellscript'
+      || l === 'sh'
+      || l === 'bash'
+      || l === 'zsh'
+      || l === 'powershell'
+      || l === 'ps1'
+      || l === 'bat'
+      || l === 'batch'
+    )
+      return `<img src="${SHELL_ICON_URL}" alt="${l}" />`
+    // return empty/undefined to use the library default icon
+    return undefined
+  },
+})
+```
+
+Local file example (import inline SVG):
+
+```ts
+import { createApp } from 'vue'
+import App from './App.vue'
+import { VueRendererMarkdown } from 'vue-renderer-markdown'
+import JsIcon from './assets/javascript.svg?raw'
+
+const app = createApp(App)
+
+app.use(VueRendererMarkdown, {
+  getLanguageIcon(lang) {
+    const l = (lang || '').toLowerCase()
+    if (l === 'javascript' || l === 'js')
+      return JsIcon // inline SVG string
+    return undefined
+  },
+})
+```
+
+Notes:
+- The resolver returns raw HTML/SVG string. Returning `undefined`/empty value defers to the built-in mapping.
+- Works across all code blocks without changing component usage.
+- Alignment: icons render inside a fixed-size slot; both `<svg>` and `<img>` align consistently, no inline styles needed.
+- For local files, import with `?raw` and ensure the file is a pure SVG (not an HTML page). Download the raw SVG instead of GitHub’s HTML preview.
+- The resolver receives the raw language string (e.g., `tsx:src/components/file.tsx`). The built-in fallback mapping uses only the base segment before `:`.
+
 ## Monaco Editor Integration
 
 If you are using Monaco Editor in your project, configure `vite-plugin-monaco-editor-esm` to handle global injection of workers. Our renderer is optimized for streaming updates to large code blocks—when content changes incrementally, only the necessary parts are updated for smooth, responsive rendering. On Windows, you may encounter issues during the build process. To resolve this, configure `customDistPath` to ensure successful packaging.
