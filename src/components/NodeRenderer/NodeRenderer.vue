@@ -51,8 +51,7 @@ const props = defineProps<
 
 // 定义事件
 defineEmits(['copy', 'handleArtifactClick', 'click', 'mouseover', 'mouseout'])
-const id = ref(`editor-${Date.now()}`)
-const md = getMarkdown(id.value)
+const md = getMarkdown()
 const containerRef = ref<HTMLElement>()
 // 延迟按需预加载 Monaco（仅在检测到代码块时）
 preloadMonacoWorkers()
