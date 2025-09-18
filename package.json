@@ -70,6 +70,7 @@
     "vue-use-monaco": ">=0.0.20"
   },
   "dependencies": {
+    "@floating-ui/dom": "^1.4.3",
     "katex": ">=0.16.22",
     "markdown-it": "^14.1.0",
     "markdown-it-container": "^4.0.0",
