@@ -162,7 +162,7 @@ let detectLanguage: (code: string) => string = (code) => {
         getEditor = helpers.getEditor || getEditor
         getEditorView = helpers.getEditorView || getEditorView
         cleanupEditor = helpers.cleanupEditor || cleanupEditor
-        if(!editorCreated && codeEditor.value){
+        if (!editorCreated && codeEditor.value) {
           editorCreated = true
           createEditor(codeEditor.value as HTMLElement, props.node.code, codeLanguage.value)
         }

@@ -67,7 +67,7 @@ const parsedNodes = computed<BaseNode[]>(() => {
       : []
 })
 
-// 异步按需加载 CodeBlock 组件；失败时退回为 TextNode（纯文本渲染）
+// 异步按需加载 CodeBlock 组件；失败时退回为 InlineCodeNode（内联代码渲染）
 const CodeBlockNodeAsync = defineAsyncComponent(async () => {
   try {
     const mod = await import('../CodeBlockNode')
@@ -75,10 +75,10 @@ const CodeBlockNodeAsync = defineAsyncComponent(async () => {
   }
   catch (e) {
     console.warn(
-      '[vue-markdown-render] Optional peer dependencies for CodeBlockNode are missing. Falling back to plain text rendering. To enable full code block features, please install "mermaid" 、 "vue-use-monaco" and "@iconify/vue".',
+      '[vue-markdown-render] Optional peer dependencies for CodeBlockNode are missing. Falling back to inline-code rendering (no Monaco). To enable full code block features, please install "mermaid", "vue-use-monaco" and "@iconify/vue".',
       e,
     )
-    return TextNode
+    return InlineCodeNode
   }
 })
 
