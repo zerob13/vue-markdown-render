@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import type { BaseNode } from '../../utils'
 
-import { computed, ref } from 'vue'
-import { preloadMonacoWorkers } from 'vue-use-monaco'
+import { computed, defineAsyncComponent, ref } from 'vue'
 import { getMarkdown, parseMarkdownToStructure } from '../../utils/markdown'
 import { setNodeComponents } from '../../utils/nodeComponents'
 import AdmonitionNode from '../AdmonitionNode'
 import BlockquoteNode from '../BlockquoteNode'
 import CheckboxNode from '../CheckboxNode'
-import CodeBlockNode from '../CodeBlockNode'
+// CodeBlockNode depends on optional peers (mermaid, vue-use-monaco).
+// Load it lazily and fall back to TextNode when peers are not installed.
 import DefinitionListNode from '../DefinitionListNode'
 import EmojiNode from '../EmojiNode'
 import EmphasisNode from '../EmphasisNode'
@@ -51,11 +51,13 @@ const props = defineProps<
 
 // 定义事件
 defineEmits(['copy', 'handleArtifactClick', 'click', 'mouseover', 'mouseout'])
-const id = ref(`editor-${Date.now()}`)
-const md = getMarkdown(id.value)
+const md = getMarkdown()
 const containerRef = ref<HTMLElement>()
-// 延迟按需预加载 Monaco（仅在检测到代码块时）
-preloadMonacoWorkers()
+// 延迟按需预加载 Monaco（若 vue-use-monaco 存在）
+// Note: vue-use-monaco is optional; ignore errors when absent.
+import('vue-use-monaco')
+  .then(m => m.preloadMonacoWorkers?.())
+  .catch(() => {})
 const parsedNodes = computed<BaseNode[]>(() => {
   // 解析 content 字符串为节点数组
   return props.nodes?.length
@@ -65,12 +67,27 @@ const parsedNodes = computed<BaseNode[]>(() => {
       : []
 })
 
+// 异步按需加载 CodeBlock 组件；失败时退回为 InlineCodeNode（内联代码渲染）
+const CodeBlockNodeAsync = defineAsyncComponent(async () => {
+  try {
+    const mod = await import('../CodeBlockNode')
+    return mod.default
+  }
+  catch (e) {
+    console.warn(
+      '[vue-markdown-render] Optional peer dependencies for CodeBlockNode are missing. Falling back to inline-code rendering (no Monaco). To enable full code block features, please install "mermaid", "vue-use-monaco" and "@iconify/vue".',
+      e,
+    )
+    return InlineCodeNode
+  }
+})
+
 // 组件映射表
 const nodeComponents = {
   text: TextNode,
   paragraph: ParagraphNode,
   heading: HeadingNode,
-  code_block: CodeBlockNode,
+  code_block: CodeBlockNodeAsync,
   list: ListNode,
   blockquote: BlockquoteNode,
   table: TableNode,

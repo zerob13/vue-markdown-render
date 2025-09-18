@@ -38,12 +38,10 @@
   "module": "./dist/index.js",
   "types": "./dist/types/exports.d.ts",
   "files": [
-    "dist",
-    "scripts/check-peer-deps.cjs"
+    "dist"
   ],
   "scripts": {
     "dev": "pnpm run -C playground dev",
-    "postinstall": "node ./scripts/check-peer-deps.cjs || true",
     "test": "vitest",
     "lint": "eslint . --cache",
     "lint:fix": "pnpm run lint --fix",
@@ -62,15 +60,29 @@
   },
   "peerDependencies": {
     "@iconify/vue": ">=5.0.0",
-    "@vueuse/core": ">=8.9.4",
     "katex": ">=0.16.22",
     "mermaid": ">=11",
     "vue": ">=3.0.0",
     "vue-i18n": ">=9",
     "vue-use-monaco": ">=0.0.20"
   },
+  "peerDependenciesMeta": {
+    "@iconify/vue": {
+      "optional": true
+    },
+    "mermaid": {
+      "optional": true
+    },
+    "vue-i18n": {
+      "optional": true
+    },
+    "vue-use-monaco": {
+      "optional": true
+    }
+  },
   "dependencies": {
-    "katex": ">=0.16.22",
+    "@floating-ui/dom": "^1.4.3",
+    "katex": "^0.16.22",
     "markdown-it": "^14.1.0",
     "markdown-it-container": "^4.0.0",
     "markdown-it-emoji": "^3.0.0",
@@ -81,8 +93,8 @@
     "markdown-it-sub": "^2.0.0",
     "markdown-it-sup": "^2.0.0",
     "markdown-it-task-checkbox": "^1.0.6",
-    "mermaid": "^11.11.0",
-    "vue-use-monaco": "^0.0.20"
+    "vue-i18n": "^11.1.12",
+    "vue-use-monaco": "^0.0.21"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^5.3.0",
@@ -90,12 +102,10 @@
     "@types/node": "^18.19.124",
     "@vitejs/plugin-vue": "^5.2.4",
     "@vitest/ui": "^3.2.4",
-    "@vueuse/core": "^8.9.4",
     "autoprefixer": "^10.4.21",
     "bumpp": "^8.2.1",
     "eslint": "^9.35.0",
     "lint-staged": "^13.3.0",
-    "monaco-editor": "0.52.2",
     "picocolors": "^1.1.1",
     "postcss-cli": "^11.0.1",
     "tailwindcss": "^3.4.17",
@@ -108,7 +118,6 @@
     "vite-plugin-pages": "^0.33.1",
     "vitest": "^3.2.4",
     "vue": "^3.5.21",
-    "vue-i18n": "^11.1.12",
     "vue-tsc": "^2.2.12"
   },
   "lint-staged": {

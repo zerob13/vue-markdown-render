@@ -1,10 +1,5 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import mermaid from 'mermaid'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import mermaidIconUrl from '../../icon/mermaid.svg'
-import { isDark } from '../../utils/isDark'
-import parserWorkerUrl from '../../workers/mermaidParser.worker?worker&url'
 
 const props = withDefaults(
   // 全屏按钮禁用状态
@@ -22,8 +17,79 @@ const props = withDefaults(
     loading: true,
   },
 )
-
 const emits = defineEmits(['copy'])
+// Optional runtime imports - will be dynamically loaded if available
+let Icon: any = null
+let mermaid: any = null
+let isDark: any = ref(false)
+let mermaidIconUrl = null as any
+let parserWorkerUrl: string | null = null
+
+// Attempt to lazy-load optional packages at runtime. If they are not
+// installed in the host project, we simply keep the fallbacks and avoid
+// throwing at module evaluation time.
+onMounted(async () => {
+  // lazy-load @iconify/vue Icon component if present
+  try {
+    const mod = await import('@iconify/vue')
+    Icon = (mod as any).Icon ?? (mod as any).default ?? null
+  }
+  catch {
+    Icon = null
+  }
+
+  // lazy-load mermaid library and worker URL if present
+  try {
+    const m = await import('mermaid')
+    mermaid = (m && (m.default ?? m))
+    // initialize mermaid if available
+    try {
+      mermaid?.initialize?.({ startOnLoad: false, securityLevel: 'loose' })
+    }
+    catch {}
+    // lazy-load worker url only if mermaid exists
+    try {
+      const w = await import('../../workers/mermaidParser.worker?worker&url')
+      parserWorkerUrl = w?.default ?? null
+    }
+    catch {
+      parserWorkerUrl = null
+    }
+  }
+  catch {
+    mermaid = null
+    parserWorkerUrl = null
+  }
+
+  // lazy-load isDark from vue-use-monaco if available, otherwise use prefers-color-scheme
+  try {
+    const mon = await import('vue-use-monaco')
+    // prefer exported isDark ref, otherwise try .default
+    isDark = (mon as any).isDark ?? ((mon as any).default && (mon as any).default.isDark) ?? isDark
+  }
+  catch {
+    // fallback to prefers-color-scheme
+    try {
+      const mq = window.matchMedia?.('(prefers-color-scheme: dark)')
+      isDark = ref(!!mq?.matches)
+      if (mq?.addEventListener)
+        mq.addEventListener('change', (e: any) => { isDark.value = e.matches })
+    }
+    catch {
+      isDark = ref(false)
+    }
+  }
+})
+
+// default icon svg (optional): try to load local mermaid svg; keep null if not resolvable
+try {
+  // use import.meta URL approach to get an asset URL when bundlers support it
+  mermaidIconUrl = new URL('../../icon/mermaid.svg', import.meta.url).href
+}
+catch {
+  mermaidIconUrl = null
+}
+
 const copyText = ref(false)
 const mermaidContainer = ref<HTMLElement>()
 const mermaidWrapper = ref<HTMLElement>()
@@ -773,7 +839,7 @@ async function initMermaid() {
       }
       const currentTheme = isDark.value ? 'dark' : 'light'
       const codeWithTheme = getCodeWithTheme(currentTheme)
-      const { svg, bindFunctions } = await withTimeoutSignal(
+      const res: any = await withTimeoutSignal(
         () => mermaid.render(
           id,
           codeWithTheme,
@@ -781,6 +847,8 @@ async function initMermaid() {
         ),
         { timeoutMs: FULL_RENDER_TIMEOUT_MS },
       )
+      const svg = res?.svg
+      const bindFunctions = res?.bindFunctions
 
       if (mermaidContent.value) {
         mermaidContent.value.innerHTML = svg
@@ -849,11 +917,13 @@ async function renderPartial(code: string) {
     if (mermaidContent.value)
       mermaidContent.value.style.opacity = '0'
 
-    const { svg, bindFunctions } = await withTimeoutSignal(
+    const res: any = await withTimeoutSignal(
       () => mermaid.render(id, codeWithTheme, mermaidContent.value!),
       { timeoutMs: RENDER_TIMEOUT_MS },
     )
-    if (mermaidContent.value) {
+    const svg = res?.svg
+    const bindFunctions = res?.bindFunctions
+    if (mermaidContent.value && svg) {
       mermaidContent.value.innerHTML = svg
       bindFunctions?.(mermaidContent.value)
       updateContainerHeight()
@@ -1272,7 +1342,7 @@ onUnmounted(() => {
           @click="switchMode('preview')"
         >
           <div class="flex items-center space-x-1">
-            <Icon icon="lucide:eye" class="w-3 h-3" />
+            <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:eye', class: 'w-3 h-3' }" />
             <span>Preview</span>
           </div>
         </button>
@@ -1286,7 +1356,7 @@ onUnmounted(() => {
           @click="switchMode('source')"
         >
           <div class="flex items-center space-x-1">
-            <Icon icon="lucide:code" class="w-3 h-3" />
+            <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:code', class: 'w-3 h-3' }" />
             <span>Source</span>
           </div>
         </button>
@@ -1298,8 +1368,8 @@ onUnmounted(() => {
           class="mermaid-action-btn p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           @click="copy"
         >
-          <Icon v-if="!copyText" icon="lucide:copy" class="w-3 h-3" />
-          <Icon v-else icon="lucide:check" class="w-3 h-3" />
+          <component :is="Icon" v-if="Icon" v-bind="{ icon: !copyText ? 'lucide:copy' : 'lucide:check', class: 'w-3 h-3' }" />
+          <span v-else class="w-3 h-3 inline-block" />
         </button>
         <button
           class="mermaid-action-btn p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -1307,7 +1377,7 @@ onUnmounted(() => {
           :class="isFullscreenDisabled ? 'opacity-50 cursor-not-allowed' : ''"
           @click="exportSvg"
         >
-          <Icon icon="lucide:download" class="w-3 h-3" />
+          <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:download', class: 'w-3 h-3' }" />
         </button>
         <button
           class="mermaid-action-btn p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -1315,10 +1385,7 @@ onUnmounted(() => {
           :class="isFullscreenDisabled ? 'opacity-50 cursor-not-allowed' : ''"
           @click="openModal"
         >
-          <Icon
-            :icon="isModalOpen ? 'lucide:minimize-2' : 'lucide:maximize-2'"
-            class="w-3 h-3"
-          />
+          <component :is="Icon ? Icon : 'span'" v-bind="{ icon: isModalOpen ? 'lucide:minimize-2' : 'lucide:maximize-2', class: 'w-3 h-3' }" />
         </button>
       </div>
     </div>
@@ -1337,20 +1404,20 @@ onUnmounted(() => {
               class="px-2.5 py-1 text-[10px] rounded-full bg-gradient-to-r from-sky-500/90 to-indigo-500/90 text-white select-none inline-flex items-center gap-1.5 shadow-sm ring-1 ring-white/20 backdrop-blur-sm"
               title="Rendering in progress"
             >
-              <Icon icon="lucide:loader-2" class="w-3 h-3 animate-spin" />
+              <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:loader-2', class: 'w-3 h-3 animate-spin' }" />
               Rendering
             </span>
             <button
               class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               @click="zoomIn"
             >
-              <Icon icon="lucide:zoom-in" class="w-3 h-3" />
+              <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:zoom-in', class: 'w-3 h-3' }" />
             </button>
             <button
               class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               @click="zoomOut"
             >
-              <Icon icon="lucide:zoom-out" class="w-3 h-3" />
+              <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:zoom-out', class: 'w-3 h-3' }" />
             </button>
             <button
               class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -1402,13 +1469,13 @@ onUnmounted(() => {
                     class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                     @click="zoomIn"
                   >
-                    <Icon icon="lucide:zoom-in" class="w-3 h-3" />
+                    <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:zoom-in', class: 'w-3 h-3' }" />
                   </button>
                   <button
                     class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                     @click="zoomOut"
                   >
-                    <Icon icon="lucide:zoom-out" class="w-3 h-3" />
+                    <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:zoom-out', class: 'w-3 h-3' }" />
                   </button>
                   <button
                     class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -1420,7 +1487,7 @@ onUnmounted(() => {
                     class="inline-flex items-center justify-center p-2 rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                     @click="closeModal"
                   >
-                    <Icon icon="lucide:x" class="w-3 h-3" />
+                    <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:x', class: 'w-3 h-3' }" />
                   </button>
                 </div>
                 <div

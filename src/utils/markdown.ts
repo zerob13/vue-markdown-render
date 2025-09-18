@@ -21,9 +21,39 @@ import 'katex/dist/katex.min.css'
 export * from '../types'
 export { parseInlineTokens, parseMarkdownToStructure, processTokens }
 
-export function getMarkdown(msgId: string) {
+export interface GetMarkdownOptions {
+  plugin?: Array<any>
+  apply?: Array<(md: MarkdownIt) => void>
+}
+
+export function getMarkdown(msgId: string = `editor-${Date.now()}`, options: GetMarkdownOptions = {}) {
   // keep legacy behaviour but delegate to new factory and reapply project-specific rules
   const md = factory({})
+
+  // apply user supplied plugins (md.use)
+  if (Array.isArray(options.plugin)) {
+    for (const p of options.plugin) {
+      // allow both [plugin, opts] tuple or plugin function
+      if (Array.isArray(p))
+        md.use(p[0], p[1])
+      else
+        md.use(p)
+    }
+  }
+
+  // apply user supplied apply functions to mutate the md instance (e.g. md.block.ruler.before(...))
+  if (Array.isArray(options.apply)) {
+    for (const fn of options.apply) {
+      try {
+        fn(md)
+      }
+      catch (e) {
+        // swallow errors to preserve legacy behaviour; developers can see stack in console
+
+        console.error('[getMarkdown] apply function threw an error', e)
+      }
+    }
+  }
 
   // Re-apply a few project specific plugins that were previously always enabled
   md.use(markdownItSub)

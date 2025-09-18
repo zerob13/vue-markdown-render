@@ -36,7 +36,6 @@ export default defineConfig({
         'vue',
         '@iconify/vue',
         '@lezer/highlight',
-        '@vueuse/core',
         'markdown-it',
         'markdown-it-container',
         'markdown-it-emoji',

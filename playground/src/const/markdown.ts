@@ -13,6 +13,22 @@ const streamContent = `I'll create a simple Electron + Vue chat application demo
 任意内容。
 :::
 
+\`\`\`html
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>vitesse-template</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    hello
+  </body>
+</html>
+\`\`\`
+
 مرحبا بكم في عالم اللغة العربية!
 1. First, let's set up the project:
 

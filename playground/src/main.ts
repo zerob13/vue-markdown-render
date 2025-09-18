@@ -10,7 +10,6 @@ import '@unocss/reset/tailwind.css'
 import './styles/main.css'
 import 'uno.css'
 import 'vue-renderer-markdown/index.css'
-import 'vue-renderer-markdown/index.tailwind.css'
 
 const app = createApp(App)
 app.use(createPinia())

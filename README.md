@@ -32,32 +32,42 @@ yarn add vue-renderer-markdown
 
 ### Install peer dependencies (important)
 
-This package declares a number of peer dependencies that your project must also install in order for `vue-renderer-markdown` to work correctly (for example: `vue`, `vue-i18n`, `mermaid`, `katex`, etc.). If these are missing you will see warnings and the component may fail at runtime.
+This package declares several peer dependencies. Some are required for core rendering and others are optional and enable extra features. Since the library now lazy-loads heavyweight optional peers at runtime, you can choose a minimal install for basic rendering or a full install to enable advanced features.
 
-Run one of the commands below from your project root to install the common peers listed in this repository's `package.json`:
+Minimal (core) peers — required for basic rendering:
 
 pnpm (recommended):
 
 ```bash
-pnpm add vue @iconify/vue @vueuse/core katex mermaid vue-use-monaco
+pnpm add vue
 ```
 
-npm:
+Full install — enables diagrams, Monaco editor preview and icon UI (recommended if you want all features):
 
 ```bash
-npm install vue @iconify/vue @vueuse/core katex mermaid vue-use-monaco
+pnpm add vue @iconify/vue katex mermaid vue-use-monaco
 ```
 
-yarn:
+npm equivalent:
 
 ```bash
-yarn add vue @iconify/vue @vueuse/core katex mermaid vue-use-monaco
+npm install vue @iconify/vue katex mermaid vue-use-monaco
+```
+
+yarn equivalent:
+
+```bash
+yarn add vue @iconify/vue katex mermaid vue-use-monaco
 ```
 
 Notes:
 
-- The versions installed will default to the latest matching releases; the exact peer version ranges are declared in this package's `package.json` — consult it if you need specific versions.
-- Some peers (for example `vue-use-monaco` / `monaco-editor`) are optional depending on which features you plan to use — install only the ones you need.
+- The exact peer version ranges are declared in this package's `package.json` — consult it if you need specific versions.
+- Optional peers and the features they enable:
+  - `mermaid` — enables Mermaid diagram rendering (progressive rendering is supported). If absent, code blocks tagged `mermaid` fall back to showing the source text without runtime errors.
+  - `vue-use-monaco` — enables Monaco Editor based previews/editing and advanced streaming updates for large code blocks. If absent, the component degrades to plain text rendering and no editor is created.
+  - `@iconify/vue` — enables iconography in the UI (toolbar buttons). If absent, simple fallback elements are shown in place of icons so the UI remains functional.
+- `vue-i18n` is optional: the library provides a synchronous fallback translator. If your app uses `vue-i18n`, the library will automatically wire into it at runtime when available.
 - If you're installing this library inside a monorepo or using pnpm workspaces, install peers at the workspace root so they are available to consuming packages.
 
 ## Why vue-renderer-markdown?
@@ -233,6 +243,22 @@ If you are using Monaco Editor in your project, configure `vite-plugin-monaco-ed
 
 > Note: If you only need to render a Monaco editor (for editing or previewing code) and don't require this library's full Markdown rendering pipeline, you can integrate Monaco directly using `vue-use-monaco` for a lighter, more direct integration.
 
+```bash
+pnpm add vite-plugin-monaco-editor-esm monaco-editor -d
+```
+
+npm equivalent:
+
+```bash
+npm install vite-plugin-monaco-editor-esm monaco-editor --save-dev
+```
+
+yarn equivalent:
+
+```bash
+yarn add vite-plugin-monaco-editor-esm monaco-editor -d
+```
+
 ### Example Configuration
 
 ```ts
@@ -259,7 +285,7 @@ export default {
 
 This configuration ensures that Monaco Editor workers are correctly packaged and accessible in your project.
 
-### Mermaid: Progressive Rendering Example
+## Mermaid: Progressive Rendering Example
 
 Mermaid diagrams can be streamed progressively. The diagram renders as soon as the syntax becomes valid and refines as more content arrives.
 
@@ -293,6 +319,30 @@ const id = setInterval(() => {
   <!-- Mermaid must be installed as a peer dependency -->
 </template>
 ```
+
+## Tailwind (例如 shadcn) — 解决样式层级问题
+
+如果你在项目中使用像 shadcn 这样的 Tailwind 组件库，可能会遇到样式层级/覆盖问题。推荐在你的全局样式文件中通过 Tailwind 的 layer 把库样式以受控顺序导入。例如，在你的主样式文件（例如 `src/styles/index.css` 或 `src/main.css`）中：
+
+```css
+/* main.css 或 index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 推荐：将库样式放入 components 层，方便项目组件覆盖它们 */
+@layer components {
+  @import 'vue-renderer-markdown/index.css';
+}
+
+/* 备选：如需库样式优先于 Tailwind 的 components 覆盖，可放入 base 层：
+@layer base {
+  @import 'vue-renderer-markdown/index.css';
+}
+*/
+```
+
+选择放入 `components`（常用）或 `base`（当你希望库样式更“基础”且不易被覆盖时）取决于你希望的覆盖优先级。调整后运行你的构建/开发命令（例如 pnpm dev）以验证样式顺序是否符合预期。
 
 ## Thanks
 

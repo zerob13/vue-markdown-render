@@ -40,27 +40,30 @@ export default defineConfig(({ mode }) => {
         fileName: 'index',
       },
       rollupOptions: {
-        external: [
-          'vue',
-          '@iconify/vue',
-          '@lezer/highlight',
-          '@vueuse/core',
-          'markdown-it',
-          'markdown-it-container',
-          'markdown-it-emoji',
-          'markdown-it-footnote',
-          'markdown-it-ins',
-          'markdown-it-mark',
-          'markdown-it-mathjax3',
-          'markdown-it-sub',
-          'markdown-it-sup',
-          'markdown-it-task-checkbox',
-          'mermaid',
-          'vue-i18n',
-          'katex',
-          'vue-use-monaco',
-          'monaco-editor',
-        ],
+        external: (id: string) => {
+          // treat mermaid and any mermaid/* imports as external
+          if (/(?:^|\/)mermaid(?:\/|$)/.test(id))
+            return true
+          return [
+            'vue',
+            '@iconify/vue',
+            '@lezer/highlight',
+            'markdown-it',
+            'markdown-it-container',
+            'markdown-it-emoji',
+            'markdown-it-footnote',
+            'markdown-it-ins',
+            'markdown-it-mark',
+            'markdown-it-mathjax3',
+            'markdown-it-sub',
+            'markdown-it-sup',
+            'markdown-it-task-checkbox',
+            'vue-i18n',
+            'katex',
+            'vue-use-monaco',
+            'monaco-editor',
+          ].includes(id)
+        },
         output: {
           globals: {
             vue: 'Vue',
@@ -78,9 +81,13 @@ export default defineConfig(({ mode }) => {
     worker: {
       // Ensure web workers are bundled as ESM; IIFE/UMD are invalid with code-splitting
       format: 'es',
+      // Externalize mermaid in worker bundling as well (treat mermaid and mermaid/* as external)
+      rollupOptions: {
+        external: (id: string) => /(?:^|\/)mermaid(?:\/|$)/.test(id),
+      },
     },
     css: {
-      postcss: mode === 'npm' ? './postcss.config.cjs' : undefined,
+      postcss: './postcss.config.cjs',
     },
     resolve: {
       alias: {
