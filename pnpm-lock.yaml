@@ -141,6 +141,9 @@ importers:
       vue-i18n:
         specifier: ^11.1.12
         version: 11.1.12(vue@3.5.21(typescript@5.9.2))
+      vue-renderer-markdown:
+        specifier: latest
+        version: 0.0.54-beta.0(@iconify/vue@5.0.0(vue@3.5.21(typescript@5.9.2)))(@vueuse/core@13.9.0(vue@3.5.21(typescript@5.9.2)))(katex@0.16.22)(mermaid@11.11.0)(vue-i18n@11.1.12(vue@3.5.21(typescript@5.9.2)))(vue-use-monaco@0.0.21(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2))
       vue-router:
         specifier: ^4.5.1
         version: 4.5.1(vue@3.5.21(typescript@5.9.2))
@@ -4066,6 +4069,17 @@ packages:
     engines: {node: '>= 16'}
     peerDependencies:
       vue: ^3.0.0
+
+  vue-renderer-markdown@0.0.54-beta.0:
+    resolution: {integrity: sha512-7Y/vNbPO0IijsqCBM0NrO4+0vSIDRg9MA4U6LdpZ21b4RloXuaGgmj4wjA/9ykkY0eJRDoDIYu3dFI5Bb5PYzw==}
+    peerDependencies:
+      '@iconify/vue': '>=5.0.0'
+      '@vueuse/core': '>=8.9.4'
+      katex: '>=0.16.22'
+      mermaid: '>=11'
+      vue: '>=3.0.0'
+      vue-i18n: '>=9'
+      vue-use-monaco: '>=0.0.20'
 
   vue-router@4.5.1:
     resolution: {integrity: sha512-ogAF3P97NPm8fJsE4by9dwSYtDwXIY1nFY9T6DyQnGHd1E2Da94w9JIolpe42LJGIl0DwOHBi8TcRPlPGwbTtw==}
@@ -8580,6 +8594,28 @@ snapshots:
       '@intlify/shared': 11.1.12
       '@vue/devtools-api': 6.6.4
       vue: 3.5.21(typescript@5.9.2)
+
+  vue-renderer-markdown@0.0.54-beta.0(@iconify/vue@5.0.0(vue@3.5.21(typescript@5.9.2)))(@vueuse/core@13.9.0(vue@3.5.21(typescript@5.9.2)))(katex@0.16.22)(mermaid@11.11.0)(vue-i18n@11.1.12(vue@3.5.21(typescript@5.9.2)))(vue-use-monaco@0.0.21(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2)):
+    dependencies:
+      '@iconify/vue': 5.0.0(vue@3.5.21(typescript@5.9.2))
+      '@vueuse/core': 13.9.0(vue@3.5.21(typescript@5.9.2))
+      katex: 0.16.22
+      markdown-it: 14.1.0
+      markdown-it-container: 4.0.0
+      markdown-it-emoji: 3.0.0
+      markdown-it-footnote: 4.0.0
+      markdown-it-ins: 4.0.0
+      markdown-it-mark: 4.0.0
+      markdown-it-mathjax3: 4.3.2
+      markdown-it-sub: 2.0.0
+      markdown-it-sup: 2.0.0
+      markdown-it-task-checkbox: 1.0.6
+      mermaid: 11.11.0
+      vue: 3.5.21(typescript@5.9.2)
+      vue-i18n: 11.1.12(vue@3.5.21(typescript@5.9.2))
+      vue-use-monaco: 0.0.21(vue@3.5.21(typescript@5.9.2))
+    transitivePeerDependencies:
+      - encoding
 
   vue-router@4.5.1(vue@3.5.21(typescript@5.9.2)):
     dependencies:
