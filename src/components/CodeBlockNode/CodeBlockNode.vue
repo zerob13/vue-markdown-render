@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Avoid static import of `vue-use-monaco` for types so the runtime bundle
 // doesn't get a reference. Define minimal local types we need here.
-import { computed, defineAsyncComponent, defineComponent, h, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, defineComponent, h, onUnmounted, ref, watch } from 'vue'
 import { useSafeI18n } from '../../composables/useSafeI18n'
 import { getLanguageIcon, languageMap } from '../../utils'
 import MermaidBlockNode from '../MermaidBlockNode'
@@ -392,6 +392,10 @@ const stop = watch(
     stop()
   },
 )
+
+onUnmounted(() => {
+  cleanupEditor()
+})
 </script>
 
 <template>
