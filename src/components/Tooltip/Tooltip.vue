@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, watch, onBeforeUnmount, nextTick } from 'vue'
-import { computePosition, autoUpdate, offset, flip, shift } from '@floating-ui/dom'
+import { autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom'
+import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
 
 const props = defineProps<{
   visible: boolean
@@ -50,7 +50,8 @@ watch(
 )
 
 onBeforeUnmount(() => {
-  if (cleanupAutoUpdate) cleanupAutoUpdate()
+  if (cleanupAutoUpdate)
+    cleanupAutoUpdate()
 })
 </script>
 

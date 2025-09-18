@@ -32,32 +32,42 @@ yarn add vue-renderer-markdown
 
 ### Install peer dependencies (important)
 
-This package declares a number of peer dependencies that your project must also install in order for `vue-renderer-markdown` to work correctly (for example: `vue`, `vue-i18n`, `mermaid`, `katex`, etc.). If these are missing you will see warnings and the component may fail at runtime.
+This package declares several peer dependencies. Some are required for core rendering and others are optional and enable extra features. Since the library now lazy-loads heavyweight optional peers at runtime, you can choose a minimal install for basic rendering or a full install to enable advanced features.
 
-Run one of the commands below from your project root to install the common peers listed in this repository's `package.json`:
+Minimal (core) peers — required for basic rendering:
 
 pnpm (recommended):
 
 ```bash
-pnpm add vue @iconify/vue @vueuse/core katex mermaid vue-use-monaco
+pnpm add vue
 ```
 
-npm:
+Full install — enables diagrams, Monaco editor preview and icon UI (recommended if you want all features):
 
 ```bash
-npm install vue @iconify/vue @vueuse/core katex mermaid vue-use-monaco
+pnpm add vue @iconify/vue katex mermaid vue-use-monaco
 ```
 
-yarn:
+npm equivalent:
 
 ```bash
-yarn add vue @iconify/vue @vueuse/core katex mermaid vue-use-monaco
+npm install vue @iconify/vue katex mermaid vue-use-monaco
+```
+
+yarn equivalent:
+
+```bash
+yarn add vue @iconify/vue katex mermaid vue-use-monaco
 ```
 
 Notes:
 
-- The versions installed will default to the latest matching releases; the exact peer version ranges are declared in this package's `package.json` — consult it if you need specific versions.
-- Some peers (for example `vue-use-monaco` / `monaco-editor`) are optional depending on which features you plan to use — install only the ones you need.
+- The exact peer version ranges are declared in this package's `package.json` — consult it if you need specific versions.
+- Optional peers and the features they enable:
+  - `mermaid` — enables Mermaid diagram rendering (progressive rendering is supported). If absent, code blocks tagged `mermaid` fall back to showing the source text without runtime errors.
+  - `vue-use-monaco` — enables Monaco Editor based previews/editing and advanced streaming updates for large code blocks. If absent, the component degrades to plain text rendering and no editor is created.
+  - `@iconify/vue` — enables iconography in the UI (toolbar buttons). If absent, simple fallback elements are shown in place of icons so the UI remains functional.
+- `vue-i18n` is optional: the library provides a synchronous fallback translator. If your app uses `vue-i18n`, the library will automatically wire into it at runtime when available.
 - If you're installing this library inside a monorepo or using pnpm workspaces, install peers at the workspace root so they are available to consuming packages.
 
 ## Why vue-renderer-markdown?
