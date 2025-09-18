@@ -178,6 +178,22 @@ If you are using Monaco Editor in your project, configure `vite-plugin-monaco-ed
 
 > Note: If you only need to render a Monaco editor (for editing or previewing code) and don't require this library's full Markdown rendering pipeline, you can integrate Monaco directly using `vue-use-monaco` for a lighter, more direct integration.
 
+```bash
+pnpm add vite-plugin-monaco-editor-esm monaco-editor -d
+```
+
+npm equivalent:
+
+```bash
+npm install vite-plugin-monaco-editor-esm monaco-editor --save-dev
+```
+
+yarn equivalent:
+
+```bash
+yarn add vite-plugin-monaco-editor-esm monaco-editor -d
+```
+
 ### Example Configuration
 
 ```ts
