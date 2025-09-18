@@ -194,7 +194,7 @@ export default {
 
 This configuration ensures that Monaco Editor workers are correctly packaged and accessible in your project.
 
-### Mermaid: Progressive Rendering Example
+## Mermaid: Progressive Rendering Example
 
 Mermaid diagrams can be streamed progressively. The diagram renders as soon as the syntax becomes valid and refines as more content arrives.
 
@@ -228,6 +228,30 @@ const id = setInterval(() => {
   <!-- Mermaid must be installed as a peer dependency -->
 </template>
 ```
+
+## Tailwind (例如 shadcn) — 解决样式层级问题
+
+如果你在项目中使用像 shadcn 这样的 Tailwind 组件库，可能会遇到样式层级/覆盖问题。推荐在你的全局样式文件中通过 Tailwind 的 layer 把库样式以受控顺序导入。例如，在你的主样式文件（例如 `src/styles/index.css` 或 `src/main.css`）中：
+
+```css
+/* main.css 或 index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 推荐：将库样式放入 components 层，方便项目组件覆盖它们 */
+@layer components {
+  @import 'vue-renderer-markdown/index.css';
+}
+
+/* 备选：如需库样式优先于 Tailwind 的 components 覆盖，可放入 base 层：
+@layer base {
+  @import 'vue-renderer-markdown/index.css';
+}
+*/
+```
+
+选择放入 `components`（常用）或 `base`（当你希望库样式更“基础”且不易被覆盖时）取决于你希望的覆盖优先级。调整后运行你的构建/开发命令（例如 pnpm dev）以验证样式顺序是否符合预期。
 
 ## Thanks
 
