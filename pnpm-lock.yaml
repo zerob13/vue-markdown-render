@@ -97,8 +97,8 @@ importers:
         specifier: ^5.9.2
         version: 5.9.2
       unplugin-class-extractor:
-        specifier: ^0.0.18
-        version: 0.0.18(esbuild@0.25.10)(vite@7.1.6(@types/node@18.19.127)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1))
+        specifier: ^0.0.19
+        version: 0.0.19(esbuild@0.25.10)(vite@7.1.6(@types/node@18.19.127)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1))
       unplugin-vue-components:
         specifier: ^28.8.0
         version: 28.8.0(@babel/parser@7.28.4)(vue@3.5.21(typescript@5.9.2))
@@ -136,8 +136,11 @@ importers:
         specifier: ^0.7.13
         version: 0.7.13(vue@3.5.21(typescript@5.9.2))
       monaco-editor:
-        specifier: ^0.52.0
+        specifier: ^0.52.2
         version: 0.52.2
+      vite:
+        specifier: ^7.1.6
+        version: 7.1.6(@types/node@20.19.17)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1)
       vue:
         specifier: ^3.5.21
         version: 3.5.21(typescript@5.9.2)
@@ -151,8 +154,8 @@ importers:
         specifier: ^4.5.1
         version: 4.5.1(vue@3.5.21(typescript@5.9.2))
       vue-use-monaco:
-        specifier: ^0.0.23
-        version: 0.0.23(vue@3.5.21(typescript@5.9.2))
+        specifier: ^0.0.24
+        version: 0.0.24(monaco-editor@0.52.2)(vue@3.5.21(typescript@5.9.2))
     devDependencies:
       '@types/node':
         specifier: ^20.19.17
@@ -3582,8 +3585,8 @@ packages:
       '@vueuse/core':
         optional: true
 
-  unplugin-class-extractor@0.0.18:
-    resolution: {integrity: sha512-/GFZtyaB8Tde3mNRwCOUgVDXdrZccnM+K8oeF7Erv0QfFa54dvfsBLeDstzFEIlezOCHBRgCp6Z8Ja5vsDHDzA==}
+  unplugin-class-extractor@0.0.19:
+    resolution: {integrity: sha512-6bWYUca5yUjzLUPVKuaUN/jXKm3+mXw4ZZwoczPDRs/jU0Gab75RrhZMN0OJ/P7ANvEZ+ak4l9a14hpkQUOLiA==}
     peerDependencies:
       '@nuxt/kit': ^3
       '@nuxt/schema': ^3
@@ -3841,6 +3844,13 @@ packages:
     resolution: {integrity: sha512-Tv3WzGS6RHG24APV+EZq9AHdcVnKrVQxy2VNfbgQUzelsoCJSk5vyNiClUhFI3azH7OPyzcEqqiQFUaWzNBFMA==}
     hasBin: true
     peerDependencies:
+      vue: '>=3.0.0'
+
+  vue-use-monaco@0.0.24:
+    resolution: {integrity: sha512-ni+ZqgwmCCnG+3YoPkqPXso/maHY9XA0wlDlPakMvLms7V07RX0BJpTDQ/adMaP98RzU6dAw8GiInj5FYPZ68Q==}
+    hasBin: true
+    peerDependencies:
+      monaco-editor: 0.52.2
       vue: '>=3.0.0'
 
   vue@3.5.21:
@@ -7707,7 +7717,7 @@ snapshots:
     transitivePeerDependencies:
       - rollup
 
-  unplugin-class-extractor@0.0.18(esbuild@0.25.10)(vite@7.1.6(@types/node@18.19.127)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1)):
+  unplugin-class-extractor@0.0.19(esbuild@0.25.10)(vite@7.1.6(@types/node@18.19.127)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1)):
     dependencies:
       unplugin: 1.16.1
     optionalDependencies:
@@ -7874,6 +7884,21 @@ snapshots:
       tsx: 4.20.5
       yaml: 2.8.1
 
+  vite@7.1.6(@types/node@20.19.17)(jiti@2.5.1)(tsx@4.20.5)(yaml@2.8.1):
+    dependencies:
+      esbuild: 0.25.10
+      fdir: 6.5.0(picomatch@4.0.3)
+      picomatch: 4.0.3
+      postcss: 8.5.6
+      rollup: 4.50.2
+      tinyglobby: 0.2.15
+    optionalDependencies:
+      '@types/node': 20.19.17
+      fsevents: 2.3.3
+      jiti: 2.5.1
+      tsx: 4.20.5
+      yaml: 2.8.1
+
   vitest@3.2.4(@types/debug@4.1.12)(@types/node@18.19.127)(@vitest/ui@3.2.4)(jiti@2.5.1)(jsdom@24.1.3)(tsx@4.20.5)(yaml@2.8.1):
     dependencies:
       '@types/chai': 5.2.2
@@ -7974,6 +7999,13 @@ snapshots:
       typescript: 5.9.2
 
   vue-use-monaco@0.0.23(vue@3.5.21(typescript@5.9.2)):
+    dependencies:
+      '@shikijs/monaco': 3.12.2
+      monaco-editor: 0.52.2
+      shiki: 3.12.2
+      vue: 3.5.21(typescript@5.9.2)
+
+  vue-use-monaco@0.0.24(monaco-editor@0.52.2)(vue@3.5.21(typescript@5.9.2)):
     dependencies:
       '@shikijs/monaco': 3.12.2
       monaco-editor: 0.52.2

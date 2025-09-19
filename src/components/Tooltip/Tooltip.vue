@@ -121,7 +121,7 @@ onBeforeUnmount(() => {
         :id="props.id"
         ref="tooltip"
         :style="{ position: 'fixed', left: style.left, top: style.top, transform: style.transform }"
-        class="z-[9999] inline-block text-base font-medium bg-white text-gray-900 dark:bg-gray-900 dark:text-white py-2 px-3 rounded-md shadow-md whitespace-nowrap pointer-events-none border border-gray-200 dark:border-gray-700 tooltip-element"
+        class="z-[9999] inline-block text-base bg-white text-gray-900 dark:bg-gray-900 dark:text-white py-2 px-3 rounded-md shadow-md whitespace-nowrap pointer-events-none border border-gray-200 dark:border-gray-700 tooltip-element"
         role="tooltip"
       >
         {{ content }}
