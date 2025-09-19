@@ -2,7 +2,6 @@
 
 import path from 'node:path'
 import Vue from '@vitejs/plugin-vue'
-import Unocss from 'unocss/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { defineConfig } from 'vite'
@@ -19,6 +18,9 @@ export default defineConfig({
     alias: {
       '~/': `${path.resolve(__dirname, 'src')}/`,
     },
+  },
+  optimizeDeps: {
+    exclude: ['vue-use-monaco'],
   },
   plugins: [
     Vue({}),
@@ -37,10 +39,6 @@ export default defineConfig({
       dts: true,
     }),
 
-    // https://github.com/antfu/unocss
-    // see unocss.config.ts for config
-    Unocss(),
-
     monacoEditorPlugin({
       languageWorkers: [
         'editorWorkerService',
@@ -49,6 +47,9 @@ export default defineConfig({
         'html',
         'json',
       ],
+      customDistPath(root, buildOutDir) {
+        return path.resolve(buildOutDir, 'monacoeditorwork')
+      },
     }),
   ],
 })

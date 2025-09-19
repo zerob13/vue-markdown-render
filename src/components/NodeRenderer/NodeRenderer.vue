@@ -34,6 +34,7 @@ import TableNode from '../TableNode'
 import TextNode from '../TextNode'
 import ThematicBreakNode from '../ThematicBreakNode'
 import FallbackComponent from './FallbackComponent.vue'
+import { preload } from './preloadMonaco'
 
 // 组件接收的 props
 const props = defineProps<
@@ -53,11 +54,7 @@ const props = defineProps<
 defineEmits(['copy', 'handleArtifactClick', 'click', 'mouseover', 'mouseout'])
 const md = getMarkdown()
 const containerRef = ref<HTMLElement>()
-// 延迟按需预加载 Monaco（若 vue-use-monaco 存在）
-// Note: vue-use-monaco is optional; ignore errors when absent.
-import('vue-use-monaco')
-  .then(m => m.preloadMonacoWorkers?.())
-  .catch(() => {})
+preload()
 const parsedNodes = computed<BaseNode[]>(() => {
   // 解析 content 字符串为节点数组
   return props.nodes?.length

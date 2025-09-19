@@ -285,6 +285,45 @@ export default {
 
 This configuration ensures that Monaco Editor workers are correctly packaged and accessible in your project.
 
+### Webpack — monaco-editor-webpack-plugin
+
+如果你的项目使用 Webpack 而不是 Vite，可以使用官方的 `monaco-editor-webpack-plugin` 来打包并注入 Monaco 的 worker 文件。下面给出一个简单示例（Webpack 5）：
+
+安装：
+
+```bash
+pnpm add -D monaco-editor monaco-editor-webpack-plugin
+# 或
+npm install --save-dev monaco-editor monaco-editor-webpack-plugin
+```
+
+示例 `webpack.config.js`：
+
+```js
+const path = require('node:path')
+const MonacoEditorPlugin = require('monaco-editor-webpack-plugin')
+
+module.exports = {
+  // ...你的其他配置...
+  output: {
+    // 确保 worker 文件被正确放置，可按需调整 publicPath/filename
+    publicPath: '/',
+  },
+  plugins: [
+    new MonacoEditorPlugin({
+      // 指定需要的语言/功能以减小体积
+      languages: ['javascript', 'typescript', 'css', 'html', 'json'],
+      // 可选项：调整输出 worker 文件名模式
+      filename: 'static/[name].worker.js',
+    }),
+  ],
+}
+```
+
+说明：
+- 对于使用 `monaco-editor` 的项目，务必将对应 worker 交由插件处理，否则运行时会在浏览器尝试加载缺失的 worker 文件（类似于 Vite 的 dep optimizer 错误）。
+- 如果你在构建后看到了类似 “file does not exist” 的错误（例如某些 worker 在依赖优化目录中找不到），请确保通过插件或构建输出将 worker 打包到可访问的位置。
+
 ## Mermaid: Progressive Rendering Example
 
 Mermaid diagrams can be streamed progressively. The diagram renders as soon as the syntax becomes valid and refines as more content arrives.

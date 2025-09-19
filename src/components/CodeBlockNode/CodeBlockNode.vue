@@ -4,9 +4,11 @@
 import type { WatchStopHandle } from 'vue'
 import { computed, defineAsyncComponent, defineComponent, h, nextTick, onUnmounted, ref, watch } from 'vue'
 import { useSafeI18n } from '../../composables/useSafeI18n'
+// Tooltip is provided as a singleton via composable to avoid many DOM nodes
+import { hideTooltip, showTooltipForAnchor } from '../../composables/useSingletonTooltip'
 import { getLanguageIcon, languageMap } from '../../utils'
 import MermaidBlockNode from '../MermaidBlockNode'
-import Tooltip from '../Tooltip/Tooltip.vue'
+import { getIconify, getUseMonaco } from './utils'
 
 interface MonacoOptions {
   fontSize?: number
@@ -43,63 +45,7 @@ const emits = defineEmits(['previewCode', 'copy'])
 const { t } = useSafeI18n()
 const codeEditor = ref<HTMLElement | null>(null)
 const copyText = ref(false)
-// Tooltip state
-const tooltipVisible = ref(false)
-const tooltipContent = ref('')
-const tooltipPlacement = ref<'top' | 'bottom' | 'left' | 'right'>('top')
-const currentAnchor = ref<HTMLElement | null>(null)
-const tooltipId = ref<string | null>(null)
-let showTimer: ReturnType<typeof setTimeout> | null = null
-let hideTimer: ReturnType<typeof setTimeout> | null = null
-
-function clearTimers() {
-  if (showTimer) {
-    clearTimeout(showTimer)
-    showTimer = null
-  }
-  if (hideTimer) {
-    clearTimeout(hideTimer)
-    hideTimer = null
-  }
-}
-
-function showTooltipForAnchor(el: HTMLElement | null, text: string, placement: typeof tooltipPlacement.value = 'top', immediate = false) {
-  if (!el)
-    return
-  clearTimers()
-  const doShow = () => {
-    tooltipId.value = `tooltip-${Date.now()}-${Math.floor(Math.random() * 1000)}`
-    currentAnchor.value = el
-    tooltipContent.value = text
-    tooltipPlacement.value = placement
-    tooltipVisible.value = true
-    try {
-      el.setAttribute('aria-describedby', tooltipId.value!)
-    }
-    catch {}
-  }
-  if (immediate)
-    doShow()
-  else showTimer = setTimeout(doShow, 80)
-}
-
-function hideTooltip(immediate = false) {
-  clearTimers()
-  const doHide = () => {
-    if (currentAnchor.value && tooltipId.value) {
-      try {
-        currentAnchor.value.removeAttribute('aria-describedby')
-      }
-      catch {}
-    }
-    tooltipVisible.value = false
-    currentAnchor.value = null
-    tooltipId.value = null
-  }
-  if (immediate)
-    doHide()
-  else hideTimer = setTimeout(doHide, 120)
-}
+// local tooltip logic removed; use shared `showTooltipForAnchor` / `hideTooltip`
 
 const codeLanguage = ref(props.node.language || '')
 const isExpanded = ref(false)
@@ -111,22 +57,7 @@ let expandRafId: number | null = null
 // 仅当用户主动点击展开后，才进入自动展开检测模式
 let autoExpandActive = false
 
-// Make Icon from @iconify/vue optional. If the package is missing, fall back to a no-op span.
-const Icon = defineAsyncComponent(async () => {
-  try {
-    const mod = await import('@iconify/vue')
-    return (mod as any).Icon
-  }
-  catch {
-    return defineComponent({
-      name: 'IconifyStub',
-      props: { icon: { type: String, default: '' } },
-      setup(_, { attrs }) {
-        return () => h('span', { ...attrs, 'aria-hidden': 'true' })
-      },
-    })
-  }
-})
+const Icon = getIconify()
 
 // Lazy-load `vue-use-monaco` helpers at runtime so consumers who don't install
 // `vue-use-monaco` won't have the editor code bundled. We provide safe no-op
@@ -136,18 +67,13 @@ let updateCode: (code: string, lang: string) => void = () => {}
 let getEditor: () => any = () => null
 let getEditorView: () => any = () => ({ getModel: () => ({ getLineCount: () => 1 }), getOption: () => 14, updateOptions: () => {} })
 let cleanupEditor: () => void = () => {}
-let detectLanguage: (code: string) => string = (code) => {
-  // very small fallback: guess by code content
-  if (/^\s*</.test(code))
-    return 'html'
-  if (/^\s*<svg/i.test(code))
-    return 'svg'
-  return 'text'
+let detectLanguage: (code: string) => string = () => {
+  return props.node.language || 'plaintext'
 }
 
 ;(async () => {
   try {
-    const mod = await import('vue-use-monaco')
+    const mod = await getUseMonaco()
     // `useMonaco` and `detectLanguage` should be available
     const useMonaco = (mod as any).useMonaco || ((mod as any).default && (mod as any).default.useMonaco)
     const det = (mod as any).detectLanguage || ((mod as any).default && (mod as any).default.detectLanguage)
@@ -299,6 +225,34 @@ async function copy() {
   }
 }
 
+// Tooltip helpers: use the global singleton tooltip so there's only one DOM node
+function shouldSkipEventTarget(el: EventTarget | null) {
+  const btn = el as HTMLButtonElement | null
+  return !btn || btn.disabled
+}
+
+type TooltipPlacement = 'top' | 'bottom' | 'left' | 'right'
+function onBtnHover(e: Event, text: string, place: TooltipPlacement = 'top') {
+  if (shouldSkipEventTarget(e.currentTarget))
+    return
+  const ev = e as MouseEvent
+  const origin = ev?.clientX != null && ev?.clientY != null ? { x: ev.clientX, y: ev.clientY } : undefined
+  showTooltipForAnchor(e.currentTarget as HTMLElement, text, place, false, origin)
+}
+
+function onBtnLeave() {
+  hideTooltip()
+}
+
+function onCopyHover(e: Event) {
+  if (shouldSkipEventTarget(e.currentTarget))
+    return
+  const txt = copyText.value ? (t('common.copied') || 'Copied') : (t('common.copy') || 'Copy')
+  const ev = e as MouseEvent
+  const origin = ev?.clientX != null && ev?.clientY != null ? { x: ev.clientX, y: ev.clientY } : undefined
+  showTooltipForAnchor(e.currentTarget as HTMLElement, txt, 'top', false, origin)
+}
+
 function toggleExpand() {
   isExpanded.value = !isExpanded.value
   const editor = getEditorView()
@@ -368,19 +322,16 @@ function previewCode() {
 watch(
   () => [props.node.code, codeLanguage.value, isMermaid.value] as const,
   () => {
-    if (!editorCreated)
+    if (!editorCreated || isMermaid.value)
       return
-    if (isMermaid.value) {
-      cleanupEditor()
-      return
-    }
+
     updateCode(props.node.code, codeLanguage.value)
   },
   { flush: 'post', immediate: false },
 )
 
 // 延迟创建编辑器：仅当不是 Mermaid 时才创建，避免无意义的初始化
-watch(
+const stopCreateEditorWatch = watch(
   () => [codeEditor.value, isMermaid.value] as const,
   async ([el, mermaid]) => {
     if (!el || mermaid || editorCreated || !createEditor)
@@ -401,6 +352,7 @@ watch(
       await nextTick()
       startExpandAutoResize()
     }
+    stopCreateEditorWatch()
   },
   { immediate: true },
 )
@@ -410,6 +362,10 @@ let stopLoadingWatch: WatchStopHandle | undefined
 stopLoadingWatch = watch(
   () => props.loading,
   async (loaded) => {
+    if (isMermaid.value) {
+      cleanupEditor()
+      return
+    }
     if (loaded === false) {
       await nextTick()
       requestAnimationFrame(() => {
@@ -492,10 +448,10 @@ onUnmounted(() => {
             class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
             :disabled="codeFontSize <= codeFontMin"
             @click="decreaseCodeFont()"
-            @mouseenter="(e) => showTooltipForAnchor(e.currentTarget as HTMLElement, t('common.decrease') || 'Decrease')"
-            @mouseleave="() => hideTooltip()"
-            @focus="(e) => showTooltipForAnchor(e.currentTarget as HTMLElement, t('common.decrease') || 'Decrease')"
-            @blur="() => hideTooltip()"
+            @mouseenter="onBtnHover($event, t('common.decrease') || 'Decrease')"
+            @focus="onBtnHover($event, t('common.decrease') || 'Decrease')"
+            @mouseleave="onBtnLeave"
+            @blur="onBtnLeave"
           >
             <Icon icon="lucide:minus" class="w-3 h-3" />
           </button>
@@ -504,10 +460,10 @@ onUnmounted(() => {
             class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
             :disabled="codeFontSize === defaultCodeFontSize"
             @click="resetCodeFont()"
-            @mouseenter="(e) => showTooltipForAnchor(e.currentTarget as HTMLElement, t('common.reset') || 'Reset')"
-            @mouseleave="() => hideTooltip()"
-            @focus="(e) => showTooltipForAnchor(e.currentTarget as HTMLElement, t('common.reset') || 'Reset')"
-            @blur="() => hideTooltip()"
+            @mouseenter="onBtnHover($event, t('common.reset') || 'Reset')"
+            @focus="onBtnHover($event, t('common.reset') || 'Reset')"
+            @mouseleave="onBtnLeave"
+            @blur="onBtnLeave"
           >
             <Icon icon="lucide:rotate-ccw" class="w-3 h-3" />
           </button>
@@ -516,10 +472,10 @@ onUnmounted(() => {
             class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
             :disabled="codeFontSize >= codeFontMax"
             @click="increaseCodeFont()"
-            @mouseenter="(e) => showTooltipForAnchor(e.currentTarget as HTMLElement, t('common.increase') || 'Increase')"
-            @mouseleave="() => hideTooltip()"
-            @focus="(e) => showTooltipForAnchor(e.currentTarget as HTMLElement, t('common.increase') || 'Increase')"
-            @blur="() => hideTooltip()"
+            @mouseenter="onBtnHover($event, t('common.increase') || 'Increase')"
+            @focus="onBtnHover($event, t('common.increase') || 'Increase')"
+            @mouseleave="onBtnLeave"
+            @blur="onBtnLeave"
           >
             <Icon icon="lucide:plus" class="w-3 h-3" />
           </button>
@@ -529,10 +485,10 @@ onUnmounted(() => {
           class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           :aria-label="copyText ? (t('common.copied') || 'Copied') : (t('common.copy') || 'Copy')"
           @click="copy"
-          @mouseenter="(e) => showTooltipForAnchor(e.currentTarget as HTMLElement, copyText ? (t('common.copied') || 'Copied') : (t('common.copy') || 'Copy'))"
-          @mouseleave="() => hideTooltip()"
-          @focus="(e) => showTooltipForAnchor(e.currentTarget as HTMLElement, copyText ? (t('common.copied') || 'Copied') : (t('common.copy') || 'Copy'))"
-          @blur="() => hideTooltip()"
+          @mouseenter="onCopyHover($event)"
+          @focus="onCopyHover($event)"
+          @mouseleave="onBtnLeave"
+          @blur="onBtnLeave"
         >
           <Icon v-if="!copyText" icon="lucide:copy" class="w-3 h-3" />
           <Icon v-else icon="lucide:check" class="w-3 h-3" />
@@ -542,10 +498,10 @@ onUnmounted(() => {
           class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           :aria-pressed="isExpanded"
           @click="toggleExpand"
-          @mouseenter="(e) => showTooltipForAnchor(e.currentTarget as HTMLElement, isExpanded ? (t('common.collapse') || 'Collapse') : (t('common.expand') || 'Expand'))"
-          @mouseleave="() => hideTooltip()"
-          @focus="(e) => showTooltipForAnchor(e.currentTarget as HTMLElement, isExpanded ? (t('common.collapse') || 'Collapse') : (t('common.expand') || 'Expand'))"
-          @blur="() => hideTooltip()"
+          @mouseenter="onBtnHover($event, isExpanded ? (t('common.collapse') || 'Collapse') : (t('common.expand') || 'Expand'))"
+          @focus="onBtnHover($event, isExpanded ? (t('common.collapse') || 'Collapse') : (t('common.expand') || 'Expand'))"
+          @mouseleave="onBtnLeave"
+          @blur="onBtnLeave"
         >
           <Icon :icon="isExpanded ? 'lucide:minimize-2' : 'lucide:maximize-2'" class="w-3 h-3" />
         </button>
@@ -555,18 +511,17 @@ onUnmounted(() => {
           class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           :aria-label="t('common.preview') || 'Preview'"
           @click="previewCode"
-          @mouseenter="(e) => showTooltipForAnchor(e.currentTarget as HTMLElement, t('common.preview') || 'Preview')"
-          @mouseleave="() => hideTooltip()"
-          @focus="(e) => showTooltipForAnchor(e.currentTarget as HTMLElement, t('common.preview') || 'Preview')"
-          @blur="() => hideTooltip()"
+          @mouseenter="onBtnHover($event, t('common.preview') || 'Preview')"
+          @focus="onBtnHover($event, t('common.preview') || 'Preview')"
+          @mouseleave="onBtnLeave"
+          @blur="onBtnLeave"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><!-- Icon from Freehand free icons by Streamline - https://creativecommons.org/licenses/by/4.0/ --><g fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"><path d="M23.628 7.41c-.12-1.172-.08-3.583-.9-4.233c-1.921-1.51-6.143-1.11-8.815-1.19c-3.481-.15-7.193.14-10.625.24a.34.34 0 0 0 0 .67c3.472-.05 7.074-.29 10.575-.09c2.471.15 6.653-.14 8.254 1.16c.4.33.41 2.732.49 3.582a42 42 0 0 1 .08 9.005a13.8 13.8 0 0 1-.45 3.001c-2.42 1.4-19.69 2.381-20.72.55a21 21 0 0 1-.65-4.632a41.5 41.5 0 0 1 .12-7.964c.08 0 7.334.33 12.586.24c2.331 0 4.682-.13 6.764-.21a.33.33 0 0 0 0-.66c-7.714-.16-12.897-.43-19.31.05c.11-1.38.48-3.922.38-4.002a.3.3 0 0 0-.42 0c-.37.41-.29 1.77-.36 2.251s-.14 1.07-.2 1.6a45 45 0 0 0-.36 8.645a21.8 21.8 0 0 0 .66 5.002c1.46 2.702 17.248 1.461 20.95.43c1.45-.4 1.69-.8 1.871-1.95c.575-3.809.602-7.68.08-11.496" /><path d="M4.528 5.237a.84.84 0 0 0-.21-1c-.77-.41-1.71.39-1 1.1a.83.83 0 0 0 1.21-.1m2.632-.25c.14-.14.19-.84-.2-1c-.77-.41-1.71.39-1 1.09a.82.82 0 0 0 1.2-.09m2.88 0a.83.83 0 0 0-.21-1c-.77-.41-1.71.39-1 1.09a.82.82 0 0 0 1.21-.09m-4.29 8.735c0 .08.23 2.471.31 2.561a.371.371 0 0 0 .63-.14c0-.09 0 0 .15-1.72a10 10 0 0 0-.11-2.232a5.3 5.3 0 0 1-.26-1.37a.3.3 0 0 0-.54-.24a6.8 6.8 0 0 0-.2 2.33c-1.281-.38-1.121.13-1.131-.42a15 15 0 0 0-.19-1.93c-.16-.17-.36-.17-.51.14a20 20 0 0 0-.43 3.471c.04.773.18 1.536.42 2.272c.26.4.7.22.7-.1c0-.09-.16-.09 0-1.862c.06-1.18-.23-.3 1.16-.76m5.033-2.552c.32-.07.41-.28.39-.37c0-.55-3.322-.34-3.462-.24s-.2.18-.18.28s0 .11 0 .16a3.8 3.8 0 0 0 1.591.361v.82a15 15 0 0 0-.13 3.132c0 .2-.09.94.17 1.16a.34.34 0 0 0 .48 0c.125-.35.196-.718.21-1.09a8 8 0 0 0 .14-3.232c0-.13.05-.7-.1-.89a8 8 0 0 0 .89-.09m5.544-.181a.69.69 0 0 0-.89-.44a2.8 2.8 0 0 0-1.252 1.001a2.3 2.3 0 0 0-.41-.83a1 1 0 0 0-1.6.27a7 7 0 0 0-.35 2.07c0 .571 0 2.642.06 2.762c.14 1.09 1 .51.63.13a17.6 17.6 0 0 1 .38-3.962c.32-1.18.32.2.39.51s.11 1.081.73 1.081s.48-.93 1.401-1.78q.075 1.345 0 2.69a15 15 0 0 0 0 1.811a.34.34 0 0 0 .68 0q.112-.861.11-1.73a16.7 16.7 0 0 0 .12-3.582m1.441-.201c-.05.16-.3 3.002-.31 3.202a6.3 6.3 0 0 0 .21 1.741c.33 1 1.21 1.07 2.291.82a3.7 3.7 0 0 0 1.14-.23c.21-.22.10-.59-.41-.64q-.817.096-1.64.07c-.44-.07-.34 0-.67-4.442q.015-.185 0-.37a.316.316 0 0 0-.23-.38a.316.316 0 0 0-.38.23" /></g></svg>
         </button>
       </div>
     </div>
     <div ref="codeEditor" class="code-editor-container" />
-    <!-- Teleported tooltip -->
-    <Tooltip :visible="tooltipVisible" :anchor-el="currentAnchor" :content="tooltipContent" :placement="tooltipPlacement" />
+    <!-- Teleported tooltip removed: using singleton composable instead -->
     <!-- Copy status for screen readers -->
     <span class="sr-only" aria-live="polite" role="status">{{ copyText ? t('common.copied') || 'Copied' : '' }}</span>
   </div>

@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { hideTooltip, showTooltipForAnchor } from '../../composables/useSingletonTooltip'
+import mermaidIconUrl from '../../icon/mermaid.svg?url'
+import { getIconify, getUseMonaco } from '../CodeBlockNode/utils'
+import { getMermaid } from './mermaid'
 
 const props = withDefaults(
   // 全屏按钮禁用状态
@@ -19,76 +23,53 @@ const props = withDefaults(
 )
 const emits = defineEmits(['copy'])
 // Optional runtime imports - will be dynamically loaded if available
-let Icon: any = null
+const Icon: any = getIconify()
 let mermaid: any = null
-let isDark: any = ref(false)
-let mermaidIconUrl = null as any
+const isDark: any = ref(false)
 let parserWorkerUrl: string | null = null
-
-// Attempt to lazy-load optional packages at runtime. If they are not
-// installed in the host project, we simply keep the fallbacks and avoid
-// throwing at module evaluation time.
-onMounted(async () => {
-  // lazy-load @iconify/vue Icon component if present
-  try {
-    const mod = await import('@iconify/vue')
-    Icon = (mod as any).Icon ?? (mod as any).default ?? null
-  }
-  catch {
-    Icon = null
-  }
-
-  // lazy-load mermaid library and worker URL if present
-  try {
-    const m = await import('mermaid')
-    mermaid = (m && (m.default ?? m))
-    // initialize mermaid if available
+;(async () => {
+  mermaid = await getMermaid()
+  mermaid.initialize?.({ startOnLoad: false, securityLevel: 'loose' })
+  const mon = await getUseMonaco()
+  // prefer exported isDark ref, otherwise try .default
+  // If mon.isDark is a ref, use it directly so we keep reactivity.
+  // Otherwise, if it's a boolean, set the value and try to watch for changes
+  const monIsDark = (mon as any).isDark ?? (mon as any).default?.isDark
+  if (monIsDark && typeof monIsDark === 'object' && 'value' in monIsDark) {
+    // monIsDark is a ref-like object -> mirror it
+    // Replace local isDark with the same ref so consumers react to changes.
+    // Note: we don't reassign the local variable reference declared above
+    // because it's used elsewhere; instead, sync its value and watch for updates.
+    isDark.value = monIsDark.value
+    // Keep in sync if the external ref changes
     try {
-      mermaid?.initialize?.({ startOnLoad: false, securityLevel: 'loose' })
-    }
-    catch {}
-    // lazy-load worker url only if mermaid exists
-    try {
-      const w = await import('../../workers/mermaidParser.worker?worker&url')
-      parserWorkerUrl = w?.default ?? null
+      // use watch to keep our isDark.value in sync with external ref
+      watch(
+        () => (monIsDark as any).value,
+        (v) => {
+          isDark.value = v
+        },
+        { immediate: false },
+      )
     }
     catch {
-      parserWorkerUrl = null
+      // If runtime watch fails for any reason, fall back to one-time copy
+      isDark.value = (monIsDark as any).value
     }
   }
+  else {
+    // monIsDark is likely a boolean or unavailable -> copy its value
+    isDark.value = !!monIsDark
+  }
+  // lazy-load worker url only if mermaid exists
+  try {
+    const w = await import('../../workers/mermaidParser.worker?worker&url')
+    parserWorkerUrl = w?.default ?? null
+  }
   catch {
-    mermaid = null
     parserWorkerUrl = null
   }
-
-  // lazy-load isDark from vue-use-monaco if available, otherwise use prefers-color-scheme
-  try {
-    const mon = await import('vue-use-monaco')
-    // prefer exported isDark ref, otherwise try .default
-    isDark = (mon as any).isDark ?? ((mon as any).default && (mon as any).default.isDark) ?? isDark
-  }
-  catch {
-    // fallback to prefers-color-scheme
-    try {
-      const mq = window.matchMedia?.('(prefers-color-scheme: dark)')
-      isDark = ref(!!mq?.matches)
-      if (mq?.addEventListener)
-        mq.addEventListener('change', (e: any) => { isDark.value = e.matches })
-    }
-    catch {
-      isDark = ref(false)
-    }
-  }
-})
-
-// default icon svg (optional): try to load local mermaid svg; keep null if not resolvable
-try {
-  // use import.meta URL approach to get an asset URL when bundlers support it
-  mermaidIconUrl = new URL('../../icon/mermaid.svg', import.meta.url).href
-}
-catch {
-  mermaidIconUrl = null
-}
+})()
 
 const copyText = ref(false)
 const mermaidContainer = ref<HTMLElement>()
@@ -251,6 +232,31 @@ function renderErrorToContainer(error: unknown) {
   hasRenderError.value = true
   // 在错误显示时，停止任何预览轮询，避免错误被覆盖
   stopPreviewPolling()
+}
+
+// Tooltip helpers (singleton)
+type TooltipPlacement = 'top' | 'bottom' | 'left' | 'right'
+function shouldSkipEventTarget(el: EventTarget | null) {
+  const btn = el as HTMLButtonElement | null
+  return !btn || (btn as HTMLButtonElement).disabled
+}
+function onBtnHover(e: Event, text: string, place: TooltipPlacement = 'top') {
+  if (shouldSkipEventTarget(e.currentTarget))
+    return
+  const ev = e as MouseEvent
+  const origin = ev?.clientX != null && ev?.clientY != null ? { x: ev.clientX, y: ev.clientY } : undefined
+  showTooltipForAnchor(e.currentTarget as HTMLElement, text, place, false, origin)
+}
+function onBtnLeave() {
+  hideTooltip()
+}
+function onCopyHover(e: Event) {
+  if (shouldSkipEventTarget(e.currentTarget))
+    return
+  const txt = copyText.value ? ('Copied') : ('Copy')
+  const ev = e as MouseEvent
+  const origin = ev?.clientX != null && ev?.clientY != null ? { x: ev.clientX, y: ev.clientY } : undefined
+  showTooltipForAnchor(e.currentTarget as HTMLElement, txt, 'top', false, origin)
 }
 
 // Worker-backed off-thread parsing (to reduce main-thread jank)
@@ -1340,6 +1346,10 @@ onUnmounted(() => {
               : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
           ]"
           @click="switchMode('preview')"
+          @mouseenter="onBtnHover($event, 'Preview')"
+          @focus="onBtnHover($event, 'Preview')"
+          @mouseleave="onBtnLeave"
+          @blur="onBtnLeave"
         >
           <div class="flex items-center space-x-1">
             <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:eye', class: 'w-3 h-3' }" />
@@ -1354,6 +1364,10 @@ onUnmounted(() => {
               : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
           ]"
           @click="switchMode('source')"
+          @mouseenter="onBtnHover($event, 'Source')"
+          @focus="onBtnHover($event, 'Source')"
+          @mouseleave="onBtnLeave"
+          @blur="onBtnLeave"
         >
           <div class="flex items-center space-x-1">
             <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:code', class: 'w-3 h-3' }" />
@@ -1367,6 +1381,10 @@ onUnmounted(() => {
         <button
           class="mermaid-action-btn p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           @click="copy"
+          @mouseenter="onCopyHover($event)"
+          @focus="onCopyHover($event)"
+          @mouseleave="onBtnLeave"
+          @blur="onBtnLeave"
         >
           <component :is="Icon" v-if="Icon" v-bind="{ icon: !copyText ? 'lucide:copy' : 'lucide:check', class: 'w-3 h-3' }" />
           <span v-else class="w-3 h-3 inline-block" />
@@ -1376,6 +1394,10 @@ onUnmounted(() => {
           :disabled="isFullscreenDisabled"
           :class="isFullscreenDisabled ? 'opacity-50 cursor-not-allowed' : ''"
           @click="exportSvg"
+          @mouseenter="onBtnHover($event, 'Export')"
+          @focus="onBtnHover($event, 'Export')"
+          @mouseleave="onBtnLeave"
+          @blur="onBtnLeave"
         >
           <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:download', class: 'w-3 h-3' }" />
         </button>
@@ -1384,6 +1406,10 @@ onUnmounted(() => {
           :disabled="isFullscreenDisabled"
           :class="isFullscreenDisabled ? 'opacity-50 cursor-not-allowed' : ''"
           @click="openModal"
+          @mouseenter="onBtnHover($event, isModalOpen ? 'Minimize' : 'Open')"
+          @focus="onBtnHover($event, isModalOpen ? 'Minimize' : 'Open')"
+          @mouseleave="onBtnLeave"
+          @blur="onBtnLeave"
         >
           <component :is="Icon ? Icon : 'span'" v-bind="{ icon: isModalOpen ? 'lucide:minimize-2' : 'lucide:maximize-2', class: 'w-3 h-3' }" />
         </button>
@@ -1410,18 +1436,30 @@ onUnmounted(() => {
             <button
               class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               @click="zoomIn"
+              @mouseenter="onBtnHover($event, 'Zoom in')"
+              @focus="onBtnHover($event, 'Zoom in')"
+              @mouseleave="onBtnLeave"
+              @blur="onBtnLeave"
             >
               <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:zoom-in', class: 'w-3 h-3' }" />
             </button>
             <button
               class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               @click="zoomOut"
+              @mouseenter="onBtnHover($event, 'Zoom out')"
+              @focus="onBtnHover($event, 'Zoom out')"
+              @mouseleave="onBtnLeave"
+              @blur="onBtnLeave"
             >
               <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:zoom-out', class: 'w-3 h-3' }" />
             </button>
             <button
               class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               @click="resetZoom"
+              @mouseenter="onBtnHover($event, 'Reset zoom')"
+              @focus="onBtnHover($event, 'Reset zoom')"
+              @mouseleave="onBtnLeave"
+              @blur="onBtnLeave"
             >
               {{ Math.round(zoom * 100) }}%
             </button>
