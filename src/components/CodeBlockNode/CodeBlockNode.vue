@@ -223,7 +223,9 @@ type TooltipPlacement = 'top' | 'bottom' | 'left' | 'right'
 function onBtnHover(e: Event, text: string, place: TooltipPlacement = 'top') {
   if (shouldSkipEventTarget(e.currentTarget))
     return
-  showTooltipForAnchor(e.currentTarget as HTMLElement, text, place)
+  const ev = e as MouseEvent
+  const origin = ev?.clientX != null && ev?.clientY != null ? { x: ev.clientX, y: ev.clientY } : undefined
+  showTooltipForAnchor(e.currentTarget as HTMLElement, text, place, false, origin)
 }
 
 function onBtnLeave() {
@@ -234,7 +236,9 @@ function onCopyHover(e: Event) {
   if (shouldSkipEventTarget(e.currentTarget))
     return
   const txt = copyText.value ? (t('common.copied') || 'Copied') : (t('common.copy') || 'Copy')
-  showTooltipForAnchor(e.currentTarget as HTMLElement, txt)
+  const ev = e as MouseEvent
+  const origin = ev?.clientX != null && ev?.clientY != null ? { x: ev.clientX, y: ev.clientY } : undefined
+  showTooltipForAnchor(e.currentTarget as HTMLElement, txt, 'top', false, origin)
 }
 
 function toggleExpand() {

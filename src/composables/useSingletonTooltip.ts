@@ -5,7 +5,9 @@ const visible = ref(false)
 const content = ref('')
 const placement = ref<'top' | 'bottom' | 'left' | 'right'>('top')
 const anchorEl = ref<HTMLElement | null>(null)
-let tooltipId: string | null = null
+const tooltipId = ref<string | null>(null)
+const originX = ref<number | null>(null)
+const originY = ref<number | null>(null)
 
 let showTimer: ReturnType<typeof setTimeout> | null = null
 let hideTimer: ReturnType<typeof setTimeout> | null = null
@@ -40,6 +42,9 @@ function ensureMounted() {
         'anchor-el': anchorEl.value,
         'content': content.value,
         'placement': placement.value,
+        'id': tooltipId.value,
+        'originX': originX.value,
+        'originY': originY.value,
       })
     },
   }
@@ -47,19 +52,28 @@ function ensureMounted() {
   createApp(App).mount(container)
 }
 
-export function showTooltipForAnchor(el: HTMLElement | null, text: string, place: typeof placement.value = 'top', immediate = false) {
+export function showTooltipForAnchor(
+  el: HTMLElement | null,
+  text: string,
+  place: typeof placement.value = 'top',
+  immediate = false,
+  origin?: { x: number, y: number } | undefined,
+) {
   if (!el)
     return
   ensureMounted()
   clearTimers()
   const doShow = () => {
-    tooltipId = `tooltip-${Date.now()}-${Math.floor(Math.random() * 1000)}`
+    tooltipId.value = `tooltip-${Date.now()}-${Math.floor(Math.random() * 1000)}`
     anchorEl.value = el
     content.value = text
     placement.value = place
+    // expose origin coordinates for initial animation
+    originX.value = origin?.x ?? null
+    originY.value = origin?.y ?? null
     visible.value = true
     try {
-      el.setAttribute('aria-describedby', tooltipId!)
+      el.setAttribute('aria-describedby', tooltipId.value!)
     }
     catch {}
   }
@@ -69,10 +83,9 @@ export function showTooltipForAnchor(el: HTMLElement | null, text: string, place
 }
 
 export function hideTooltip(immediate = false) {
-  ensureMounted()
   clearTimers()
   const doHide = () => {
-    if (anchorEl.value && tooltipId) {
+    if (anchorEl.value && tooltipId.value) {
       try {
         anchorEl.value.removeAttribute('aria-describedby')
       }
@@ -80,7 +93,9 @@ export function hideTooltip(immediate = false) {
     }
     visible.value = false
     anchorEl.value = null
-    tooltipId = null
+    tooltipId.value = null
+    originX.value = null
+    originY.value = null
   }
   if (immediate)
     doHide()

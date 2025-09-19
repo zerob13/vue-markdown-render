@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { hideTooltip, showTooltipForAnchor } from '../../composables/useSingletonTooltip'
 import mermaidIconUrl from '../../icon/mermaid.svg?url'
 import { getIconify, getUseMonaco } from '../CodeBlockNode/utils'
 import { getMermaid } from './mermaid'
@@ -231,6 +232,31 @@ function renderErrorToContainer(error: unknown) {
   hasRenderError.value = true
   // 在错误显示时，停止任何预览轮询，避免错误被覆盖
   stopPreviewPolling()
+}
+
+// Tooltip helpers (singleton)
+type TooltipPlacement = 'top' | 'bottom' | 'left' | 'right'
+function shouldSkipEventTarget(el: EventTarget | null) {
+  const btn = el as HTMLButtonElement | null
+  return !btn || (btn as HTMLButtonElement).disabled
+}
+function onBtnHover(e: Event, text: string, place: TooltipPlacement = 'top') {
+  if (shouldSkipEventTarget(e.currentTarget))
+    return
+  const ev = e as MouseEvent
+  const origin = ev?.clientX != null && ev?.clientY != null ? { x: ev.clientX, y: ev.clientY } : undefined
+  showTooltipForAnchor(e.currentTarget as HTMLElement, text, place, false, origin)
+}
+function onBtnLeave() {
+  hideTooltip()
+}
+function onCopyHover(e: Event) {
+  if (shouldSkipEventTarget(e.currentTarget))
+    return
+  const txt = copyText.value ? ('Copied') : ('Copy')
+  const ev = e as MouseEvent
+  const origin = ev?.clientX != null && ev?.clientY != null ? { x: ev.clientX, y: ev.clientY } : undefined
+  showTooltipForAnchor(e.currentTarget as HTMLElement, txt, 'top', false, origin)
 }
 
 // Worker-backed off-thread parsing (to reduce main-thread jank)
@@ -1320,6 +1346,10 @@ onUnmounted(() => {
               : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
           ]"
           @click="switchMode('preview')"
+          @mouseenter="onBtnHover($event, 'Preview')"
+          @focus="onBtnHover($event, 'Preview')"
+          @mouseleave="onBtnLeave"
+          @blur="onBtnLeave"
         >
           <div class="flex items-center space-x-1">
             <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:eye', class: 'w-3 h-3' }" />
@@ -1334,6 +1364,10 @@ onUnmounted(() => {
               : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
           ]"
           @click="switchMode('source')"
+          @mouseenter="onBtnHover($event, 'Source')"
+          @focus="onBtnHover($event, 'Source')"
+          @mouseleave="onBtnLeave"
+          @blur="onBtnLeave"
         >
           <div class="flex items-center space-x-1">
             <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:code', class: 'w-3 h-3' }" />
@@ -1347,6 +1381,10 @@ onUnmounted(() => {
         <button
           class="mermaid-action-btn p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           @click="copy"
+          @mouseenter="onCopyHover($event)"
+          @focus="onCopyHover($event)"
+          @mouseleave="onBtnLeave"
+          @blur="onBtnLeave"
         >
           <component :is="Icon" v-if="Icon" v-bind="{ icon: !copyText ? 'lucide:copy' : 'lucide:check', class: 'w-3 h-3' }" />
           <span v-else class="w-3 h-3 inline-block" />
@@ -1356,6 +1394,10 @@ onUnmounted(() => {
           :disabled="isFullscreenDisabled"
           :class="isFullscreenDisabled ? 'opacity-50 cursor-not-allowed' : ''"
           @click="exportSvg"
+          @mouseenter="onBtnHover($event, 'Export')"
+          @focus="onBtnHover($event, 'Export')"
+          @mouseleave="onBtnLeave"
+          @blur="onBtnLeave"
         >
           <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:download', class: 'w-3 h-3' }" />
         </button>
@@ -1364,6 +1406,10 @@ onUnmounted(() => {
           :disabled="isFullscreenDisabled"
           :class="isFullscreenDisabled ? 'opacity-50 cursor-not-allowed' : ''"
           @click="openModal"
+          @mouseenter="onBtnHover($event, isModalOpen ? 'Minimize' : 'Open')"
+          @focus="onBtnHover($event, isModalOpen ? 'Minimize' : 'Open')"
+          @mouseleave="onBtnLeave"
+          @blur="onBtnLeave"
         >
           <component :is="Icon ? Icon : 'span'" v-bind="{ icon: isModalOpen ? 'lucide:minimize-2' : 'lucide:maximize-2', class: 'w-3 h-3' }" />
         </button>
@@ -1380,6 +1426,7 @@ onUnmounted(() => {
         <div class="absolute top-2 right-2 z-10 rounded-lg">
           <div class="flex items-center gap-2 backdrop-blur rounded-lg">
             <span
+              v-if="!showSource && props.loading"
               class="px-2.5 py-1 text-[10px] rounded-full bg-gradient-to-r from-sky-500/90 to-indigo-500/90 text-white select-none inline-flex items-center gap-1.5 shadow-sm ring-1 ring-white/20 backdrop-blur-sm"
               title="Rendering in progress"
             >
@@ -1389,18 +1436,30 @@ onUnmounted(() => {
             <button
               class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               @click="zoomIn"
+              @mouseenter="onBtnHover($event, 'Zoom in')"
+              @focus="onBtnHover($event, 'Zoom in')"
+              @mouseleave="onBtnLeave"
+              @blur="onBtnLeave"
             >
               <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:zoom-in', class: 'w-3 h-3' }" />
             </button>
             <button
               class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               @click="zoomOut"
+              @mouseenter="onBtnHover($event, 'Zoom out')"
+              @focus="onBtnHover($event, 'Zoom out')"
+              @mouseleave="onBtnLeave"
+              @blur="onBtnLeave"
             >
               <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:zoom-out', class: 'w-3 h-3' }" />
             </button>
             <button
               class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               @click="resetZoom"
+              @mouseenter="onBtnHover($event, 'Reset zoom')"
+              @focus="onBtnHover($event, 'Reset zoom')"
+              @mouseleave="onBtnLeave"
+              @blur="onBtnLeave"
             >
               {{ Math.round(zoom * 100) }}%
             </button>
