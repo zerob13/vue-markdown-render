@@ -3,10 +3,10 @@
 // doesn't get a reference. Define minimal local types we need here.
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { useSafeI18n } from '../../composables/useSafeI18n'
+// Tooltip is provided as a singleton via composable to avoid many DOM nodes
+import { hideTooltip, showTooltipForAnchor } from '../../composables/useSingletonTooltip'
 import { getLanguageIcon, languageMap } from '../../utils'
 import MermaidBlockNode from '../MermaidBlockNode'
-// Tooltip is provided as a singleton via composable to avoid many DOM nodes
-import { showTooltipForAnchor, hideTooltip } from '../../composables/useSingletonTooltip'
 import { getIconify, getUseMonaco } from './utils'
 
 interface MonacoOptions {
