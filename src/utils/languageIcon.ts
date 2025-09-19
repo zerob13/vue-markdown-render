@@ -57,7 +57,20 @@ import VueIcon from '../icon/vue.svg?raw'
 import XmlIcon from '../icon/xml.svg?raw'
 import YamlIcon from '../icon/yaml.svg?raw'
 
+export type LanguageIconResolver = (lang: string) => string | undefined | null
+
+let userLanguageIconResolver: LanguageIconResolver | null = null
+
+export function setLanguageIconResolver(resolver?: LanguageIconResolver | null) {
+  userLanguageIconResolver = resolver ?? null
+}
+
 export function getLanguageIcon(lang: string): string {
+  if (userLanguageIconResolver) {
+    const hit = userLanguageIconResolver(lang)
+    if (hit != null && hit !== '')
+      return hit
+  }
   switch (lang) {
     case 'javascript':
     case 'js':

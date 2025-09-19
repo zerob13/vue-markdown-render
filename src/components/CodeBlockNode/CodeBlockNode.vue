@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // Avoid static import of `vue-use-monaco` for types so the runtime bundle
 // doesn't get a reference. Define minimal local types we need here.
-import { computed, onUnmounted, ref, watch } from 'vue'
+import type { WatchStopHandle } from 'vue'
+import { computed, defineAsyncComponent, defineComponent, h, nextTick, onUnmounted, ref, watch } from 'vue'
 import { useSafeI18n } from '../../composables/useSafeI18n'
 // Tooltip is provided as a singleton via composable to avoid many DOM nodes
 import { hideTooltip, showTooltipForAnchor } from '../../composables/useSingletonTooltip'
@@ -52,13 +53,16 @@ const canExpand = ref(false)
 let cachedExpandedHeight: string | null = null
 let cachedNotExpandedHeight: string | null = null
 let editorCreated = false
+let expandRafId: number | null = null
+// 仅当用户主动点击展开后，才进入自动展开检测模式
+let autoExpandActive = false
 
 const Icon = getIconify()
 
 // Lazy-load `vue-use-monaco` helpers at runtime so consumers who don't install
 // `vue-use-monaco` won't have the editor code bundled. We provide safe no-op
 // fallbacks for the minimal API we use.
-let createEditor: (el: HTMLElement, code: string, lang: string) => void = null
+let createEditor: ((el: HTMLElement, code: string, lang: string) => void) | null = null
 let updateCode: (code: string, lang: string) => void = () => {}
 let getEditor: () => any = () => null
 let getEditorView: () => any = () => ({ getModel: () => ({ getLineCount: () => 1 }), getOption: () => 14, updateOptions: () => {} })
@@ -71,23 +75,31 @@ let detectLanguage: (code: string) => string = () => {
   try {
     const mod = await getUseMonaco()
     // `useMonaco` and `detectLanguage` should be available
-
-    detectLanguage = (mod as any).detectLanguage
-
-    const helpers = mod.useMonaco({
-      wordWrap: 'on',
-      wrappingIndent: 'same',
-      themes: props.darkTheme && props.lightTheme ? [props.darkTheme, props.lightTheme] : undefined,
-      ...(props.monacoOptions || {}),
-    })
-    createEditor = helpers.createEditor || createEditor
-    updateCode = helpers.updateCode || updateCode
-    getEditor = helpers.getEditor || getEditor
-    getEditorView = helpers.getEditorView || getEditorView
-    cleanupEditor = helpers.cleanupEditor || cleanupEditor
-    if (!editorCreated && codeEditor.value) {
-      editorCreated = true
-      createEditor(codeEditor.value as HTMLElement, props.node.code, codeLanguage.value)
+    const useMonaco = (mod as any).useMonaco || ((mod as any).default && (mod as any).default.useMonaco)
+    const det = (mod as any).detectLanguage || ((mod as any).default && (mod as any).default.detectLanguage)
+    if (typeof det === 'function')
+      detectLanguage = det
+    if (typeof useMonaco === 'function') {
+      try {
+        const helpers = useMonaco({
+          wordWrap: 'on',
+          wrappingIndent: 'same',
+          themes: props.darkTheme && props.lightTheme ? [props.darkTheme, props.lightTheme] : undefined,
+          ...(props.monacoOptions || {}),
+        })
+        createEditor = helpers.createEditor || createEditor
+        updateCode = helpers.updateCode || updateCode
+        getEditor = helpers.getEditor || getEditor
+        getEditorView = helpers.getEditorView || getEditorView
+        cleanupEditor = helpers.cleanupEditor || cleanupEditor
+        if (!editorCreated && codeEditor.value && createEditor) {
+          editorCreated = true
+          createEditor(codeEditor.value as HTMLElement, props.node.code, codeLanguage.value)
+        }
+      }
+      catch {
+        // ignore and keep fallbacks
+      }
     }
   }
   catch {
@@ -249,11 +261,18 @@ function toggleExpand() {
     return
 
   if (isExpanded.value) {
+    autoExpandActive = true
+    // 先计算一次当前内容高度，确保有初始高度
+    updateCanExpand()
     container.style.height = cachedExpandedHeight
     container.style.maxHeight = 'none'
     container.style.overflow = 'visible'
+    if (props.loading && autoExpandActive)
+      startExpandAutoResize()
   }
   else {
+    autoExpandActive = false
+    stopExpandAutoResize()
     container.style.overflow = 'auto'
     container.style.height = cachedNotExpandedHeight ?? ''
   }
@@ -321,27 +340,88 @@ const stopCreateEditorWatch = watch(
     createEditor(el as HTMLElement, props.node.code, codeLanguage.value)
     const editor = getEditorView()
     editor?.updateOptions({ fontSize: codeFontSize.value })
+    // 若初始化时 loading 已为 false，等待一帧后再计算展开高度
+    if (props.loading === false) {
+      await nextTick()
+      requestAnimationFrame(() => {
+        updateCanExpand()
+      })
+    }
+    // 若已展开且仍在加载，则开始逐帧自适应高度
+    if (isExpanded.value && props.loading && autoExpandActive) {
+      await nextTick()
+      startExpandAutoResize()
+    }
     stopCreateEditorWatch()
   },
   { immediate: true },
 )
 
-// 当 loading 变为 false 时：计算并缓存一次展开高度，清理可安全移除的监听器
-const stop = watch(
+// 当 loading 变为 false 时：计算并缓存一次展开高度，随后停止观察
+let stopLoadingWatch: WatchStopHandle | undefined
+stopLoadingWatch = watch(
   () => props.loading,
-  (loaded) => {
+  async (loaded) => {
     if (isMermaid.value) {
       cleanupEditor()
       return
     }
     if (loaded === false) {
-      updateCanExpand()
+      await nextTick()
+      requestAnimationFrame(() => {
+        updateCanExpand()
+        stopLoadingWatch?.()
+        stopLoadingWatch = undefined
+      })
+      stopExpandAutoResize()
     }
-    stop()
+    else if (loaded === true) {
+      if (isExpanded.value && autoExpandActive) {
+        await nextTick()
+        startExpandAutoResize()
+      }
+    }
   },
+  { immediate: true, flush: 'post' },
 )
 
+function startExpandAutoResize() {
+  stopExpandAutoResize()
+  const container = codeEditor.value
+  if (!container)
+    return
+  const tick = () => {
+    const contentHeight = computeContentHeight()
+    if (contentHeight != null) {
+      const nextHeight = `${contentHeight}px`
+      const currentHeightNum = cachedExpandedHeight ? Number.parseFloat(cachedExpandedHeight) : 0
+      if (!cachedExpandedHeight || contentHeight > currentHeightNum) {
+        cachedExpandedHeight = nextHeight
+        container.style.height = nextHeight
+        container.style.maxHeight = 'none'
+        container.style.overflow = 'visible'
+      }
+    }
+    if (props.loading && isExpanded.value) {
+      expandRafId = requestAnimationFrame(tick)
+    }
+    else {
+      expandRafId = null
+    }
+  }
+  expandRafId = requestAnimationFrame(tick)
+}
+
+function stopExpandAutoResize() {
+  if (expandRafId != null) {
+    cancelAnimationFrame(expandRafId)
+    expandRafId = null
+  }
+}
+
 onUnmounted(() => {
+  // Ensure any RAF loops are stopped and editor resources are released
+  stopExpandAutoResize()
   cleanupEditor()
 })
 </script>
@@ -356,7 +436,7 @@ onUnmounted(() => {
     <div class="code-block-header flex justify-between items-center px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
       <!-- 左侧语言标签 -->
       <div class="flex items-center space-x-2">
-        <span class="h-4 w-4 flex-shrink-0" v-html="languageIcon" />
+        <span class="icon-slot h-4 w-4 flex-shrink-0" v-html="languageIcon" />
         <span class="text-sm font-medium text-gray-600 dark:text-gray-400 font-mono">{{ displayLanguage }}</span>
       </div>
 
@@ -414,7 +494,6 @@ onUnmounted(() => {
           <Icon v-else icon="lucide:check" class="w-3 h-3" />
         </button>
         <button
-          v-if="canExpand"
           type="button"
           class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           :aria-pressed="isExpanded"
@@ -475,5 +554,18 @@ onUnmounted(() => {
 
 .code-action-btn:disabled:hover {
   background-color: transparent;
+}
+
+/* Ensure injected icons align consistently whether img or inline svg */
+.icon-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.icon-slot :deep(svg),
+.icon-slot :deep(img) {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 </style>
