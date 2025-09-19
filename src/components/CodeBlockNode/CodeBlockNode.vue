@@ -71,6 +71,7 @@ let updateCode: (code: string, lang: string) => void = () => {}
 let updateDiffCode: (original: string, modified: string, lang: string) => void = () => {}
 let getEditor: () => any = () => null
 let getEditorView: () => any = () => ({ getModel: () => ({ getLineCount: () => 1 }), getOption: () => 14, updateOptions: () => {} })
+let getDiffEditorView: () => any = () => ({ getModel: () => ({ getLineCount: () => 1 }), getOption: () => 14, updateOptions: () => {} })
 let cleanupEditor: () => void = () => {}
 let detectLanguage: (code: string) => string = () => props.node.language || 'plaintext'
 const isDiff = computed(() => props.node.diff)
@@ -97,6 +98,7 @@ const isDiff = computed(() => props.node.diff)
         updateDiffCode = helpers.updateDiff || updateDiffCode
         getEditor = helpers.getEditor || getEditor
         getEditorView = helpers.getEditorView || getEditorView
+        getDiffEditorView = helpers.getDiffEditorView || getDiffEditorView
         cleanupEditor = helpers.cleanupEditor || cleanupEditor
         if (!editorCreated && codeEditor.value && createEditor) {
           editorCreated = true
@@ -133,7 +135,7 @@ function resetCodeFont() {
 
 function computeContentHeight(): number | null {
   try {
-    const editor = getEditorView()
+    const editor = isDiff.value ? getDiffEditorView() : getEditorView()
     const monacoEditor = getEditor()
     const lineCount = editor.getModel()?.getLineCount() ?? 1
     const lineHeight = editor.getOption(monacoEditor.EditorOption.lineHeight)
@@ -263,7 +265,7 @@ function onCopyHover(e: Event) {
 
 function toggleExpand() {
   isExpanded.value = !isExpanded.value
-  const editor = getEditorView()
+  const editor = isDiff.value ? getDiffEditorView() : getEditorView()
   const container = codeEditor.value
   if (!editor || !container)
     return
@@ -289,7 +291,7 @@ function toggleExpand() {
 watch(
   () => codeFontSize.value,
   (size) => {
-    const editor = getEditorView()
+    const editor = isDiff.value ? getDiffEditorView() : getEditorView()
     if (!editor)
       return
     editor.updateOptions({ fontSize: size })
@@ -355,7 +357,7 @@ const stopCreateEditorWatch = watch(
     isDiff.value
       ? createDiffEditor(el as HTMLElement, props.node.originalCode || '', props.node.updatedCode || '', codeLanguage.value)
       : createEditor(el as HTMLElement, props.node.code, codeLanguage.value)
-    const editor = getEditorView()
+    const editor = isDiff.value ? getDiffEditorView() : getEditorView()
     editor?.updateOptions({ fontSize: codeFontSize.value })
     // 若初始化时 loading 已为 false，等待一帧后再计算展开高度
     if (props.loading === false) {
