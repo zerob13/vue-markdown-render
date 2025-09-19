@@ -61,7 +61,7 @@ onBeforeUnmount(() => {
       v-if="visible"
       ref="tooltip"
       :style="{ position: 'fixed', left: style.left, top: style.top }"
-      class="z-[9999] text-xs bg-gray-900 text-white py-1 px-2 rounded shadow-sm whitespace-nowrap pointer-events-auto"
+      class="z-[9999] text-xs bg-white text-gray-900 dark:bg-gray-900 dark:text-white py-1 px-2 rounded shadow-sm whitespace-nowrap pointer-events-auto border border-gray-200 dark:border-gray-700"
       role="tooltip"
     >
       {{ content }}

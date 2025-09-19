@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import mermaidIconUrl from '../../icon/mermaid.svg?url'
+import { getIconify, getUseMonaco } from '../CodeBlockNode/utils'
+import { getMermaid } from './mermaid'
 
 const props = withDefaults(
   // 全屏按钮禁用状态
@@ -19,76 +22,53 @@ const props = withDefaults(
 )
 const emits = defineEmits(['copy'])
 // Optional runtime imports - will be dynamically loaded if available
-let Icon: any = null
+const Icon: any = getIconify()
 let mermaid: any = null
-let isDark: any = ref(false)
-let mermaidIconUrl = null as any
+const isDark: any = ref(false)
 let parserWorkerUrl: string | null = null
-
-// Attempt to lazy-load optional packages at runtime. If they are not
-// installed in the host project, we simply keep the fallbacks and avoid
-// throwing at module evaluation time.
-onMounted(async () => {
-  // lazy-load @iconify/vue Icon component if present
-  try {
-    const mod = await import('@iconify/vue')
-    Icon = (mod as any).Icon ?? (mod as any).default ?? null
-  }
-  catch {
-    Icon = null
-  }
-
-  // lazy-load mermaid library and worker URL if present
-  try {
-    const m = await import('mermaid')
-    mermaid = (m && (m.default ?? m))
-    // initialize mermaid if available
+;(async () => {
+  mermaid = await getMermaid()
+  mermaid.initialize?.({ startOnLoad: false, securityLevel: 'loose' })
+  const mon = await getUseMonaco()
+  // prefer exported isDark ref, otherwise try .default
+  // If mon.isDark is a ref, use it directly so we keep reactivity.
+  // Otherwise, if it's a boolean, set the value and try to watch for changes
+  const monIsDark = (mon as any).isDark ?? (mon as any).default?.isDark
+  if (monIsDark && typeof monIsDark === 'object' && 'value' in monIsDark) {
+    // monIsDark is a ref-like object -> mirror it
+    // Replace local isDark with the same ref so consumers react to changes.
+    // Note: we don't reassign the local variable reference declared above
+    // because it's used elsewhere; instead, sync its value and watch for updates.
+    isDark.value = monIsDark.value
+    // Keep in sync if the external ref changes
     try {
-      mermaid?.initialize?.({ startOnLoad: false, securityLevel: 'loose' })
-    }
-    catch {}
-    // lazy-load worker url only if mermaid exists
-    try {
-      const w = await import('../../workers/mermaidParser.worker?worker&url')
-      parserWorkerUrl = w?.default ?? null
+      // use watch to keep our isDark.value in sync with external ref
+      watch(
+        () => (monIsDark as any).value,
+        (v) => {
+          isDark.value = v
+        },
+        { immediate: false },
+      )
     }
     catch {
-      parserWorkerUrl = null
+      // If runtime watch fails for any reason, fall back to one-time copy
+      isDark.value = (monIsDark as any).value
     }
   }
+  else {
+    // monIsDark is likely a boolean or unavailable -> copy its value
+    isDark.value = !!monIsDark
+  }
+  // lazy-load worker url only if mermaid exists
+  try {
+    const w = await import('../../workers/mermaidParser.worker?worker&url')
+    parserWorkerUrl = w?.default ?? null
+  }
   catch {
-    mermaid = null
     parserWorkerUrl = null
   }
-
-  // lazy-load isDark from vue-use-monaco if available, otherwise use prefers-color-scheme
-  try {
-    const mon = await import('vue-use-monaco')
-    // prefer exported isDark ref, otherwise try .default
-    isDark = (mon as any).isDark ?? ((mon as any).default && (mon as any).default.isDark) ?? isDark
-  }
-  catch {
-    // fallback to prefers-color-scheme
-    try {
-      const mq = window.matchMedia?.('(prefers-color-scheme: dark)')
-      isDark = ref(!!mq?.matches)
-      if (mq?.addEventListener)
-        mq.addEventListener('change', (e: any) => { isDark.value = e.matches })
-    }
-    catch {
-      isDark = ref(false)
-    }
-  }
-})
-
-// default icon svg (optional): try to load local mermaid svg; keep null if not resolvable
-try {
-  // use import.meta URL approach to get an asset URL when bundlers support it
-  mermaidIconUrl = new URL('../../icon/mermaid.svg', import.meta.url).href
-}
-catch {
-  mermaidIconUrl = null
-}
+})()
 
 const copyText = ref(false)
 const mermaidContainer = ref<HTMLElement>()
@@ -1400,7 +1380,6 @@ onUnmounted(() => {
         <div class="absolute top-2 right-2 z-10 rounded-lg">
           <div class="flex items-center gap-2 backdrop-blur rounded-lg">
             <span
-              v-if="!showSource && props.loading"
               class="px-2.5 py-1 text-[10px] rounded-full bg-gradient-to-r from-sky-500/90 to-indigo-500/90 text-white select-none inline-flex items-center gap-1.5 shadow-sm ring-1 ring-white/20 backdrop-blur-sm"
               title="Rendering in progress"
             >

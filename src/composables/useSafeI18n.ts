@@ -11,6 +11,12 @@ function humanizeKey(key: string) {
 const defaultMap: Record<string, string> = {
   'common.copy': 'Copy',
   'common.copySuccess': 'Copied',
+  'common.decrease': 'Decrease',
+  'common.reset': 'Reset',
+  'common.increase': 'Increase',
+  'common.expand': 'Expand',
+  'common.collapse': 'Collapse',
+  'common.preview': 'Preview',
 }
 
 export function useSafeI18n() {
