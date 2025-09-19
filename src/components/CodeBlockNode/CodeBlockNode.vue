@@ -24,6 +24,9 @@ const props = withDefaults(
       language: string
       code: string
       raw: string
+      diff?: boolean
+      originalCode?: string
+      updatedCode?: string
     }
     loading?: boolean
     darkTheme?: MonacoTheme
@@ -63,20 +66,21 @@ const Icon = getIconify()
 // `vue-use-monaco` won't have the editor code bundled. We provide safe no-op
 // fallbacks for the minimal API we use.
 let createEditor: ((el: HTMLElement, code: string, lang: string) => void) | null = null
+let createDiffEditor: ((el: HTMLElement, original: string, modified: string, lang: string) => void) | null = null
 let updateCode: (code: string, lang: string) => void = () => {}
+let updateDiffCode: (original: string, modified: string, lang: string) => void = () => {}
 let getEditor: () => any = () => null
 let getEditorView: () => any = () => ({ getModel: () => ({ getLineCount: () => 1 }), getOption: () => 14, updateOptions: () => {} })
 let cleanupEditor: () => void = () => {}
-let detectLanguage: (code: string) => string = () => {
-  return props.node.language || 'plaintext'
-}
+let detectLanguage: (code: string) => string = () => props.node.language || 'plaintext'
+const isDiff = computed(() => props.node.diff)
 
 ;(async () => {
   try {
     const mod = await getUseMonaco()
     // `useMonaco` and `detectLanguage` should be available
-    const useMonaco = (mod as any).useMonaco || ((mod as any).default && (mod as any).default.useMonaco)
-    const det = (mod as any).detectLanguage || ((mod as any).default && (mod as any).default.detectLanguage)
+    const useMonaco = (mod as any).useMonaco
+    const det = (mod as any).detectLanguage
     if (typeof det === 'function')
       detectLanguage = det
     if (typeof useMonaco === 'function') {
@@ -88,13 +92,17 @@ let detectLanguage: (code: string) => string = () => {
           ...(props.monacoOptions || {}),
         })
         createEditor = helpers.createEditor || createEditor
+        createDiffEditor = helpers.createDiffEditor || createDiffEditor
         updateCode = helpers.updateCode || updateCode
+        updateDiffCode = helpers.updateDiff || updateDiffCode
         getEditor = helpers.getEditor || getEditor
         getEditorView = helpers.getEditorView || getEditorView
         cleanupEditor = helpers.cleanupEditor || cleanupEditor
         if (!editorCreated && codeEditor.value && createEditor) {
           editorCreated = true
-          createEditor(codeEditor.value as HTMLElement, props.node.code, codeLanguage.value)
+          isDiff.value
+            ? createDiffEditor(codeEditor.value as HTMLElement, props.node.originalCode || '', props.node.updatedCode || '', codeLanguage.value)
+            : createEditor(codeEditor.value as HTMLElement, props.node.code, codeLanguage.value)
         }
       }
       catch {
@@ -320,24 +328,33 @@ function previewCode() {
 
 // 监听代码/语言变化：仅在非 Mermaid 且编辑器已创建时更新，避免重复无效更新
 watch(
-  () => [props.node.code, codeLanguage.value, isMermaid.value] as const,
+  () => [props.node.code, codeLanguage.value, isMermaid.value, isDiff.value] as const,
   () => {
-    if (!editorCreated || isMermaid.value)
+    if (!editorCreated || isMermaid.value) {
       return
+    }
 
-    updateCode(props.node.code, codeLanguage.value)
+    isDiff.value
+      ? updateDiffCode(props.node.originalCode || '', props.node.updatedCode || '', codeLanguage.value)
+      : updateCode(props.node.code, codeLanguage.value)
   },
   { flush: 'post', immediate: false },
 )
 
 // 延迟创建编辑器：仅当不是 Mermaid 时才创建，避免无意义的初始化
 const stopCreateEditorWatch = watch(
-  () => [codeEditor.value, isMermaid.value] as const,
+  () => [codeEditor.value, isMermaid.value, isDiff.value] as const,
   async ([el, mermaid]) => {
-    if (!el || mermaid || editorCreated || !createEditor)
+    if (editorCreated && isDiff.value) {
+      cleanupEditor()
+    }
+    if (!el || mermaid || (editorCreated && !isDiff.value) || !createEditor)
       return
     editorCreated = true
-    createEditor(el as HTMLElement, props.node.code, codeLanguage.value)
+
+    isDiff.value
+      ? createDiffEditor(el as HTMLElement, props.node.originalCode || '', props.node.updatedCode || '', codeLanguage.value)
+      : createEditor(el as HTMLElement, props.node.code, codeLanguage.value)
     const editor = getEditorView()
     editor?.updateOptions({ fontSize: codeFontSize.value })
     // 若初始化时 loading 已为 false，等待一帧后再计算展开高度

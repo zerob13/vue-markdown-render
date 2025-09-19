@@ -3,6 +3,7 @@ export interface BaseNode {
   raw: string
   loading?: boolean
   code?: string
+  diff?: boolean
 }
 
 export interface TextNode extends BaseNode {
@@ -42,6 +43,12 @@ export interface CodeBlockNode extends BaseNode {
   endLine?: number
   // Whether this block is still incomplete (e.g., missing closing fence)
   loading?: boolean
+  // Whether this code block represents a diff
+  diff?: boolean
+  // If diff is true, original and updated code versions
+  originalCode?: string
+  updatedCode?: string
+  raw: string
 }
 
 export interface InlineCodeNode extends BaseNode {

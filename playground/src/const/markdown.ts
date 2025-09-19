@@ -82,32 +82,51 @@ app.on('activate', () => {
 
 3. Update package.json:
 
-\`\`\`json:package.json
+\`\`\`diff json:package.json
 {
-  "name": "electron-vue-chat",
-  "version": "0.1.0",
-  "private": true,
-  "main": "electron/main.js",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "electron:dev": "concurrently \\"npm run dev\\" \\"wait-on http://localhost:5173 && electron .\\"",
-    "electron:build": "vite build && electron-builder"
+  "name": "vue-renderer-markdown",
+  "type": "module",
+- "version": "0.0.49",
++ "version": "0.0.54-beta.1",
+  "packageManager": "pnpm@10.16.1",
+  "description": "A Vue 3 component that renders Markdown string content as HTML, supporting custom components and advanced markdown features.",
+  "author": "Simon He",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git + git@github.com:Simon-He95/vue-markdown-render.git"
   },
-  "dependencies": {
-    "vue": "^3.3.4",
-    "vue-router": "^4.2.4",
-    "electron": "^25.3.1",
-    "electron-builder": "^24.4.0"
+  "bugs": {
+    "url": "https://github.com/Simon-He95/vue-markdown-render/issues"
   },
-  "devDependencies": {
-    "@vitejs/plugin-vue": "^4.2.3",
-    "concurrently": "^8.2.0",
-    "electron-dev-server": "^1.0.0",
-    "vite": "^4.4.6",
-    "wait-on": "^7.0.1"
-  }
+  "keywords": [
+    "vue",
+    "vue3",
+    "markdown",
+    "markdown-to-html",
+    "markdown-renderer",
+    "vue-markdown",
+    "vue-component",
+    "html",
+    "renderer",
+    "custom-component"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/types/exports.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./index.css": "./dist/index.css",
+    "./index.tailwind.css": "./dist/index.tailwind.css",
+    "./tailwind": "./dist/tailwind.ts"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/types/exports.d.ts",
+  "files": [
+    "dist"
+  ],
 }
 \`\`\`
 
