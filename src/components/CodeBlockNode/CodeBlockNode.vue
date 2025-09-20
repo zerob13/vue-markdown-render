@@ -52,13 +52,9 @@ const copyText = ref(false)
 
 const codeLanguage = ref(props.node.language || '')
 const isExpanded = ref(false)
-const canExpand = ref(false)
-let cachedExpandedHeight: string | null = null
-let cachedNotExpandedHeight: string | null = null
 let editorCreated = false
 let expandRafId: number | null = null
-// 仅当用户主动点击展开后，才进入自动展开检测模式
-let autoExpandActive = false
+let resizeObserver: ResizeObserver | null = null
 
 const Icon = getIconify()
 
@@ -122,7 +118,46 @@ const codeFontMax = 36
 const codeFontStep = 1
 const defaultCodeFontSize = Number(props.monacoOptions?.fontSize ?? 14)
 const codeFontSize = ref<number>(defaultCodeFontSize)
-const CONTENT_PADDING = 16
+// Keep computed height tight to content. Extra padding caused visible bottom gap.
+const CONTENT_PADDING = 0
+// Fine-tuned to avoid bottom gap at default font size
+const LINE_EXTRA_PER_LINE = 1.5
+const PIXEL_EPSILON = 1
+
+function measureLineHeightFromDom(): number | null {
+  try {
+    const root = codeEditor.value as HTMLElement | null
+    if (!root)
+      return null
+    const lineEl = root.querySelector('.view-lines .view-line') as HTMLElement | null
+    if (lineEl) {
+      const h = Math.ceil(lineEl.getBoundingClientRect().height)
+      if (h > 0)
+        return h
+    }
+  }
+  catch {}
+  return null
+}
+
+function getLineHeightSafe(editor: any): number {
+  try {
+    const monacoEditor = getEditor()
+    const key = monacoEditor?.EditorOption?.lineHeight
+    if (key != null) {
+      const v = editor?.getOption?.(key)
+      if (typeof v === 'number' && v > 0)
+        return v
+    }
+  }
+  catch {}
+  const domH = measureLineHeightFromDom()
+  if (domH && domH > 0)
+    return domH
+  const fs = codeFontSize.value || 14
+  // Conservative fallback close to Monaco's default ratio
+  return Math.max(12, Math.round(fs * 1.35))
+}
 function increaseCodeFont() {
   codeFontSize.value = Math.min(codeFontMax, codeFontSize.value + codeFontStep)
 }
@@ -134,16 +169,72 @@ function resetCodeFont() {
 }
 
 function computeContentHeight(): number | null {
+  // Prefer Monaco's contentHeight when available; fallback to lineCount * lineHeight
   try {
-    const editor = isDiff.value ? getDiffEditorView() : getEditorView()
-    const monacoEditor = getEditor()
-    const lineCount = editor.getModel()?.getLineCount() ?? 1
-    const lineHeight = editor.getOption(monacoEditor.EditorOption.lineHeight)
-    return lineCount * lineHeight + CONTENT_PADDING
+    const ed = isDiff.value ? getDiffEditorView() : getEditorView()
+    if (!ed)
+      return null
+    if (isDiff.value && ed?.getOriginalEditor && ed?.getModifiedEditor) {
+      const o = ed.getOriginalEditor?.()
+      const m = ed.getModifiedEditor?.()
+      const oh = (o?.getContentHeight?.() as number) || 0
+      const mh = (m?.getContentHeight?.() as number) || 0
+      const h = Math.max(oh, mh)
+      if (h > 0)
+        return Math.ceil(h + PIXEL_EPSILON)
+      // fallback per-editor line count
+      const olc = o?.getModel?.()?.getLineCount?.() || 1
+      const mlc = m?.getModel?.()?.getLineCount?.() || 1
+      const lc = Math.max(olc, mlc)
+      const lh = Math.max(getLineHeightSafe(o), getLineHeightSafe(m))
+      return Math.ceil(lc * (lh + LINE_EXTRA_PER_LINE) + CONTENT_PADDING + PIXEL_EPSILON)
+    }
+    else if (ed?.getContentHeight) {
+      const h = ed.getContentHeight()
+      if (h > 0)
+        return Math.ceil(h + PIXEL_EPSILON)
+    }
+    // generic fallback
+    const model = ed?.getModel?.()
+    let lineCount = 1
+    if (model && typeof model.getLineCount === 'function') {
+      lineCount = model.getLineCount()
+    }
+    const lh = getLineHeightSafe(ed)
+    return Math.ceil(lineCount * (lh + LINE_EXTRA_PER_LINE) + CONTENT_PADDING + PIXEL_EPSILON)
   }
   catch {
     return null
   }
+}
+
+function updateExpandedHeight() {
+  try {
+    const container = codeEditor.value
+    if (!container)
+      return
+    const h = computeContentHeight()
+    if (h != null && h > 0) {
+      container.style.height = `${Math.ceil(h)}px`
+      container.style.maxHeight = 'none'
+    }
+  }
+  catch {}
+}
+
+function updateCollapsedHeight() {
+  try {
+    const container = codeEditor.value
+    if (!container)
+      return
+    const max = getMaxHeightValue()
+    const h0 = computeContentHeight()
+    const h = h0 == null ? max : Math.min(h0, max)
+    container.style.height = `${Math.ceil(h + PIXEL_EPSILON)}px`
+    container.style.maxHeight = `${Math.ceil(max)}px`
+    container.style.overflow = 'auto'
+  }
+  catch {}
 }
 
 function getMaxHeightValue(): number {
@@ -154,24 +245,7 @@ function getMaxHeightValue(): number {
   return m ? Number.parseFloat(m[1]) : 500
 }
 
-function updateCanExpand() {
-  try {
-    cachedNotExpandedHeight = codeEditor.value?.style.height || null
-    const contentHeight = computeContentHeight()
-    if (contentHeight == null) {
-      canExpand.value = false
-      return
-    }
-    const maxHeightValue = getMaxHeightValue()
-    canExpand.value = contentHeight > maxHeightValue + 5
-    if (canExpand.value) {
-      cachedExpandedHeight = `${contentHeight}px`
-    }
-  }
-  catch {
-    canExpand.value = false
-  }
-}
+// removed legacy canExpand logic; height is derived directly from content
 
 // 初始化语言检测：若未指定语言则立即检测一次，避免不必要的编辑器创建
 if (!props.node.language) {
@@ -271,20 +345,20 @@ function toggleExpand() {
     return
 
   if (isExpanded.value) {
-    autoExpandActive = true
-    // 先计算一次当前内容高度，确保有初始高度
-    updateCanExpand()
-    container.style.height = cachedExpandedHeight
+    // Expanded: enable automaticLayout and explicitly size container by lines
+    setAutomaticLayout(true)
     container.style.maxHeight = 'none'
     container.style.overflow = 'visible'
-    if (props.loading && autoExpandActive)
-      startExpandAutoResize()
+    updateExpandedHeight()
+    applyEditorScrollbarOptions(true)
   }
   else {
-    autoExpandActive = false
     stopExpandAutoResize()
+    // Collapsed: cap height via maxHeight and let internal scroll
+    setAutomaticLayout(false)
     container.style.overflow = 'auto'
-    container.style.height = cachedNotExpandedHeight ?? ''
+    updateCollapsedHeight()
+    applyEditorScrollbarOptions(false)
   }
 }
 
@@ -295,16 +369,9 @@ watch(
     if (!editor)
       return
     editor.updateOptions({ fontSize: size })
-    updateCanExpand()
-    if (isExpanded.value && cachedExpandedHeight) {
-      const height = computeContentHeight()
-      if (height != null)
-        cachedExpandedHeight = `${height}px`
-      const container = codeEditor.value
-      if (container) {
-        container.style.height = cachedExpandedHeight
-      }
-    }
+    // In automaticLayout mode, no manual height updates are needed
+    if (isExpanded.value)
+      updateExpandedHeight()
   },
   { flush: 'post', immediate: false },
 )
@@ -328,6 +395,34 @@ function previewCode() {
   })
 }
 
+function applyEditorScrollbarOptions(expanded: boolean) {
+  try {
+    if (isDiff.value) {
+      const diff = getDiffEditorView()
+      diff?.updateOptions?.({ automaticLayout: expanded, scrollbar: { vertical: expanded ? 'hidden' : 'auto', horizontal: 'auto' } })
+    }
+    else {
+      const ed = getEditorView()
+      ed?.updateOptions?.({ automaticLayout: expanded, scrollbar: { vertical: expanded ? 'hidden' : 'auto', horizontal: 'auto' } })
+    }
+  }
+  catch {}
+}
+
+function setAutomaticLayout(expanded: boolean) {
+  try {
+    if (isDiff.value) {
+      const diff = getDiffEditorView()
+      diff?.updateOptions?.({ automaticLayout: expanded })
+    }
+    else {
+      const ed = getEditorView()
+      ed?.updateOptions?.({ automaticLayout: expanded })
+    }
+  }
+  catch {}
+}
+
 // 监听代码/语言变化：仅在非 Mermaid 且编辑器已创建时更新，避免重复无效更新
 watch(
   () => [props.node.code, codeLanguage.value, isMermaid.value, isDiff.value] as const,
@@ -339,6 +434,9 @@ watch(
     isDiff.value
       ? updateDiffCode(props.node.originalCode || '', props.node.updatedCode || '', codeLanguage.value)
       : updateCode(props.node.code, codeLanguage.value)
+    if (isExpanded.value) {
+      requestAnimationFrame(() => updateExpandedHeight())
+    }
   },
   { flush: 'post', immediate: false },
 )
@@ -358,19 +456,43 @@ const stopCreateEditorWatch = watch(
       ? createDiffEditor(el as HTMLElement, props.node.originalCode || '', props.node.updatedCode || '', codeLanguage.value)
       : createEditor(el as HTMLElement, props.node.code, codeLanguage.value)
     const editor = isDiff.value ? getDiffEditorView() : getEditorView()
-    editor?.updateOptions({ fontSize: codeFontSize.value })
+    editor?.updateOptions({ fontSize: codeFontSize.value, automaticLayout: false })
+    // Ensure a visible baseline height while collapsed
+    if (!isExpanded.value) {
+      updateCollapsedHeight()
+    }
+    // Observe container width to toggle Diff side-by-side for better UX
+    if (!resizeObserver && typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => {
+        // Toggle side-by-side for narrow containers
+        if (isDiff.value) {
+          const width = (codeEditor.value?.clientWidth) || 0
+          const sideBySide = width >= 700
+          const diffView = getDiffEditorView()
+          try {
+            diffView?.updateOptions?.({ renderSideBySide: sideBySide })
+          }
+          catch {}
+        }
+        // Recompute height when layout mode changes or width changes
+        if (isExpanded.value)
+          updateExpandedHeight()
+        else
+          updateCollapsedHeight()
+      })
+      resizeObserver.observe(codeEditor.value as Element)
+    }
     // 若初始化时 loading 已为 false，等待一帧后再计算展开高度
     if (props.loading === false) {
       await nextTick()
       requestAnimationFrame(() => {
-        updateCanExpand()
+        if (isExpanded.value)
+          updateExpandedHeight()
+        else
+          updateCollapsedHeight()
       })
     }
-    // 若已展开且仍在加载，则开始逐帧自适应高度
-    if (isExpanded.value && props.loading && autoExpandActive) {
-      await nextTick()
-      startExpandAutoResize()
-    }
+    // automaticLayout handles layout in expanded mode; no manual RAF needed
     stopCreateEditorWatch()
   },
   { immediate: true },
@@ -388,48 +510,21 @@ stopLoadingWatch = watch(
     if (loaded === false) {
       await nextTick()
       requestAnimationFrame(() => {
-        updateCanExpand()
+        if (isExpanded.value)
+          updateExpandedHeight()
+        else
+          updateCollapsedHeight()
         stopLoadingWatch?.()
         stopLoadingWatch = undefined
       })
       stopExpandAutoResize()
     }
     else if (loaded === true) {
-      if (isExpanded.value && autoExpandActive) {
-        await nextTick()
-        startExpandAutoResize()
-      }
+      // no-op
     }
   },
   { immediate: true, flush: 'post' },
 )
-
-function startExpandAutoResize() {
-  stopExpandAutoResize()
-  const container = codeEditor.value
-  if (!container)
-    return
-  const tick = () => {
-    const contentHeight = computeContentHeight()
-    if (contentHeight != null) {
-      const nextHeight = `${contentHeight}px`
-      const currentHeightNum = cachedExpandedHeight ? Number.parseFloat(cachedExpandedHeight) : 0
-      if (!cachedExpandedHeight || contentHeight > currentHeightNum) {
-        cachedExpandedHeight = nextHeight
-        container.style.height = nextHeight
-        container.style.maxHeight = 'none'
-        container.style.overflow = 'visible'
-      }
-    }
-    if (props.loading && isExpanded.value) {
-      expandRafId = requestAnimationFrame(tick)
-    }
-    else {
-      expandRafId = null
-    }
-  }
-  expandRafId = requestAnimationFrame(tick)
-}
 
 function stopExpandAutoResize() {
   if (expandRafId != null) {
@@ -442,6 +537,13 @@ onUnmounted(() => {
   // Ensure any RAF loops are stopped and editor resources are released
   stopExpandAutoResize()
   cleanupEditor()
+  if (resizeObserver) {
+    try {
+      resizeObserver.disconnect()
+    }
+    catch {}
+    resizeObserver = null
+  }
 })
 </script>
 
