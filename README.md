@@ -1,12 +1,18 @@
 # vue-renderer-markdown
 
-> Rendering Markdown is straightforward, but when you need to stream and render it in real-time, new challenges emerge. vue-renderer-markdown is built specifically to handle the unique requirements of streaming Markdown content from AI models and live updates, providing seamless formatting even with incomplete or rapidly changing Markdown blocks.
+> Fast, streaming-friendly Markdown rendering for Vue 3 — progressive Mermaid, streaming diff code blocks, and real-time previews optimized for large documents.
 
 [![NPM version](https://img.shields.io/npm/v/vue-renderer-markdown?color=a1b858&label=)](https://www.npmjs.com/package/vue-renderer-markdown)
 
-## 🚀 [Live Demo](https://vue-markdown-renderer.netlify.app/)
+## Why use it?
 
-Experience the power of high-performance streaming Markdown rendering in action!
+- Progressive Mermaid: diagrams render incrementally so users see results earlier.
+- Streaming diff code blocks: show diffs as they arrive for instant feedback.
+- Built for scale: optimized DOM updates and memory usage for very large documents.
+
+## 🚀 Live Demo
+
+[Demo site](https://vue-markdown-renderer.netlify.app/) — try large Markdown files and progressive diagrams to feel the difference.
 
 ## Features
 
