@@ -40,7 +40,7 @@ const props = withDefaults(
     darkTheme: undefined,
     lightTheme: undefined,
     loading: true,
-    enableFontSizeControl: true
+    enableFontSizeControl: true,
   },
 )
 
@@ -55,8 +55,6 @@ const isExpanded = ref(false)
 let editorCreated = false
 let expandRafId: number | null = null
 let resizeObserver: ResizeObserver | null = null
-// 仅当用户主动点击展开后，才进入自动展开检测模式
-let autoExpandActive = false
 
 const Icon = getIconify()
 
@@ -88,7 +86,7 @@ const isDiff = computed(() => props.node.diff)
           wordWrap: 'on',
           wrappingIndent: 'same',
           themes: props.darkTheme && props.lightTheme ? [props.darkTheme, props.lightTheme] : undefined,
-          ...(props.monacoOptions || {})
+          ...(props.monacoOptions || {}),
         })
         createEditor = helpers.createEditor || createEditor
         createDiffEditor = helpers.createDiffEditor || createDiffEditor
@@ -122,7 +120,6 @@ const defaultCodeFontSize = Number(props.monacoOptions?.fontSize ?? 14)
 const codeFontSize = ref<number>(defaultCodeFontSize)
 // Keep computed height tight to content. Extra padding caused visible bottom gap.
 const CONTENT_PADDING = 0
-const DIFF_EXTRA_PADDING = 0
 // Fine-tuned to avoid bottom gap at default font size
 const LINE_EXTRA_PER_LINE = 1.5
 const PIXEL_EPSILON = 1
@@ -348,7 +345,6 @@ function toggleExpand() {
     return
 
   if (isExpanded.value) {
-    autoExpandActive = false
     // Expanded: enable automaticLayout and explicitly size container by lines
     setAutomaticLayout(true)
     container.style.maxHeight = 'none'
@@ -357,10 +353,8 @@ function toggleExpand() {
     applyEditorScrollbarOptions(true)
   }
   else {
-    autoExpandActive = false
     stopExpandAutoResize()
     // Collapsed: cap height via maxHeight and let internal scroll
-    const collapsed = `${getMaxHeightValue()}px`
     setAutomaticLayout(false)
     container.style.overflow = 'auto'
     updateCollapsedHeight()
@@ -475,7 +469,10 @@ const stopCreateEditorWatch = watch(
           const width = (codeEditor.value?.clientWidth) || 0
           const sideBySide = width >= 700
           const diffView = getDiffEditorView()
-          try { diffView?.updateOptions?.({ renderSideBySide: sideBySide }) } catch {}
+          try {
+            diffView?.updateOptions?.({ renderSideBySide: sideBySide })
+          }
+          catch {}
         }
         // Recompute height when layout mode changes or width changes
         if (isExpanded.value)
@@ -529,11 +526,6 @@ stopLoadingWatch = watch(
   { immediate: true, flush: 'post' },
 )
 
-function startExpandAutoResize() {
-  // No-op when relying on Monaco automaticLayout
-  stopExpandAutoResize()
-}
-
 function stopExpandAutoResize() {
   if (expandRafId != null) {
     cancelAnimationFrame(expandRafId)
@@ -546,7 +538,10 @@ onUnmounted(() => {
   stopExpandAutoResize()
   cleanupEditor()
   if (resizeObserver) {
-    try { resizeObserver.disconnect() } catch {}
+    try {
+      resizeObserver.disconnect()
+    }
+    catch {}
     resizeObserver = null
   }
 })
