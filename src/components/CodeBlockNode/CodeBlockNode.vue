@@ -125,6 +125,7 @@ const CONTENT_PADDING = 0
 const DIFF_EXTRA_PADDING = 0
 // Fine-tuned to avoid bottom gap at default font size
 const LINE_EXTRA_PER_LINE = 1.5
+const PIXEL_EPSILON = 1
 
 function measureLineHeightFromDom(): number | null {
   try {
@@ -171,33 +172,39 @@ function resetCodeFont() {
 }
 
 function computeContentHeight(): number | null {
-  // Strictly use lineCount * lineHeight like codeblock approach
+  // Prefer Monaco's contentHeight when available; fallback to lineCount * lineHeight
   try {
-    const editor = isDiff.value ? getDiffEditorView() : getEditorView()
-    // we avoid hard dependency on EditorOption; use safe helper
-    const model = editor?.getModel?.()
+    const ed = isDiff.value ? getDiffEditorView() : getEditorView()
+    if (!ed)
+      return null
+    if (isDiff.value && ed?.getOriginalEditor && ed?.getModifiedEditor) {
+      const o = ed.getOriginalEditor?.()
+      const m = ed.getModifiedEditor?.()
+      const oh = (o?.getContentHeight?.() as number) || 0
+      const mh = (m?.getContentHeight?.() as number) || 0
+      const h = Math.max(oh, mh)
+      if (h > 0)
+        return Math.ceil(h + PIXEL_EPSILON)
+      // fallback per-editor line count
+      const olc = o?.getModel?.()?.getLineCount?.() || 1
+      const mlc = m?.getModel?.()?.getLineCount?.() || 1
+      const lc = Math.max(olc, mlc)
+      const lh = Math.max(getLineHeightSafe(o), getLineHeightSafe(m))
+      return Math.ceil(lc * (lh + LINE_EXTRA_PER_LINE) + CONTENT_PADDING + PIXEL_EPSILON)
+    }
+    else if (ed?.getContentHeight) {
+      const h = ed.getContentHeight()
+      if (h > 0)
+        return Math.ceil(h + PIXEL_EPSILON)
+    }
+    // generic fallback
+    const model = ed?.getModel?.()
     let lineCount = 1
-    if (!isDiff.value) {
-      // Single editor
-      if (model && typeof model.getLineCount === 'function')
-        lineCount = model.getLineCount()
+    if (model && typeof model.getLineCount === 'function') {
+      lineCount = model.getLineCount()
     }
-    else {
-      // Diff editor
-      if (model && model.original && model.modified &&
-        typeof model.original.getLineCount === 'function' && typeof model.modified.getLineCount === 'function') {
-        lineCount = Math.max(model.original.getLineCount(), model.modified.getLineCount())
-      }
-      else if (editor?.getOriginalEditor && editor?.getModifiedEditor) {
-        const origCnt = editor.getOriginalEditor()?.getModel?.()?.getLineCount?.() || 1
-        const modCnt = editor.getModifiedEditor()?.getModel?.()?.getLineCount?.() || 1
-        lineCount = Math.max(origCnt, modCnt)
-      }
-    }
-    const lineHeight = getLineHeightSafe(editor)
-    const effectiveLine = lineHeight + LINE_EXTRA_PER_LINE
-    const base = lineCount * effectiveLine + CONTENT_PADDING
-    return base + (isDiff.value ? DIFF_EXTRA_PADDING : 0)
+    const lh = getLineHeightSafe(ed)
+    return Math.ceil(lineCount * (lh + LINE_EXTRA_PER_LINE) + CONTENT_PADDING + PIXEL_EPSILON)
   }
   catch {
     return null
@@ -211,7 +218,7 @@ function updateExpandedHeight() {
       return
     const h = computeContentHeight()
     if (h != null && h > 0) {
-      container.style.height = `${h}px`
+      container.style.height = `${Math.ceil(h)}px`
       container.style.maxHeight = 'none'
     }
   }
@@ -226,8 +233,8 @@ function updateCollapsedHeight() {
     const max = getMaxHeightValue()
     const h0 = computeContentHeight()
     const h = h0 == null ? max : Math.min(h0, max)
-    container.style.height = `${h}px`
-    container.style.maxHeight = `${max}px`
+    container.style.height = `${Math.ceil(h + PIXEL_EPSILON)}px`
+    container.style.maxHeight = `${Math.ceil(max)}px`
     container.style.overflow = 'auto'
   }
   catch {}
