@@ -779,4 +779,7 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
 }
+:deep(.monaco-diff-editor .diffOverview){
+  background-color: var(--vscode-editor-background);
+}
 </style>
