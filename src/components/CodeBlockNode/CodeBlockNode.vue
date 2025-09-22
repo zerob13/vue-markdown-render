@@ -3,6 +3,7 @@
 // doesn't get a reference. Define minimal local types we need here.
 import type { WatchStopHandle } from 'vue'
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
+import { useMonaco } from 'vue-use-monaco'
 import { useSafeI18n } from '../../composables/useSafeI18n'
 // Tooltip is provided as a singleton via composable to avoid many DOM nodes
 import { hideTooltip, showTooltipForAnchor } from '../../composables/useSingletonTooltip'
@@ -34,6 +35,7 @@ const props = withDefaults(
     isShowPreview?: boolean
     monacoOptions?: MonacoOptions
     enableFontSizeControl?: boolean
+    themes?: MonacoTheme[]
   }>(),
   {
     isShowPreview: true,
@@ -47,12 +49,13 @@ const props = withDefaults(
 const emits = defineEmits(['previewCode', 'copy'])
 const { t } = useSafeI18n()
 const codeEditor = ref<HTMLElement | null>(null)
+const container = ref<HTMLElement | null>(null)
 const copyText = ref(false)
 // local tooltip logic removed; use shared `showTooltipForAnchor` / `hideTooltip`
 
 const codeLanguage = ref(props.node.language || '')
 const isExpanded = ref(false)
-let editorCreated = false
+const editorCreated = ref(false)
 let expandRafId: number | null = null
 let resizeObserver: ResizeObserver | null = null
 
@@ -70,41 +73,46 @@ let getEditorView: () => any = () => ({ getModel: () => ({ getLineCount: () => 1
 let getDiffEditorView: () => any = () => ({ getModel: () => ({ getLineCount: () => 1 }), getOption: () => 14, updateOptions: () => {} })
 let cleanupEditor: () => void = () => {}
 let detectLanguage: (code: string) => string = () => props.node.language || 'plaintext'
+let setTheme: (theme: MonacoTheme) => Promise<void> = async () => {}
 const isDiff = computed(() => props.node.diff)
 
 ;(async () => {
   try {
     const mod = await getUseMonaco()
     // `useMonaco` and `detectLanguage` should be available
-    const useMonaco = (mod as any).useMonaco
+    // const useMonaco = (mod as any).useMonaco
     const det = (mod as any).detectLanguage
     if (typeof det === 'function')
       detectLanguage = det
     if (typeof useMonaco === 'function') {
-      try {
-        const helpers = useMonaco({
-          wordWrap: 'on',
-          wrappingIndent: 'same',
-          themes: props.darkTheme && props.lightTheme ? [props.darkTheme, props.lightTheme] : undefined,
-          ...(props.monacoOptions || {}),
-        })
-        createEditor = helpers.createEditor || createEditor
-        createDiffEditor = helpers.createDiffEditor || createDiffEditor
-        updateCode = helpers.updateCode || updateCode
-        updateDiffCode = helpers.updateDiff || updateDiffCode
-        getEditor = helpers.getEditor || getEditor
-        getEditorView = helpers.getEditorView || getEditorView
-        getDiffEditorView = helpers.getDiffEditorView || getDiffEditorView
-        cleanupEditor = helpers.cleanupEditor || cleanupEditor
-        if (!editorCreated && codeEditor.value && createEditor) {
-          editorCreated = true
-          isDiff.value
-            ? createDiffEditor(codeEditor.value as HTMLElement, props.node.originalCode || '', props.node.updatedCode || '', codeLanguage.value)
-            : createEditor(codeEditor.value as HTMLElement, props.node.code, codeLanguage.value)
-        }
+      const theme = getPreferredColorScheme()
+      if (theme && props.themes && Array.isArray(props.themes) && !props.themes.includes(theme)) {
+        throw new Error('Preferred theme not in provided themes array')
       }
-      catch {
-        // ignore and keep fallbacks
+      const helpers = useMonaco({
+        wordWrap: 'on',
+        wrappingIndent: 'same',
+        themes: props.themes,
+        theme,
+        ...(props.monacoOptions || {}),
+        onThemeChange() {
+          syncEditorCssVars()
+        },
+      })
+      createEditor = helpers.createEditor || createEditor
+      createDiffEditor = helpers.createDiffEditor || createDiffEditor
+      updateCode = helpers.updateCode || updateCode
+      updateDiffCode = helpers.updateDiff || updateDiffCode
+      getEditor = helpers.getEditor || getEditor
+      getEditorView = helpers.getEditorView || getEditorView
+      getDiffEditorView = helpers.getDiffEditorView || getDiffEditorView
+      cleanupEditor = helpers.cleanupEditor || cleanupEditor
+      setTheme = helpers.setTheme || setTheme
+      if (!editorCreated.value && codeEditor.value && createEditor) {
+        editorCreated.value = true
+        isDiff.value
+          ? createDiffEditor(codeEditor.value as HTMLElement, props.node.originalCode || '', props.node.updatedCode || '', codeLanguage.value)
+          : createEditor(codeEditor.value as HTMLElement, props.node.code, codeLanguage.value)
       }
     }
   }
@@ -207,6 +215,31 @@ function computeContentHeight(): number | null {
     return null
   }
 }
+
+// Copy computed CSS variables from the editor DOM up to the component root so
+// the header (which lives alongside the editor but outside its inner DOM)
+// can use variables like --vscode-editor-foreground / --vscode-editor-background.
+function syncEditorCssVars() {
+  const editorEl = codeEditor.value as HTMLElement | null
+  const rootEl = container.value as HTMLElement | null
+  if (!editorEl || !rootEl)
+    return
+    // Monaco usually applies theme variables on an element with class
+    // 'monaco-editor' or on the editor root; try to read from either.
+  const src = editorEl.querySelector('.monaco-editor') || editorEl
+  const styles = window.getComputedStyle(src as Element)
+  const fg = styles.getPropertyValue('--vscode-editor-foreground') || ''
+  const bg = styles.getPropertyValue('--vscode-editor-background') || ''
+  const hoverBg = styles.getPropertyValue('--vscode-editor-hoverHighlightBackground') || ''
+  if (fg && bg) {
+    rootEl.style.setProperty('--vscode-editor-foreground', fg.trim())
+    rootEl.style.setProperty('--vscode-editor-background', bg.trim())
+    rootEl.style.setProperty('--vscode-editor-selectionBackground', hoverBg.trim())
+    return true
+  }
+}
+
+let resizeSyncHandler: (() => void) | null = null
 
 function updateExpandedHeight() {
   try {
@@ -427,7 +460,7 @@ function setAutomaticLayout(expanded: boolean) {
 watch(
   () => [props.node.code, codeLanguage.value, isMermaid.value, isDiff.value] as const,
   () => {
-    if (!editorCreated || isMermaid.value) {
+    if (!editorCreated.value || isMermaid.value) {
       return
     }
 
@@ -445,12 +478,12 @@ watch(
 const stopCreateEditorWatch = watch(
   () => [codeEditor.value, isMermaid.value, isDiff.value] as const,
   async ([el, mermaid]) => {
-    if (editorCreated && isDiff.value) {
+    if (editorCreated.value && isDiff.value) {
       cleanupEditor()
     }
-    if (!el || mermaid || (editorCreated && !isDiff.value) || !createEditor)
+    if (!el || mermaid || !createEditor)
       return
-    editorCreated = true
+    editorCreated.value = true
 
     isDiff.value
       ? createDiffEditor(el as HTMLElement, props.node.originalCode || '', props.node.updatedCode || '', codeLanguage.value)
@@ -496,6 +529,51 @@ const stopCreateEditorWatch = watch(
     stopCreateEditorWatch()
   },
   { immediate: true },
+)
+
+// Watch for theme changes and try to apply them at runtime. If the helper
+// exposes an API to update themes/options, use it. Otherwise, recreate the
+// editor to ensure the new themes/options take effect.
+watch(
+  () => [props.darkTheme, props.lightTheme, editorCreated.value],
+  () => {
+    if (!editorCreated.value)
+      return
+
+    themeUpdate()
+  },
+  { immediate: false },
+)
+
+function isDark() {
+  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+}
+function getPreferredColorScheme() {
+  return isDark() ? props.darkTheme : props.lightTheme
+}
+
+function themeUpdate() {
+  const themeToSet: any = getPreferredColorScheme()
+  if (themeToSet)
+    setTheme(themeToSet)
+}
+
+// Watch for monacoOptions changes (deep) and try to update editor options or
+// recreate the editor when necessary.
+watch(
+  () => props.monacoOptions,
+  async () => {
+    if (!createEditor)
+      return
+
+    const ed = isDiff.value ? getDiffEditorView() : getEditorView()
+    ed?.updateOptions?.({ fontSize: props.monacoOptions?.fontSize ?? codeFontSize.value })
+    if (isExpanded.value)
+      updateExpandedHeight()
+    else
+      updateCollapsedHeight()
+  },
+  { deep: true, immediate: false },
 )
 
 // 当 loading 变为 false 时：计算并缓存一次展开高度，随后停止观察
@@ -544,6 +622,13 @@ onUnmounted(() => {
     catch {}
     resizeObserver = null
   }
+  if (resizeSyncHandler) {
+    try {
+      window.removeEventListener('resize', resizeSyncHandler)
+    }
+    catch {}
+    resizeSyncHandler = null
+  }
 })
 </script>
 
@@ -551,14 +636,19 @@ onUnmounted(() => {
   <MermaidBlockNode v-if="isMermaid" :node="node" :loading="props.loading" />
   <div
     v-else
+    ref="container"
     class="code-block-container my-4 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm bg-white dark:bg-gray-900"
   >
     <!-- 简洁的头部区域 -->
-    <div class="code-block-header flex justify-between items-center px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+    <div
+      class="code-block-header flex justify-between items-center px-4 py-2.5 border-b border-gray-400/5"
+      style="color: var(--vscode-editor-foreground);
+    background-color: var(--vscode-editor-background);"
+    >
       <!-- 左侧语言标签 -->
       <div class="flex items-center space-x-2">
         <span class="icon-slot h-4 w-4 flex-shrink-0" v-html="languageIcon" />
-        <span class="text-sm font-medium text-gray-600 dark:text-gray-400 font-mono">{{ displayLanguage }}</span>
+        <span class="text-sm font-medium font-mono">{{ displayLanguage }}</span>
       </div>
 
       <!-- 右侧操作按钮（合并重复结构） -->
@@ -566,7 +656,7 @@ onUnmounted(() => {
         <template v-if="props.enableFontSizeControl">
           <button
             type="button"
-            class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            class="code-action-btn p-2 text-xs rounded-md transition-colors hover:bg-[var(--vscode-editor-selectionBackground)]"
             :disabled="codeFontSize <= codeFontMin"
             @click="decreaseCodeFont()"
             @mouseenter="onBtnHover($event, t('common.decrease') || 'Decrease')"
@@ -578,7 +668,7 @@ onUnmounted(() => {
           </button>
           <button
             type="button"
-            class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            class="code-action-btn p-2 text-xs rounded-md transition-colors hover:bg-[var(--vscode-editor-selectionBackground)]"
             :disabled="codeFontSize === defaultCodeFontSize"
             @click="resetCodeFont()"
             @mouseenter="onBtnHover($event, t('common.reset') || 'Reset')"
@@ -590,7 +680,7 @@ onUnmounted(() => {
           </button>
           <button
             type="button"
-            class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            class="code-action-btn p-2 text-xs rounded-md transition-colors hover:bg-[var(--vscode-editor-selectionBackground)]"
             :disabled="codeFontSize >= codeFontMax"
             @click="increaseCodeFont()"
             @mouseenter="onBtnHover($event, t('common.increase') || 'Increase')"
@@ -603,7 +693,7 @@ onUnmounted(() => {
         </template>
         <button
           type="button"
-          class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          class="code-action-btn p-2 text-xs rounded-md transition-colors hover:bg-[var(--vscode-editor-selectionBackground)]"
           :aria-label="copyText ? (t('common.copied') || 'Copied') : (t('common.copy') || 'Copy')"
           @click="copy"
           @mouseenter="onCopyHover($event)"
@@ -616,7 +706,7 @@ onUnmounted(() => {
         </button>
         <button
           type="button"
-          class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          class="code-action-btn p-2 text-xs rounded-md transition-colors hover:bg-[var(--vscode-editor-selectionBackground)]"
           :aria-pressed="isExpanded"
           @click="toggleExpand"
           @mouseenter="onBtnHover($event, isExpanded ? (t('common.collapse') || 'Collapse') : (t('common.expand') || 'Expand'))"
@@ -629,7 +719,7 @@ onUnmounted(() => {
         <button
           v-if="isPreviewable"
           type="button"
-          class="code-action-btn p-2 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          class="code-action-btn p-2 text-xs rounded-md transition-colors hover:bg-[var(--vscode-editor-selectionBackground)]"
           :aria-label="t('common.preview') || 'Preview'"
           @click="previewCode"
           @mouseenter="onBtnHover($event, t('common.preview') || 'Preview')"

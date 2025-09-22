@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import type { BaseNode } from '../../utils'
+import type { MonacoTheme } from 'vue-use-monaco'
 
+import type { BaseNode } from '../../utils'
 import { computed, defineAsyncComponent, ref } from 'vue'
 import { getMarkdown, parseMarkdownToStructure } from '../../utils/markdown'
 import { setNodeComponents } from '../../utils/nodeComponents'
@@ -27,8 +28,8 @@ import MathInlineNode from '../MathInlineNode'
 import ParagraphNode from '../ParagraphNode'
 import StrikethroughNode from '../StrikethroughNode'
 import StrongNode from '../StrongNode'
-import SubscriptNode from '../SubscriptNode'
 
+import SubscriptNode from '../SubscriptNode'
 import SuperscriptNode from '../SuperscriptNode'
 import TableNode from '../TableNode'
 import TextNode from '../TextNode'
@@ -37,16 +38,27 @@ import FallbackComponent from './FallbackComponent.vue'
 import { preload } from './preloadMonaco'
 
 // 组件接收的 props
+// 增加用于统一设置所有 code_block 主题和 Monaco 选项的外部 API
 const props = defineProps<
   | {
     content: string
     nodes?: undefined
     customComponents?: Record<string, any>
+    // 全局传递到每个 CodeBlockNode 的主题（monaco theme 对象）
+    codeBlockDarkTheme?: any
+    codeBlockLightTheme?: any
+    // 传递给 CodeBlockNode 的 monacoOptions（比如 fontSize, MAX_HEIGHT 等）
+    codeBlockMonacoOptions?: Record<string, any>
+    themes?: MonacoTheme[]
   }
   | {
     content?: undefined
     nodes: BaseNode[]
     customComponents?: Record<string, any>
+    codeBlockDarkTheme?: any
+    codeBlockLightTheme?: any
+    codeBlockMonacoOptions?: Record<string, any>
+    themes?: MonacoTheme[]
   }
 >()
 
@@ -124,6 +136,12 @@ setNodeComponents(nodeComponents)
         :key="index"
         :node="node"
         :loading="node.loading"
+        v-bind="node.type === 'code_block' ? {
+          darkTheme: props.codeBlockDarkTheme,
+          lightTheme: props.codeBlockLightTheme,
+          monacoOptions: props.codeBlockMonacoOptions,
+          themes: props.themes,
+        } : {}"
         @copy="$emit('copy', $event)"
         @handle-artifact-click="$emit('handleArtifactClick', $event)"
         @click="$emit('click', $event)"
