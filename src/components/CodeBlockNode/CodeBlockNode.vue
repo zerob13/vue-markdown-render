@@ -3,7 +3,6 @@
 // doesn't get a reference. Define minimal local types we need here.
 import type { WatchStopHandle } from 'vue'
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
-import { useMonaco } from 'vue-use-monaco'
 import { useSafeI18n } from '../../composables/useSafeI18n'
 // Tooltip is provided as a singleton via composable to avoid many DOM nodes
 import { hideTooltip, showTooltipForAnchor } from '../../composables/useSingletonTooltip'
@@ -80,7 +79,7 @@ const isDiff = computed(() => props.node.diff)
   try {
     const mod = await getUseMonaco()
     // `useMonaco` and `detectLanguage` should be available
-    // const useMonaco = (mod as any).useMonaco
+    const useMonaco = (mod as any).useMonaco
     const det = (mod as any).detectLanguage
     if (typeof det === 'function')
       detectLanguage = det
