@@ -54,8 +54,8 @@ importers:
         specifier: '>=9'
         version: 11.1.12(vue@3.5.21(typescript@5.9.2))
       vue-use-monaco:
-        specifier: '>=0.0.29'
-        version: 0.0.29(monaco-editor@0.52.2)(vue@3.5.21(typescript@5.9.2))
+        specifier: '>=0.0.30'
+        version: 0.0.30(monaco-editor@0.52.2)(vue@3.5.21(typescript@5.9.2))
     devDependencies:
       '@antfu/eslint-config':
         specifier: ^5.4.1
@@ -149,13 +149,13 @@ importers:
         version: 11.1.12(vue@3.5.21(typescript@5.9.2))
       vue-renderer-markdown:
         specifier: latest
-        version: 0.0.54-beta.1(@iconify/vue@5.0.0(vue@3.5.21(typescript@5.9.2)))(katex@0.16.22)(mermaid@11.12.0)(vue-i18n@11.1.12(vue@3.5.21(typescript@5.9.2)))(vue-use-monaco@0.0.29(monaco-editor@0.52.2)(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2))
+        version: 0.0.54-beta.1(@iconify/vue@5.0.0(vue@3.5.21(typescript@5.9.2)))(katex@0.16.22)(mermaid@11.12.0)(vue-i18n@11.1.12(vue@3.5.21(typescript@5.9.2)))(vue-use-monaco@0.0.31(monaco-editor@0.52.2)(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2))
       vue-router:
         specifier: ^4.5.1
         version: 4.5.1(vue@3.5.21(typescript@5.9.2))
       vue-use-monaco:
-        specifier: ^0.0.29
-        version: 0.0.29(monaco-editor@0.52.2)(vue@3.5.21(typescript@5.9.2))
+        specifier: ^0.0.31
+        version: 0.0.31(monaco-editor@0.52.2)(vue@3.5.21(typescript@5.9.2))
     devDependencies:
       '@types/node':
         specifier: ^20.19.17
@@ -3867,8 +3867,15 @@ packages:
     peerDependencies:
       typescript: '>=5.0.0'
 
-  vue-use-monaco@0.0.29:
-    resolution: {integrity: sha512-S8IREWwP9WVG0unGghN6GV8pY/GNcdB+rc4HsdzZCDgsP12JxWyPteJXC/7MrUUnVyJhrZfobXuLkpajgUy1uA==}
+  vue-use-monaco@0.0.30:
+    resolution: {integrity: sha512-F9Kdpod0cEIaQm2SAwUU/2hczQWyD326/Hb/s/xm4xqhq9LKZRKOggqiH/XhWWClVA1CZm/Iu8nVaLA1zM2JTA==}
+    hasBin: true
+    peerDependencies:
+      monaco-editor: 0.52.2
+      vue: '>=3.0.0'
+
+  vue-use-monaco@0.0.31:
+    resolution: {integrity: sha512-tnYY6FaQy8dCQAYho6svIcVNHPRCnKVnIqP7pe1CWdQuwsCavAOcbdyTL2B3Dl7UINb3TBOL/A7bCj6/hC1bWw==}
     hasBin: true
     peerDependencies:
       monaco-editor: 0.52.2
@@ -8016,7 +8023,7 @@ snapshots:
       '@vue/devtools-api': 6.6.4
       vue: 3.5.21(typescript@5.9.2)
 
-  vue-renderer-markdown@0.0.54-beta.1(@iconify/vue@5.0.0(vue@3.5.21(typescript@5.9.2)))(katex@0.16.22)(mermaid@11.12.0)(vue-i18n@11.1.12(vue@3.5.21(typescript@5.9.2)))(vue-use-monaco@0.0.29(monaco-editor@0.52.2)(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2)):
+  vue-renderer-markdown@0.0.54-beta.1(@iconify/vue@5.0.0(vue@3.5.21(typescript@5.9.2)))(katex@0.16.22)(mermaid@11.12.0)(vue-i18n@11.1.12(vue@3.5.21(typescript@5.9.2)))(vue-use-monaco@0.0.31(monaco-editor@0.52.2)(vue@3.5.21(typescript@5.9.2)))(vue@3.5.21(typescript@5.9.2)):
     dependencies:
       '@floating-ui/dom': 1.7.4
       katex: 0.16.22
@@ -8035,7 +8042,7 @@ snapshots:
       '@iconify/vue': 5.0.0(vue@3.5.21(typescript@5.9.2))
       mermaid: 11.12.0
       vue-i18n: 11.1.12(vue@3.5.21(typescript@5.9.2))
-      vue-use-monaco: 0.0.29(monaco-editor@0.52.2)(vue@3.5.21(typescript@5.9.2))
+      vue-use-monaco: 0.0.31(monaco-editor@0.52.2)(vue@3.5.21(typescript@5.9.2))
     transitivePeerDependencies:
       - encoding
 
@@ -8050,7 +8057,14 @@ snapshots:
       '@vue/language-core': 2.2.12(typescript@5.9.2)
       typescript: 5.9.2
 
-  vue-use-monaco@0.0.29(monaco-editor@0.52.2)(vue@3.5.21(typescript@5.9.2)):
+  vue-use-monaco@0.0.30(monaco-editor@0.52.2)(vue@3.5.21(typescript@5.9.2)):
+    dependencies:
+      '@shikijs/monaco': 3.13.0
+      monaco-editor: 0.52.2
+      shiki: 3.13.0
+      vue: 3.5.21(typescript@5.9.2)
+
+  vue-use-monaco@0.0.31(monaco-editor@0.52.2)(vue@3.5.21(typescript@5.9.2)):
     dependencies:
       '@shikijs/monaco': 3.13.0
       monaco-editor: 0.52.2

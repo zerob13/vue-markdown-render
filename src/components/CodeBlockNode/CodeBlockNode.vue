@@ -512,9 +512,6 @@ watch(
 const stopCreateEditorWatch = watch(
   () => [codeEditor.value, isMermaid.value, isDiff.value] as const,
   async ([el, mermaid]) => {
-    if (editorCreated.value && isDiff.value) {
-      cleanupEditor()
-    }
     if (!el || mermaid || !createEditor)
       return
     editorCreated.value = true

@@ -10,16 +10,10 @@ function splitUnifiedDiff(content: string) {
       continue
 
     if (line.startsWith('- ')) {
-      orig.push(line.slice(1))
+      orig.push(` ${line.slice(1)}`)
     }
     else if (line.startsWith('+ ')) {
-      updated.push(line.slice(1))
-    }
-    else if (line.startsWith(' ')) {
-      // context line -> present in both
-      const ctx = line.slice(1)
-      orig.push(ctx)
-      updated.push(ctx)
+      updated.push(` ${line.slice(1)}`)
     }
     else {
       // fallback: treat as context (no prefix)

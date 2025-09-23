@@ -20,7 +20,7 @@
     "vue-i18n": "^11.1.12",
     "vue-renderer-markdown": "latest",
     "vue-router": "^4.5.1",
-    "vue-use-monaco": "^0.0.29"
+    "vue-use-monaco": "^0.0.31"
   },
   "devDependencies": {
     "@types/node": "^20.19.17",
