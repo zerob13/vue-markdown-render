@@ -34,6 +34,10 @@ const props = withDefaults(
     isShowPreview?: boolean
     monacoOptions?: MonacoOptions
     enableFontSizeControl?: boolean
+    /** Minimum width for the code block container (px or CSS unit string) */
+    minWidth?: string | number
+    /** Maximum width for the code block container (px or CSS unit string) */
+    maxWidth?: string | number
     themes?: MonacoTheme[]
   }>(),
   {
@@ -42,6 +46,8 @@ const props = withDefaults(
     lightTheme: undefined,
     loading: true,
     enableFontSizeControl: true,
+    minWidth: undefined,
+    maxWidth: undefined,
   },
 )
 
@@ -324,6 +330,20 @@ const displayLanguage = computed(() => {
 const languageIcon = computed(() => {
   const lang = codeLanguage.value.trim().toLowerCase()
   return getLanguageIcon(lang.split(':')[0])
+})
+
+// Compute inline style for container to respect optional min/max width
+const containerStyle = computed(() => {
+  const s: Record<string, string> = {}
+  const fmt = (v: string | number | undefined) => {
+    if (v == null) return undefined
+    return typeof v === 'number' ? `${v}px` : String(v)
+  }
+  const min = fmt(props.minWidth)
+  const max = fmt(props.maxWidth)
+  if (min) s.minWidth = min
+  if (max) s.maxWidth = max
+  return s
 })
 
 // 复制代码
@@ -636,6 +656,7 @@ onUnmounted(() => {
   <div
     v-else
     ref="container"
+    :style="containerStyle"
     class="code-block-container my-4 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm bg-white dark:bg-gray-900"
   >
     <!-- 简洁的头部区域 -->

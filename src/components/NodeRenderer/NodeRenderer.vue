@@ -49,6 +49,12 @@ const props = defineProps<
     codeBlockLightTheme?: any
     // 传递给 CodeBlockNode 的 monacoOptions（比如 fontSize, MAX_HEIGHT 等）
     codeBlockMonacoOptions?: Record<string, any>
+    /** Minimum width forwarded to CodeBlockNode (px or CSS unit) */
+    codeBlockMinWidth?: string | number
+    /** Maximum width forwarded to CodeBlockNode (px or CSS unit) */
+    codeBlockMaxWidth?: string | number
+    /** Arbitrary props to forward to every CodeBlockNode */
+    codeBlockProps?: Record<string, any>
     themes?: MonacoTheme[]
   }
   | {
@@ -58,6 +64,12 @@ const props = defineProps<
     codeBlockDarkTheme?: any
     codeBlockLightTheme?: any
     codeBlockMonacoOptions?: Record<string, any>
+    /** Minimum width forwarded to CodeBlockNode (px or CSS unit) */
+    codeBlockMinWidth?: string | number
+    /** Maximum width forwarded to CodeBlockNode (px or CSS unit) */
+    codeBlockMaxWidth?: string | number
+    /** Arbitrary props to forward to every CodeBlockNode */
+    codeBlockProps?: Record<string, any>
     themes?: MonacoTheme[]
   }
 >()
@@ -141,6 +153,9 @@ setNodeComponents(nodeComponents)
           lightTheme: props.codeBlockLightTheme,
           monacoOptions: props.codeBlockMonacoOptions,
           themes: props.themes,
+          minWidth: props.codeBlockMinWidth,
+          maxWidth: props.codeBlockMaxWidth,
+          ...(props.codeBlockProps || {}),
         } : {}"
         @copy="$emit('copy', $event)"
         @handle-artifact-click="$emit('handleArtifactClick', $event)"
