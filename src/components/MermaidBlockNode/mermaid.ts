@@ -5,7 +5,7 @@ export async function getMermaid() {
   try {
     const mod = await import('mermaid')
     // prefer default export if present, otherwise use the module namespace
-    let candidate = (mod && (mod as any).default) ? (mod as any).default : mod
+    const candidate = (mod && (mod as any).default) ? (mod as any).default : mod
 
     // Common shapes:
     // - `candidate.render/parse/initialize` exist -> use candidate

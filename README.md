@@ -301,6 +301,70 @@ export default {
 }
 ```
 
+## Code block header customization
+
+The code block component now exposes a flexible header API so consumers can:
+
+- Toggle the entire header on/off.
+- Show or hide built-in toolbar buttons (copy, expand, preview, font-size controls).
+- Fully replace the left or right header content via named slots.
+
+This makes it easy to adapt the header to your application's UX or to inject custom controls.
+
+Props (new)
+
+| Name | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `showHeader` | `boolean` | `true` | Toggle rendering of the header bar. |
+| `showCopyButton` | `boolean` | `true` | Show the built-in copy button. |
+| `showExpandButton` | `boolean` | `true` | Show the built-in expand/collapse button. |
+| `showPreviewButton` | `boolean` | `true` | Show the built-in preview button (when preview is available). |
+| `showFontSizeButtons` | `boolean` | `true` | Show the built-in font-size controls (also requires `enableFontSizeControl`). |
+
+Slots
+
+- `header-left` — Replace the left side of the header (language icon + label by default).
+- `header-right` — Replace the right side of the header (built-in action buttons by default).
+
+Example: hide the header
+
+```vue
+<CodeBlockNode
+  :node="{ type: 'code_block', language: 'javascript', code: 'console.log(1)', raw: 'console.log(1)' }"
+  :showHeader="false"
+  :loading="false"
+/>
+```
+
+Example: custom header via slots
+
+```vue
+<CodeBlockNode
+  :node="{ type: 'code_block', language: 'html', code: '<div>Hello</div>', raw: '<div>Hello</div>' }"
+  :loading="false"
+  :showCopyButton="false"
+>
+  <template #header-left>
+    <div class="flex items-center space-x-2">
+      <!-- custom icon or label -->
+      <span class="text-sm font-medium">My HTML</span>
+    </div>
+  </template>
+
+  <template #header-right>
+    <div class="flex items-center space-x-2">
+      <button class="px-2 py-1 bg-blue-600 text-white rounded">Run</button>
+      <button class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">Inspect</button>
+    </div>
+  </template>
+</CodeBlockNode>
+```
+
+Notes
+
+- The new `showFontSizeButtons` prop provides an additional toggle; the existing `enableFontSizeControl` prop still controls whether the font-size feature is enabled at all. Keep both in mind when hiding/showing font controls.
+- Existing behavior is unchanged by default — all new props default to `true` to preserve the original UI.
+
 This configuration ensures that Monaco Editor workers are correctly packaged and accessible in your project.
 
 ### Webpack — monaco-editor-webpack-plugin
