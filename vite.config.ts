@@ -41,8 +41,15 @@ export default defineConfig(({ mode }) => {
       },
       rollupOptions: {
         external: (id: string) => {
-          // treat mermaid and any mermaid/* imports as external
-          if (/(?:^|\/)mermaid(?:\/|$)/.test(id))
+          // Only treat the actual 'mermaid' package (bare import or node_modules path)
+          // as external. The previous regex matched any path segment named `mermaid`,
+          // which accidentally externalized local files like
+          // './components/MermaidBlockNode/mermaid'. That left runtime imports
+          // to non-emitted local modules in the final bundle.
+          if (id === 'mermaid' || id.startsWith('mermaid/'))
+            return true
+          // also match resolved node_modules paths that include /node_modules/mermaid
+          if (/node_modules\/mermaid(?:\/|$)/.test(id))
             return true
           return [
             'vue',
