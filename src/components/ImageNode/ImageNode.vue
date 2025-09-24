@@ -18,11 +18,13 @@ const props = withDefaults(defineProps<{
   showCaption?: boolean
   lazy?: boolean
   svgMinHeight?: string
+  usePlaceholder?: boolean
 }>(), {
   fallbackSrc: '',
   showCaption: true,
   lazy: true,
   svgMinHeight: '12rem',
+  usePlaceholder: true,
 })
 
 // 事件：load / error
@@ -89,17 +91,23 @@ watch(displaySrc, () => {
           @load="handleImageLoad"
         >
 
-        <!-- 加载时的简单占位/骨架 -->
+        <!-- 加载时的简单占位/骨架；允许通过 usePlaceholder 关闭占位展示，改为纯文本 -->
         <div
           v-else-if="!hasError"
           key="placeholder"
           class="placeholder-layer max-w-96 inline-flex items-center justify-center"
           :style="isSvg ? { minHeight: props.svgMinHeight, width: '100%' } : { minHeight: '6rem' }"
         >
-          <slot name="placeholder" :node="props.node" :display-src="displaySrc" :image-loaded="imageLoaded" :has-error="hasError" :fallback-src="props.fallbackSrc" :lazy="props.lazy" :is-svg="isSvg">
-            <div class="css-spinner" aria-hidden="true" />
-            <span class="text-sm whitespace-nowrap">{{ t('image.loading') }}</span>
-          </slot>
+          <template v-if="props.usePlaceholder">
+            <slot name="placeholder" :node="props.node" :display-src="displaySrc" :image-loaded="imageLoaded" :has-error="hasError" :fallback-src="props.fallbackSrc" :lazy="props.lazy" :is-svg="isSvg">
+              <div class="css-spinner" aria-hidden="true" />
+              <span class="text-sm whitespace-nowrap">{{ t('image.loading') }}</span>
+            </slot>
+          </template>
+          <template v-else>
+            <!-- 如果禁用占位符，展示一行可替换的文本（slot 仍可被 error slot 覆盖） -->
+            <span class="text-sm text-gray-500">{{ node.raw }}</span>
+          </template>
         </div>
 
         <!-- 无法加载且没有提供 fallback 的错误占位 -->
