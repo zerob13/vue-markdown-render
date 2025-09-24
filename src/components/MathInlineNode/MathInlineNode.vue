@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import katex from 'katex'
-import { onMounted, ref, watch } from 'vue'
+import { onUnmounted, ref, watch } from 'vue'
 
 const props = defineProps<{
   node: {
@@ -12,38 +12,44 @@ const props = defineProps<{
 
 const mathElement = ref<HTMLElement | null>(null)
 
-// Function to render math using KaTeX
 function renderMath() {
-  if (!mathElement.value || !props.node.content)
+  const el = mathElement.value
+  const content = props.node?.content ?? ''
+
+  if (!el)
     return
 
+  if (!content) {
+    el.textContent = props.node?.raw ?? ''
+    return
+  }
+
   try {
-    katex.render(props.node.content, mathElement.value, {
+    const html = katex.renderToString(content, {
       throwOnError: false,
       displayMode: false,
-      output: 'html',
+      output: 'htmlAndMathml',
       strict: 'ignore',
     })
+
+    el.innerHTML = html
   }
   catch (error) {
     console.error('KaTeX rendering error:', error)
-    // Fallback to displaying the raw math
-    mathElement.value.textContent = props.node.raw
+    el.textContent = props.node?.raw ?? ''
   }
 }
 
-// Render math on component mount
-onMounted(() => {
-  renderMath()
-})
-
-// Re-render when content changes
 watch(
   () => props.node.content,
-  () => {
-    renderMath()
-  },
+  renderMath,
+  { immediate: true, flush: 'post' },
 )
+
+onUnmounted(() => {
+  if (mathElement.value)
+    mathElement.value.innerHTML = ''
+})
 </script>
 
 <template>

@@ -43,5 +43,6 @@ declare module 'vue' {
     TableNode: typeof import('./src/components/TableNode/TableNode.vue')['default']
     TextNode: typeof import('./src/components/TextNode/TextNode.vue')['default']
     ThematicBreakNode: typeof import('./src/components/ThematicBreakNode/ThematicBreakNode.vue')['default']
+    Tooltip: typeof import('./src/components/Tooltip/Tooltip.vue')['default']
   }
 }

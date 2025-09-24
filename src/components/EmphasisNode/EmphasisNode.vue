@@ -40,7 +40,6 @@ const nodeComponents = {
   emoji: EmojiNode,
   footnote_reference: FootnoteReferenceNode,
   math_inline: MathInlineNode,
-  // reference: ReferenceNode
 }
 </script>
 
