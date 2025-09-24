@@ -174,10 +174,36 @@ The streaming-optimized engine delivers:
 | `content`          | `string`              | ✓        | Markdown string to render                          |
 | `nodes`            | `BaseNode[]`          |          | Parsed markdown AST nodes (alternative to content) |
 | `customComponents` | `Record<string, any>` |          | Custom Vue components for rendering                |
+| `renderCodeBlocksAsPre` | `boolean` | | When true, render all `code_block` nodes as simple `<pre><code>` blocks (uses `PreCodeNode`) instead of the full `CodeBlockNode`. Useful for lightweight, dependency-free rendering of multi-line text such as AI "thinking" outputs. Defaults to `false`. |
 
 > Either `content` or `nodes` must be provided.
 
 Note: when using the component in a Vue template, camelCase prop names should be written in kebab-case. For example, `customComponents` becomes `custom-components` in templates.
+
+## 新增属性: `renderCodeBlocksAsPre`
+
+- 类型: `boolean`
+- 默认: `false`
+
+描述:
+- 当设置为 `true` 时，所有解析到的 `code_block` 节点会以简单的 `<pre><code>`（库内为 `PreCodeNode`）渲染，而不是使用带有可选依赖（如 Monaco、mermaid）的完整 `CodeBlockNode` 组件。
+- 适用场景：需要以原始、轻量的预格式化文本展示代码或 AI 模型（例如“thinking”/推理输出）返回的多行文本与推理步骤时，建议开启此选项以保证格式保留且不依赖可选同伴库。
+
+注意:
+- 当 `renderCodeBlocksAsPre: true` 时，传递给 `CodeBlockNode` 的 `codeBlockDarkTheme`、`codeBlockMonacoOptions`、`themes`、`minWidth`、`maxWidth` 等属性不会生效（因为不再使用 `CodeBlockNode`）。
+- 若需要完整代码块功能（语法高亮、折叠、复制按钮等），请保持默认 `false` 并安装可选依赖（`mermaid`, `vue-use-monaco`, `@iconify/vue`）。
+
+示例（Vue 使用）:
+```vue
+<template>
+  <MarkdownRender :content="markdown" :render-code-blocks-as-pre="true" />
+</template>
+
+<script setup lang="ts">
+import MarkdownRender from 'vue-renderer-markdown'
+const markdown = `Here is an AI thinking output:\n\n```text\nStep 1...\nStep 2...\n```\n`
+</script>
+```
 
 ## Advanced
 
