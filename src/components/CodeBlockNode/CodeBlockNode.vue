@@ -280,7 +280,7 @@ function updateCollapsedHeight() {
     const max = getMaxHeightValue()
     const h0 = computeContentHeight()
     const h = h0 == null ? max : Math.min(h0, max)
-    container.style.height = `${Math.ceil(h + PIXEL_EPSILON)}px`
+    container.style.height = `${Math.ceil(h)}px`
     container.style.maxHeight = `${Math.ceil(max)}px`
     container.style.overflow = 'auto'
   }
