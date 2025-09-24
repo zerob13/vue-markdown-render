@@ -1,22 +1,35 @@
 <script setup lang="ts">
 import NodeRenderer from '../NodeRenderer'
 
+// child node shape used across many node components
+interface NodeChild {
+  type: string
+  raw: string
+  [key: string]: unknown
+}
+
 interface BlockquoteNode {
   type: 'blockquote'
-  children: { type: string, raw: string }[]
+  children: NodeChild[]
   raw: string
+  // optional citation/source for the blockquote
+  cite?: string
 }
 
 defineProps<{
   node: BlockquoteNode
 }>()
 
-defineEmits(['copy'])
+// typed emit for better DX and type-safety when forwarding copy events
+defineEmits<{
+  copy: [text: string]
+}>()
 </script>
 
 <template>
-  <blockquote class="blockquote" dir="auto">
-    <NodeRenderer :nodes="node.children" @copy="$emit('copy', $event)" />
+  <blockquote class="blockquote" dir="auto" :cite="node.cite">
+    <!-- guard node.children at runtime to avoid passing undefined -->
+    <NodeRenderer :nodes="node.children || []" @copy="$emit('copy', $event)" />
   </blockquote>
 </template>
 
