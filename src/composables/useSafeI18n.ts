@@ -17,6 +17,7 @@ const defaultMap: Record<string, string> = {
   'common.expand': 'Expand',
   'common.collapse': 'Collapse',
   'common.preview': 'Preview',
+  'image.loadError': 'Image failed to load',
 }
 
 export function useSafeI18n() {
