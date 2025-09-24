@@ -32,6 +32,14 @@ export function parseInlineTokens(tokens: MarkdownToken[]): ParsedNode[] {
 
     switch (token.type) {
       case 'text': {
+        const content = token.content || ''
+
+        if (content[0] === '!' && content[1] === '[') {
+          currentTextNode = null // Reset current text node
+          result.push(parseImageToken(token, true))
+          i++
+          break
+        }
         const textNode = parseTextToken(token)
         if (currentTextNode) {
           // Merge with the previous text node

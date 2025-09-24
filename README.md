@@ -217,6 +217,47 @@ const markdown = `Here is an AI thinking output:\n\n\`\`\`text\nStep 1...\nStep 
   import type { MyMarkdownProps } from 'vue-renderer-markdown/dist/types'
   ```
 
+### ImageNode 插槽（placeholder / error）
+
+`ImageNode` 现在支持两个命名插槽，方便你自定义加载与错误状态的渲染：
+
+- 插槽名：`placeholder`
+- 插槽名：`error`
+
+这两个插槽都会接收相同的一组 slot props（均为响应式）：
+
+- `node` — 原始的 ImageNode 对象（{ type:'image', src, alt, title, raw }）
+- `displaySrc` — 当前用于渲染的 src（如果触发了 fallback，会是 fallbackSrc）
+- `imageLoaded` — boolean，图片是否已加载完成
+- `hasError` — boolean，是否进入错误状态
+- `fallbackSrc` — string，组件传入的 fallbackSrc（若有）
+- `lazy` — boolean，表示是否使用 lazy loading
+- `isSvg` — boolean，当前 displaySrc 是否为 svg
+
+默认行为：如果不提供插槽，组件会显示内置的 CSS spinner（placeholder）或一个简单的错误占位（error）。
+
+示例：自定义加载与错误插槽
+
+```vue
+<ImageNode :node="node" :fallback-src="fallback" :lazy="true">
+  <template #placeholder="{ node, displaySrc, imageLoaded }">
+    <div class="p-4 bg-gray-50 rounded shadow-sm flex items-center justify-center">
+      <div class="animate-pulse w-full h-24 bg-gray-200"></div>
+      <span class="sr-only">Loading image</span>
+    </div>
+  </template>
+
+  <template #error="{ node, displaySrc }">
+    <div class="p-4 text-sm text-red-600 flex items-center gap-2">
+      <strong>无法加载图片</strong>
+      <span class="truncate">{{ displaySrc }}</span>
+    </div>
+  </template>
+</ImageNode>
+```
+
+提示：为避免占位与图片切换时的布局抖动，建议自定义占位时保留与图片相近的宽高（或使用 `aspect-ratio` / min-height），以便图片加载完成后仅做 opacity/transform 的合成动画，不触发 layout/reflow。
+
 ### Override Language Icons
 
 Override how code language icons are resolved via the plugin option `getLanguageIcon`.

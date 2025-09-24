@@ -13,7 +13,7 @@ interface ImageNode {
 
 // 接收props：node 是必须，其他为可选配置（fallback、是否显示caption、是否启用lazy）
 const props = withDefaults(defineProps<{
-  node: ImageNode
+  node: ImageNode & { loading?: boolean }
   fallbackSrc?: string
   showCaption?: boolean
   lazy?: boolean
@@ -34,17 +34,7 @@ const hasError = ref(false)
 const fallbackTried = ref(false)
 
 // 计算当前用于渲染的 src（当有 error 且提供 fallback 时使用 fallback）
-const displaySrc = computed(() => {
-  if (hasError.value && props.fallbackSrc && !fallbackTried.value) {
-    // this case shouldn't normally happen because we flip fallbackTried in the handler,
-    // but keep defensive: prefer fallback when available
-    return props.fallbackSrc
-  }
-  if (hasError.value && props.fallbackSrc && fallbackTried.value) {
-    return props.fallbackSrc
-  }
-  return props.node.src
-})
+const displaySrc = computed(() => hasError.value && props.fallbackSrc ? props.fallbackSrc : props.node.src)
 
 // 是否为 svg 文件（可能没有内置尺寸）
 const isSvg = computed(() => /\.svg(?:\?|$)/i.test(displaySrc.value))
@@ -69,49 +59,57 @@ function handleImageLoad() {
   emit('load', displaySrc.value)
 }
 
-// 当 node.src 改变时，重置状态以便重新加载
-watch(
-  () => props.node.src,
-  () => {
-    imageLoaded.value = false
-    hasError.value = false
-    fallbackTried.value = false
-  },
-)
-
 const { t } = useSafeI18n()
+
+// When the src changes (displaySrc), reset imageLoaded so the new image can fade in
+watch(displaySrc, () => {
+  imageLoaded.value = false
+  hasError.value = false
+})
 </script>
 
 <template>
   <figure class="text-center my-4">
     <div class="relative inline-block">
-      <!-- 图片展示区域：当有错误且没有 fallback 时显示占位符 -->
-      <img
-        v-if="!hasError || (hasError && (fallbackTried || props.fallbackSrc))"
-        :src="displaySrc"
-        :alt="props.node.alt || props.node.title || ''"
-        :title="props.node.title || props.node.alt"
-        class="max-w-96 h-auto rounded-lg transition-opacity duration-150"
-        :style="isSvg ? { minHeight: props.svgMinHeight, width: '100%', height: 'auto', objectFit: 'contain' } : undefined"
-        :class="{ 'opacity-0': !imageLoaded, 'opacity-100': imageLoaded }"
-        :loading="props.lazy ? 'lazy' : 'eager'"
-        decoding="async"
-        @error="handleImageError"
-        @load="handleImageLoad"
-      >
+      <!-- 包裹条件渲染元素，启用 out-in 模式以在替换时做平滑过渡 -->
+      <transition name="img-switch" mode="out-in">
+        <!-- 图片展示区域：当有错误且没有 fallback 时显示占位符 -->
+        <img
+          v-if="!node.loading && !hasError"
+          key="image"
+          :src="displaySrc"
+          :alt="props.node.alt || props.node.title || ''"
+          :title="props.node.title || props.node.alt"
+          class="max-w-96 h-auto rounded-lg transition-opacity duration-200 ease-in-out"
+          :style="isSvg ? { minHeight: props.svgMinHeight, width: '100%', height: 'auto', objectFit: 'contain' } : undefined"
+          :class="{ 'opacity-0': !imageLoaded, 'opacity-100': imageLoaded }"
+          :loading="props.lazy ? 'lazy' : 'eager'"
+          decoding="async"
+          @error="handleImageError"
+          @load="handleImageLoad"
+        >
 
-      <!-- 加载时的简单占位/骨架 -->
-      <div v-if="!imageLoaded && !hasError" class="absolute inset-0 flex items-center justify-center">
-        <div class="w-12 h-12 border-4 border-gray-200 border-t-gray-400 rounded-full animate-spin" aria-hidden="true" />
-      </div>
+        <!-- 加载时的简单占位/骨架 -->
+        <div
+          v-else-if="!hasError"
+          key="placeholder"
+          class="placeholder-layer max-w-96 inline-flex items-center justify-center"
+          :style="isSvg ? { minHeight: props.svgMinHeight, width: '100%' } : { minHeight: '6rem' }"
+        >
+          <slot name="placeholder" :node="props.node" :display-src="displaySrc" :image-loaded="imageLoaded" :has-error="hasError" :fallback-src="props.fallbackSrc" :lazy="props.lazy" :is-svg="isSvg">
+            <div class="css-spinner" aria-hidden="true" />
+            <span class="text-sm whitespace-nowrap">{{ t('image.loading') }}</span>
+          </slot>
+        </div>
 
-      <!-- 无法加载且没有提供 fallback 的错误占位 -->
-      <div v-if="hasError && !props.fallbackSrc" class="w-96 h-48 bg-gray-100 flex items-center justify-center rounded-lg text-gray-500">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-2" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm8.707 6.293a1 1 0 010 1.414L9.414 14H11a1 1 0 110 2H7a1 1 0 01-.707-1.707l6-6a1 1 0 011.414 0z" clip-rule="evenodd" />
-        </svg>
-        <span class="text-sm">{{ t('image.loadError') }}</span>
-      </div>
+        <!-- 无法加载且没有提供 fallback 的错误占位 -->
+        <div v-else-if="!node.loading && !props.fallbackSrc" key="error" class="px-4 py-2 bg-gray-100 flex items-center justify-center rounded-lg gap-2 text-red-500">
+          <slot name="error" :node="props.node" :display-src="displaySrc" :image-loaded="imageLoaded" :has-error="hasError" :fallback-src="props.fallbackSrc" :lazy="props.lazy" :is-svg="isSvg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><!-- Icon from TDesign Icons by TDesign - https://github.com/Tencent/tdesign-icons/blob/main/LICENSE --><path fill="currentColor" d="M2 2h20v10h-2V4H4v9.586l5-5L14.414 14L13 15.414l-4-4l-5 5V20h8v2H2zm13.547 5a1 1 0 1 0 0 2a1 1 0 0 0 0-2m-3 1a3 3 0 1 1 6 0a3 3 0 0 1-6 0m3.625 6.757L19 17.586l2.828-2.829l1.415 1.415L20.414 19l2.829 2.828l-1.415 1.415L19 20.414l-2.828 2.829l-1.415-1.415L17.586 19l-2.829-2.828z" /></svg>
+            <span class="text-sm whitespace-nowrap">{{ t('image.loadError') }}</span>
+          </slot>
+        </div>
+      </transition>
     </div>
 
     <figcaption v-if="props.showCaption && props.node.alt" class="mt-2 text-sm text-gray-500 italic">
@@ -119,3 +117,45 @@ const { t } = useSafeI18n()
     </figcaption>
   </figure>
 </template>
+
+<style scoped>
+/* Transition between placeholder and image: fade + slight upward motion */
+.img-switch-enter-active, .img-switch-leave-active {
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+.img-switch-enter-from, .img-switch-leave-to {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.img-switch-enter-to, .img-switch-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Spinner styles using CSS animations to leverage compositor */
+.placeholder-layer {
+  will-change: transform, opacity;
+}
+/* Pure CSS spinner: border-based ring that only animates transform */
+.css-spinner {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  border-radius: 100%;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  box-sizing: border-box;
+  will-change: transform;
+  animation: css-spin 1s linear infinite;
+}
+
+@keyframes css-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation: none !important; }
+  .img-switch-enter-active, .img-switch-leave-active { transition: none !important; }
+}
+</style>
