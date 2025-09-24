@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, withDefaults } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useSafeI18n } from '../../composables/useSafeI18n'
 
 // 定义图片节点类型
