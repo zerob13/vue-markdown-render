@@ -23,6 +23,7 @@ import MathInlineNode from './components/MathInlineNode'
 import MermaidBlockNode from './components/MermaidBlockNode'
 import MarkdownRender from './components/NodeRenderer'
 import ParagraphNode from './components/ParagraphNode'
+import PreCodeNode from './components/PreCodeNode'
 import StrikethroughNode from './components/StrikethroughNode'
 import StrongNode from './components/StrongNode'
 import SubscriptNode from './components/SubscriptNode'
@@ -58,6 +59,7 @@ export {
   MathInlineNode,
   MermaidBlockNode,
   ParagraphNode,
+  PreCodeNode,
   StrikethroughNode,
   StrongNode,
   SubscriptNode,
@@ -83,6 +85,7 @@ const componentMap: Record<string, Component> = {
   HighlightNode,
   ImageNode,
   InlineCodeNode,
+  PreCodeNode,
   InsertNode,
   LinkNode,
   ListItemNode,

@@ -26,6 +26,7 @@ import ListNode from '../ListNode'
 import MathBlockNode from '../MathBlockNode'
 import MathInlineNode from '../MathInlineNode'
 import ParagraphNode from '../ParagraphNode'
+import PreCodeNode from '../PreCodeNode/PreCodeNode.vue'
 import StrikethroughNode from '../StrikethroughNode'
 import StrongNode from '../StrongNode'
 
@@ -49,6 +50,8 @@ const props = defineProps<
     codeBlockLightTheme?: any
     // 传递给 CodeBlockNode 的 monacoOptions（比如 fontSize, MAX_HEIGHT 等）
     codeBlockMonacoOptions?: Record<string, any>
+    /** If true, render all `code_block` nodes as plain <pre><code> blocks instead of the full CodeBlockNode */
+    renderCodeBlocksAsPre?: boolean
     /** Minimum width forwarded to CodeBlockNode (px or CSS unit) */
     codeBlockMinWidth?: string | number
     /** Maximum width forwarded to CodeBlockNode (px or CSS unit) */
@@ -64,6 +67,8 @@ const props = defineProps<
     codeBlockDarkTheme?: any
     codeBlockLightTheme?: any
     codeBlockMonacoOptions?: Record<string, any>
+    /** If true, render all `code_block` nodes as plain <pre><code> blocks instead of the full CodeBlockNode */
+    renderCodeBlocksAsPre?: boolean
     /** Minimum width forwarded to CodeBlockNode (px or CSS unit) */
     codeBlockMinWidth?: string | number
     /** Maximum width forwarded to CodeBlockNode (px or CSS unit) */
@@ -108,7 +113,7 @@ const nodeComponents = {
   text: TextNode,
   paragraph: ParagraphNode,
   heading: HeadingNode,
-  code_block: CodeBlockNodeAsync,
+  code_block: props.renderCodeBlocksAsPre ? PreCodeNode : CodeBlockNodeAsync,
   list: ListNode,
   blockquote: BlockquoteNode,
   table: TableNode,
@@ -148,7 +153,7 @@ setNodeComponents(nodeComponents)
         :key="index"
         :node="node"
         :loading="node.loading"
-        v-bind="node.type === 'code_block' ? {
+        v-bind="(node.type === 'code_block' && !props.renderCodeBlocksAsPre) ? {
           darkTheme: props.codeBlockDarkTheme,
           lightTheme: props.codeBlockLightTheme,
           monacoOptions: props.codeBlockMonacoOptions,
