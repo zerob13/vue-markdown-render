@@ -4,14 +4,38 @@ import MarkdownRender from '../../src/components/NodeRenderer'
 import { streamContent } from './const/markdown'
 // 每隔 10 毫秒输出一部分内容
 const content = ref('')
+// To avoid flashing sequences like ":::" during streaming (which later
+// become an AdmonitionNode), we look ahead when encountering ":" and
+// defer appending consecutive colons until a non-colon character is seen.
 useInterval(10, {
   callback() {
-    if (content.value.length < streamContent.length) {
-      content.value += streamContent.slice(
-        content.value.length,
-        content.value.length + 1,
-      )
+    const cur = content.value.length
+    if (cur >= streamContent.length) return
+
+    const nextChar = streamContent.charAt(cur)
+
+    // If the next char is a colon, scan ahead for the first non-colon.
+    // If the scan reaches the end of the source, do not append yet —
+    // wait for more characters to arrive. Otherwise append the whole
+    // run of colons plus the following non-colon in one go.
+    if (nextChar === ':') {
+      let j = cur
+      while (j < streamContent.length && streamContent.charAt(j) === ':') {
+        j++
+      }
+
+      // Still only colons available (no following non-colon yet): defer.
+      if (j === streamContent.length) {
+        return
+      }
+
+      // Append the run of colons and the following non-colon together.
+      content.value += streamContent.slice(cur, j + 1)
+      return
     }
+
+    // Normal single-character append for non-colon characters.
+    content.value += nextChar
   },
 })
 
