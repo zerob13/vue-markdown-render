@@ -623,6 +623,7 @@ stopLoadingWatch = watch(
           updateExpandedHeight()
         else
           updateCollapsedHeight()
+
         stopLoadingWatch?.()
         stopLoadingWatch = undefined
       })
@@ -669,7 +670,9 @@ onUnmounted(() => {
     v-else
     ref="container"
     :style="containerStyle"
-    class="code-block-container my-4 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm bg-white dark:bg-gray-900"
+    class="code-block-container my-4 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm bg-white dark:bg-gray-900" :class="[
+      { 'is-rendering': props.loading },
+    ]"
   >
     <!-- Configurable header area: consumers may override via named slots -->
     <div

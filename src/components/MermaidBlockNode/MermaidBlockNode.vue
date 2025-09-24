@@ -1327,7 +1327,11 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="my-4 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm bg-white dark:bg-gray-900">
+  <div
+    class="my-4 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm bg-white dark:bg-gray-900" :class="[
+      { 'is-rendering': props.loading },
+    ]"
+  >
     <!-- 重新设计的头部区域 -->
     <div class="mermaid-block-header flex justify-between items-center px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
       <!-- 左侧语言标签 -->

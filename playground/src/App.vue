@@ -265,13 +265,13 @@ const showSettings = ref(false)
       </Transition>
     </div>
 
-    <main class="p-4 h-full flex flex-col-reverse overflow-auto">
+    <main class="main-content h-full flex flex-col-reverse overflow-auto">
       <MarkdownRender
         :content="content"
         :code-block-dark-theme="selectedTheme || undefined"
         :code-block-light-theme="selectedTheme || undefined"
         :themes="themes"
-        class="flex-1"
+        class="flex-1 p-8"
       />
     </main>
   </div>
@@ -305,5 +305,45 @@ const showSettings = ref(false)
 /* 设置面板动画 */
 .settings-panel {
   transform-origin: top right;
+}
+
+/* 代码块加载时的流光闪烁效果 */
+:deep(.code-block-container.is-rendering) {
+  position: relative;
+  animation: renderingGlow 2s ease-in-out infinite;
+}
+
+@keyframes renderingGlow {
+  0% {
+    box-shadow:
+      0 0 10px rgba(59, 130, 246, 0.4),
+      0 0 20px rgba(59, 130, 246, 0.2);
+  }
+  25% {
+    box-shadow:
+      0 0 15px rgba(139, 92, 246, 0.5),
+      0 0 30px rgba(139, 92, 246, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 20px rgba(236, 72, 153, 0.5),
+      0 0 40px rgba(236, 72, 153, 0.3);
+  }
+  75% {
+    box-shadow:
+      0 0 15px rgba(16, 185, 129, 0.5),
+      0 0 30px rgba(16, 185, 129, 0.3);
+  }
+  100% {
+    box-shadow:
+      0 0 10px rgba(59, 130, 246, 0.4),
+      0 0 20px rgba(59, 130, 246, 0.2);
+  }
+}
+
+/* Mermaid 块加载时的流光闪烁效果 */
+:deep(.is-rendering) {
+  position: relative;
+  animation: renderingGlow 2s ease-in-out infinite;
 }
 </style>

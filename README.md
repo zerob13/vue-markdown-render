@@ -195,14 +195,15 @@ Note: when using the component in a Vue template, camelCase prop names should be
 
 示例（Vue 使用）:
 ```vue
+<script setup lang="ts">
+import MarkdownRender from 'vue-renderer-markdown'
+
+const markdown = `Here is an AI thinking output:\n\n\`\`\`text\nStep 1...\nStep 2...\n\`\`\`\n`
+</script>
+
 <template>
   <MarkdownRender :content="markdown" :render-code-blocks-as-pre="true" />
 </template>
-
-<script setup lang="ts">
-import MarkdownRender from 'vue-renderer-markdown'
-const markdown = `Here is an AI thinking output:\n\n```text\nStep 1...\nStep 2...\n```\n`
-</script>
 ```
 
 ## Advanced
