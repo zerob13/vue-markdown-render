@@ -6,6 +6,7 @@ export function applyContainers(md: MarkdownIt) {
     'admonition',
     'info',
     'warning',
+    'error',
     'tip',
     'danger',
     'note',

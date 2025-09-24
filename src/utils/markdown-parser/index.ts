@@ -21,9 +21,14 @@ export function parseMarkdownToStructure(
   markdown: string,
   md: MarkdownIt,
 ): ParsedNode[] {
-  // 预处理，将 [] 中的 反斜杠替换为 \\，以避免 markdown-it 解析时误处理
+  // Ensure markdown is a string — guard against null/undefined inputs from callers
+  const safeMarkdown = (markdown ?? '').toString()
   // Get tokens from markdown-it
-  const tokens = md.parse(markdown, {}) as MarkdownToken[]
+  const tokens = md.parse(safeMarkdown, {}) as MarkdownToken[]
+  // Defensive: ensure tokens is an array
+  if (!tokens || !Array.isArray(tokens))
+    return []
+
   // Process the tokens into our structured format
   const result = processTokens(tokens)
   return result
@@ -31,6 +36,10 @@ export function parseMarkdownToStructure(
 
 // Process markdown-it tokens into our structured format
 export function processTokens(tokens: MarkdownToken[]): ParsedNode[] {
+  // Defensive: ensure tokens is an array
+  if (!tokens || !Array.isArray(tokens))
+    return []
+
   const result: ParsedNode[] = []
   let i = 0
 
@@ -42,7 +51,8 @@ export function processTokens(tokens: MarkdownToken[]): ParsedNode[] {
       case 'container_note_open':
       case 'container_tip_open':
       case 'container_danger_open':
-      case 'container_caution_open': {
+      case 'container_caution_open':
+      case 'container_error_open': {
         const [warningNode, newIndex] = parseContainer(tokens, i)
         result.push(warningNode)
         i = newIndex
@@ -113,7 +123,7 @@ export function processTokens(tokens: MarkdownToken[]): ParsedNode[] {
 
       case 'container_open': {
         const match
-          = /^::: ?(warning|info|note|tip|danger|caution) ?(.*)$/.exec(
+          = /^::: ?(warning|info|note|tip|danger|caution|error) ?(.*)$/.exec(
             token.info || '',
           )
         if (match) {

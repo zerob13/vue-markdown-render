@@ -1,44 +1,86 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
 import NodeRenderer from '../NodeRenderer'
 
-// 定义警告块节点
+// 定义警告块节点类型
+export type AdmonitionKind = 'note' | 'info' | 'tip' | 'warning' | 'danger' | 'caution' | 'error'
+
 interface AdmonitionNode {
   type: 'admonition'
-  kind: string
-  title: string
+  kind: AdmonitionKind
+  title?: string
   children: { type: string, raw: string }[]
   raw: string
+  // 可选：是否支持折叠
+  collapsible?: boolean
+  // 可选：初始是否展开，默认 true
+  open?: boolean
 }
 
-// 接收props
-defineProps<{
-  node: AdmonitionNode
-}>()
-
+// 接收 props（并在 script 中使用）
+const props = defineProps<{ node: AdmonitionNode }>()
 // 定义事件
-defineEmits(['copy'])
+const emit = defineEmits(['copy'])
 
-// 不同类型的警告块图标
-const iconMap = {
+// 不同类型的警告块图标（显式类型以便编辑器提示）
+const iconMap: Record<AdmonitionKind, string> = {
   note: 'ℹ️',
   info: 'ℹ️',
   tip: '💡',
   warning: '⚠️',
   danger: '❗',
+  // 'error' is a common alias for 'danger' in some markdown flavors
+  error: '⛔',
   caution: '⚠️',
 }
+
+// 当 title 为空时使用 kind 作为回退（首字母大写）
+const displayTitle = computed(() => {
+  if (props.node.title && props.node.title.trim().length)
+    return props.node.title
+  const k = props.node.kind || 'note'
+  return k.charAt(0).toUpperCase() + k.slice(1)
+})
+
+// 支持折叠：如果 props.node.collapsible 为 true，则依据 props.node.open 初始化
+const collapsed = ref<boolean>(props.node.collapsible ? !(props.node.open ?? true) : false)
+function toggleCollapse() {
+  if (!props.node.collapsible)
+    return
+  collapsed.value = !collapsed.value
+}
+
+// 为无障碍生成 ID（用于 aria-labelledby）
+const headerId = `admonition-${Math.random().toString(36).slice(2, 9)}`
 </script>
 
 <template>
-  <div class="admonition" :class="`admonition-${node.kind}`">
-    <div class="admonition-header">
-      <span v-if="iconMap[node.kind]" class="admonition-icon">{{
-        iconMap[node.kind]
-      }}</span>
-      <span class="admonition-title">{{ node.title }}</span>
+  <div class="admonition" :class="`admonition-${props.node.kind}`">
+    <div :id="headerId" class="admonition-header">
+      <span v-if="iconMap[props.node.kind]" class="admonition-icon">{{ iconMap[props.node.kind] }}</span>
+      <span class="admonition-title">{{ displayTitle }}</span>
+
+      <!-- 可选的折叠控制（放在 header 末端） -->
+      <button
+        v-if="props.node.collapsible"
+        class="admonition-toggle"
+        :aria-expanded="!collapsed"
+        :aria-controls="`${headerId}-content`"
+        :title="collapsed ? 'Expand' : 'Collapse'"
+        @click="toggleCollapse"
+      >
+        <span v-if="collapsed">▶</span>
+        <span v-else>▼</span>
+      </button>
     </div>
-    <div class="admonition-content">
-      <NodeRenderer :nodes="node.children" @copy="$emit('copy', $event)" />
+
+    <div
+      v-show="!collapsed"
+      :id="`${headerId}-content`"
+      class="admonition-content"
+      :aria-labelledby="headerId"
+    >
+      <NodeRenderer :nodes="props.node.children" @copy="emit('copy', $event)" />
     </div>
   </div>
 </template>
@@ -126,12 +168,36 @@ const iconMap = {
   color: var(--admonition-danger-color);
 }
 
+.admonition-error {
+  border-left-color: var(--admonition-danger-color);
+}
+.admonition-error .admonition-header {
+  background-color: rgba(255, 82, 82, 0.06);
+  color: var(--admonition-danger-color);
+}
+
 .admonition-caution {
   border-left-color: var(--admonition-warning-color);
 }
 .admonition-caution .admonition-header {
   background-color: rgba(255, 145, 0, 0.06);
   color: var(--admonition-warning-color);
+}
+
+/* 折叠按钮样式 */
+.admonition-toggle {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+.admonition-toggle:focus {
+  outline: 2px solid rgba(0,0,0,0.08);
+  outline-offset: 2px;
 }
 
 /* 深色模式支持：支持 .dark 类切换与系统偏好 */

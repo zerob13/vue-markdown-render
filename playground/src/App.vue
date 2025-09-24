@@ -10,7 +10,8 @@ const content = ref('')
 useInterval(10, {
   callback() {
     const cur = content.value.length
-    if (cur >= streamContent.length) return
+    if (cur >= streamContent.length)
+      return
 
     const nextChar = streamContent.charAt(cur)
 

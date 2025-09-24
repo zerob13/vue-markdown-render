@@ -53,11 +53,13 @@ export function parseContainer(
   ) {
     if (tokens[j].type === 'paragraph_open') {
       const contentToken = tokens[j + 1]
-      children.push({
-        type: 'paragraph',
-        children: parseInlineTokens(contentToken.children || []),
-        raw: contentToken.content || '',
-      })
+      if (contentToken) {
+        children.push({
+          type: 'paragraph',
+          children: parseInlineTokens(contentToken.children || []),
+          raw: contentToken.content || '',
+        })
+      }
       j += 3
     }
     else if (

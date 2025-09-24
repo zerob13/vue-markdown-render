@@ -1,5 +1,5 @@
 export // 模拟流式传输
-const streamContent = `I'll create a simple Electron + Vue chat application demo. Here's the structure:
+const streamContent = `>>>I'll create a simple Electron + Vue chat application demo. Here's the structure:
 
 ::: warning
 这是一个警告块。
@@ -9,8 +9,8 @@ const streamContent = `I'll create a simple Electron + Vue chat application demo
 这是带标题的提示。
 :::
 
-::: admonition 自定义块
-任意内容。
+::: error 错误块
+这是一个错误块。
 :::
 
 مرحبا بكم في عالم اللغة العربية!

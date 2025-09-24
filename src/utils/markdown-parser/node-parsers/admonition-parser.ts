@@ -15,11 +15,13 @@ export function parseAdmonition(
   while (j < tokens.length && tokens[j].type !== 'container_close') {
     if (tokens[j].type === 'paragraph_open') {
       const contentToken = tokens[j + 1]
-      admonitionChildren.push({
-        type: 'paragraph',
-        children: parseInlineTokens(contentToken.children || []),
-        raw: contentToken.content || '',
-      })
+      if (contentToken) {
+        admonitionChildren.push({
+          type: 'paragraph',
+          children: parseInlineTokens(contentToken.children || []),
+          raw: contentToken.content || '',
+        })
+      }
       j += 3 // Skip paragraph_open, inline, paragraph_close
     }
     else if (
