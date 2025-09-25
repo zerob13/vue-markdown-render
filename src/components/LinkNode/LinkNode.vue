@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import NodeRenderer from '../NodeRenderer'
-
 // 定义链接节点
 interface LinkNode {
   type: 'link'
@@ -15,9 +13,6 @@ interface LinkNode {
 defineProps<{
   node: LinkNode
 }>()
-
-// 定义事件
-defineEmits(['copy'])
 </script>
 
 <template>
@@ -28,7 +23,7 @@ defineEmits(['copy'])
     target="_blank"
     rel="noopener noreferrer"
   >
-    <NodeRenderer :nodes="node.children" @copy="$emit('copy', $event)" />
+    {{ node.text }}
   </a>
 </template>
 
@@ -36,6 +31,7 @@ defineEmits(['copy'])
 .link-node {
   color: #0366d6;
   text-decoration: none;
+  display: inline-flex;
 }
 
 .link-node:hover {

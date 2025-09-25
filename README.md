@@ -198,7 +198,7 @@ Example (Vue usage):
 <script setup lang="ts">
 import MarkdownRender from 'vue-renderer-markdown'
 
-const markdown = `Here is an AI thinking output:\n\n```text\nStep 1...\nStep 2...\n```\n`
+const markdown = `Here is an AI thinking output:\n\n\`\`\`text\nStep 1...\nStep 2...\n\`\`\`\n`
 </script>
 
 <template>

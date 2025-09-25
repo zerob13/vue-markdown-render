@@ -36,14 +36,16 @@ export function parseInlineTokens(tokens: MarkdownToken[]): ParsedNode[] {
         const imageStart = content.indexOf('![')
         if (imageStart !== -1) {
           const textNodeContent = content.slice(0, imageStart)
-          if (!currentTextNode)
+          if (!currentTextNode) {
             currentTextNode = {
               type: 'text',
               content: textNodeContent,
               raw: textNodeContent,
             }
-          else
+          }
+          else {
             currentTextNode.content += textNodeContent
+          }
           result.push(currentTextNode)
           currentTextNode = null // Reset current text node
           result.push(parseImageToken(token, true))

@@ -95,12 +95,12 @@ watch(displaySrc, () => {
         <div
           v-else-if="!hasError"
           key="placeholder"
-          class="placeholder-layer max-w-96 inline-flex items-center justify-center"
+          class="placeholder-layer max-w-96 inline-flex items-center justify-center gap-2"
           :style="isSvg ? { minHeight: props.svgMinHeight, width: '100%' } : { minHeight: '6rem' }"
         >
           <template v-if="props.usePlaceholder">
             <slot name="placeholder" :node="props.node" :display-src="displaySrc" :image-loaded="imageLoaded" :has-error="hasError" :fallback-src="props.fallbackSrc" :lazy="props.lazy" :is-svg="isSvg">
-              <div class="css-spinner" aria-hidden="true" />
+              <div class="w-4 h-4 rounded-full border-2 border-solid border-current border-t-transparent animate-spin" aria-hidden="true" />
               <span class="text-sm whitespace-nowrap">{{ t('image.loading') }}</span>
             </slot>
           </template>
@@ -143,22 +143,6 @@ watch(displaySrc, () => {
 /* Spinner styles using CSS animations to leverage compositor */
 .placeholder-layer {
   will-change: transform, opacity;
-}
-/* Pure CSS spinner: border-based ring that only animates transform */
-.css-spinner {
-  width: 16px;
-  height: 16px;
-  margin-right: 8px;
-  border-radius: 100%;
-  border: 2px solid currentColor;
-  border-top-color: transparent;
-  box-sizing: border-box;
-  will-change: transform;
-  animation: css-spin 1s linear infinite;
-}
-
-@keyframes css-spin {
-  to { transform: rotate(360deg); }
 }
 
 /* Respect user preference for reduced motion */
