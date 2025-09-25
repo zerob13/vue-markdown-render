@@ -180,25 +180,25 @@ The streaming-optimized engine delivers:
 
 Note: when using the component in a Vue template, camelCase prop names should be written in kebab-case. For example, `customComponents` becomes `custom-components` in templates.
 
-## 新增属性: `renderCodeBlocksAsPre`
+## New prop: `renderCodeBlocksAsPre`
 
-- 类型: `boolean`
-- 默认: `false`
+- Type: `boolean`
+- Default: `false`
 
-描述:
-- 当设置为 `true` 时，所有解析到的 `code_block` 节点会以简单的 `<pre><code>`（库内为 `PreCodeNode`）渲染，而不是使用带有可选依赖（如 Monaco、mermaid）的完整 `CodeBlockNode` 组件。
-- 适用场景：需要以原始、轻量的预格式化文本展示代码或 AI 模型（例如“thinking”/推理输出）返回的多行文本与推理步骤时，建议开启此选项以保证格式保留且不依赖可选同伴库。
+Description:
+- When set to `true`, all parsed `code_block` nodes are rendered as a simple `<pre><code>` (the library's internal `PreCodeNode`) instead of the full `CodeBlockNode` which may depend on optional peers such as Monaco or mermaid.
+- Use case: enable this when you need lightweight, preformatted text rendering (for example AI "thinking" outputs or multi-line reasoning steps) and want to avoid depending on optional peer libraries while preserving original formatting.
 
-注意:
-- 当 `renderCodeBlocksAsPre: true` 时，传递给 `CodeBlockNode` 的 `codeBlockDarkTheme`、`codeBlockMonacoOptions`、`themes`、`minWidth`、`maxWidth` 等属性不会生效（因为不再使用 `CodeBlockNode`）。
-- 若需要完整代码块功能（语法高亮、折叠、复制按钮等），请保持默认 `false` 并安装可选依赖（`mermaid`, `vue-use-monaco`, `@iconify/vue`）。
+Notes:
+- When `renderCodeBlocksAsPre: true`, props passed to `CodeBlockNode` such as `codeBlockDarkTheme`, `codeBlockMonacoOptions`, `themes`, `minWidth`, `maxWidth`, etc. will not take effect because `CodeBlockNode` is not used.
+- If you need the full code block feature set (syntax highlighting, folding, copy button, etc.), keep the default `false` and install the optional peers (`mermaid`, `vue-use-monaco`, `@iconify/vue`).
 
-示例（Vue 使用）:
+Example (Vue usage):
 ```vue
 <script setup lang="ts">
 import MarkdownRender from 'vue-renderer-markdown'
 
-const markdown = `Here is an AI thinking output:\n\n\`\`\`text\nStep 1...\nStep 2...\n\`\`\`\n`
+const markdown = `Here is an AI thinking output:\n\n```text\nStep 1...\nStep 2...\n```\n`
 </script>
 
 <template>
@@ -217,26 +217,26 @@ const markdown = `Here is an AI thinking output:\n\n\`\`\`text\nStep 1...\nStep 
   import type { MyMarkdownProps } from 'vue-renderer-markdown/dist/types'
   ```
 
-### ImageNode 插槽（placeholder / error）
+### ImageNode slots (placeholder / error)
 
-`ImageNode` 现在支持两个命名插槽，方便你自定义加载与错误状态的渲染：
+`ImageNode` now supports two named slots so you can customize the loading and error states:
 
-- 插槽名：`placeholder`
-- 插槽名：`error`
+- Slot name: `placeholder`
+- Slot name: `error`
 
-这两个插槽都会接收相同的一组 slot props（均为响应式）：
+Both slots receive the same set of reactive slot props:
 
-- `node` — 原始的 ImageNode 对象（{ type:'image', src, alt, title, raw }）
-- `displaySrc` — 当前用于渲染的 src（如果触发了 fallback，会是 fallbackSrc）
-- `imageLoaded` — boolean，图片是否已加载完成
-- `hasError` — boolean，是否进入错误状态
-- `fallbackSrc` — string，组件传入的 fallbackSrc（若有）
-- `lazy` — boolean，表示是否使用 lazy loading
-- `isSvg` — boolean，当前 displaySrc 是否为 svg
+- `node` — the original ImageNode object ({ type: 'image', src, alt, title, raw })
+- `displaySrc` — the current src used for rendering (will be `fallbackSrc` if a fallback was applied)
+- `imageLoaded` — boolean, whether the image has finished loading
+- `hasError` — boolean, whether the image is in an error state
+- `fallbackSrc` — string, the fallback src passed to the component (if any)
+- `lazy` — boolean, whether lazy loading is used
+- `isSvg` — boolean, whether the current `displaySrc` is an SVG
 
-默认行为：如果不提供插槽，组件会显示内置的 CSS spinner（placeholder）或一个简单的错误占位（error）。
+Default behavior: if you don't provide the slots the component shows a built-in CSS spinner for placeholder and a simple error placeholder for error.
 
-示例：自定义加载与错误插槽
+Example: customize loading and error slots
 
 ```vue
 <ImageNode :node="node" :fallback-src="fallback" :lazy="true">
@@ -249,14 +249,14 @@ const markdown = `Here is an AI thinking output:\n\n\`\`\`text\nStep 1...\nStep 
 
   <template #error="{ node, displaySrc }">
     <div class="p-4 text-sm text-red-600 flex items-center gap-2">
-      <strong>无法加载图片</strong>
+      <strong>Failed to load image</strong>
       <span class="truncate">{{ displaySrc }}</span>
     </div>
   </template>
 </ImageNode>
 ```
 
-提示：为避免占位与图片切换时的布局抖动，建议自定义占位时保留与图片相近的宽高（或使用 `aspect-ratio` / min-height），以便图片加载完成后仅做 opacity/transform 的合成动画，不触发 layout/reflow。
+Tip: to avoid layout shift when switching from placeholder to the image, keep the placeholder's width/height similar to the final image (or use `aspect-ratio` / min-height). This lets the image fade/transform without triggering layout reflow.
 
 ### Override Language Icons
 
@@ -437,42 +437,42 @@ This configuration ensures that Monaco Editor workers are correctly packaged and
 
 ### Webpack — monaco-editor-webpack-plugin
 
-如果你的项目使用 Webpack 而不是 Vite，可以使用官方的 `monaco-editor-webpack-plugin` 来打包并注入 Monaco 的 worker 文件。下面给出一个简单示例（Webpack 5）：
+If your project uses Webpack instead of Vite, you can use the official `monaco-editor-webpack-plugin` to bundle and inject Monaco's worker files. Here's a minimal example for Webpack 5:
 
-安装：
+Install:
 
 ```bash
 pnpm add -D monaco-editor monaco-editor-webpack-plugin
-# 或
+# or
 npm install --save-dev monaco-editor monaco-editor-webpack-plugin
 ```
 
-示例 `webpack.config.js`：
+Example `webpack.config.js`:
 
 ```js
 const path = require('node:path')
 const MonacoEditorPlugin = require('monaco-editor-webpack-plugin')
 
 module.exports = {
-  // ...你的其他配置...
+  // ...your other config...
   output: {
-    // 确保 worker 文件被正确放置，可按需调整 publicPath/filename
+    // Ensure worker files are placed correctly; adjust publicPath/filename as needed
     publicPath: '/',
   },
   plugins: [
     new MonacoEditorPlugin({
-      // 指定需要的语言/功能以减小体积
+      // Limit to required languages/features to reduce bundle size
       languages: ['javascript', 'typescript', 'css', 'html', 'json'],
-      // 可选项：调整输出 worker 文件名模式
+      // Optional: customize worker filename pattern
       filename: 'static/[name].worker.js',
     }),
   ],
 }
 ```
 
-说明：
-- 对于使用 `monaco-editor` 的项目，务必将对应 worker 交由插件处理，否则运行时会在浏览器尝试加载缺失的 worker 文件（类似于 Vite 的 dep optimizer 错误）。
-- 如果你在构建后看到了类似 “file does not exist” 的错误（例如某些 worker 在依赖优化目录中找不到），请确保通过插件或构建输出将 worker 打包到可访问的位置。
+Notes:
+- For projects using `monaco-editor`, make sure the plugin handles the workers; otherwise the browser will try to load missing worker files at runtime (similar to Vite dep optimizer issues).
+- If you see "file does not exist" errors after building (for example some workers are missing from the optimized deps directory), ensure the worker files are packaged into an accessible location via the plugin or build output.
 
 ## Mermaid: Progressive Rendering Example
 
@@ -509,29 +509,29 @@ const id = setInterval(() => {
 </template>
 ```
 
-## Tailwind (例如 shadcn) — 解决样式层级问题
+## Tailwind (e.g. shadcn) — fix style ordering issues
 
-如果你在项目中使用像 shadcn 这样的 Tailwind 组件库，可能会遇到样式层级/覆盖问题。推荐在你的全局样式文件中通过 Tailwind 的 layer 把库样式以受控顺序导入。例如，在你的主样式文件（例如 `src/styles/index.css` 或 `src/main.css`）中：
+If your project uses a Tailwind component library like shadcn you may run into style ordering/override issues. We recommend importing the library CSS into a controlled Tailwind layer in your global stylesheet. For example, in your main stylesheet (e.g. `src/styles/index.css` or `src/main.css`):
 
 ```css
-/* main.css 或 index.css */
+/* main.css or index.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* 推荐：将库样式放入 components 层，方便项目组件覆盖它们 */
+/* Recommended: place library styles into the components layer so your app components can override them */
 @layer components {
   @import 'vue-renderer-markdown/index.css';
 }
 
-/* 备选：如需库样式优先于 Tailwind 的 components 覆盖，可放入 base 层：
+/* Alternative: place into the base layer if you want the library styles to be more foundational and harder to override:
 @layer base {
   @import 'vue-renderer-markdown/index.css';
 }
 */
 ```
 
-选择放入 `components`（常用）或 `base`（当你希望库样式更“基础”且不易被覆盖时）取决于你希望的覆盖优先级。调整后运行你的构建/开发命令（例如 pnpm dev）以验证样式顺序是否符合预期。
+Pick `components` (common) or `base` (when you want library styles to be more foundational) based on your desired override priority. After changing, run your dev/build command (e.g. `pnpm dev`) to verify the stylesheet ordering.
 
 ## Thanks
 
