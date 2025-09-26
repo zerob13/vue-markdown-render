@@ -26,6 +26,8 @@ export interface ParagraphNode extends BaseNode {
 export interface ListNode extends BaseNode {
   type: 'list'
   ordered: boolean
+  // Optional start index for ordered lists (HTML <ol start="N">)
+  start?: number
   items: ListItemNode[]
 }
 

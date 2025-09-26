@@ -138,6 +138,15 @@ export function parseList(
   const listNode: ListNode = {
     type: 'list',
     ordered: token.type === 'ordered_list_open',
+    // markdown-it may include attrs like [['start','2']] on ordered_list_open
+    start: (() => {
+      if (token.attrs && token.attrs.length) {
+        const found = token.attrs.find(a => a[0] === 'start')
+        if (found)
+          return Number(found[1]) || 1
+      }
+      return undefined
+    })(),
     items: listItems,
     raw: listItems.map(item => item.raw).join('\n'),
   }
@@ -220,6 +229,14 @@ function parseNestedList(
   const nestedListNode: ListNode = {
     type: 'list',
     ordered: nestedToken.type === 'ordered_list_open',
+    start: (() => {
+      if (nestedToken.attrs && nestedToken.attrs.length) {
+        const found = nestedToken.attrs.find(a => a[0] === 'start')
+        if (found)
+          return Number(found[1]) || 1
+      }
+      return undefined
+    })(),
     items: nestedItems,
     raw: nestedItems.map(item => item.raw).join('\n'),
   }

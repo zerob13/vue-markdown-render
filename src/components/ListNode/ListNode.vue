@@ -15,22 +15,25 @@ interface ListItem {
   raw: string
 }
 
-defineProps<{
+const { node } = defineProps<{
   node: {
     type: 'list'
     ordered: boolean
+    start?: number
     items: ListItem[]
     raw: string
   }
 }>()
 
-defineEmits<{
-  copy: [text: string]
-}>()
+defineEmits(['copy'])
 </script>
 
 <template>
-  <component :is="node.ordered ? 'ol' : 'ul'" class="list-node">
+  <component
+    :is="node.ordered ? 'ol' : 'ul'"
+    class="list-node"
+    :start="node.ordered && node.start && node.start !== 1 ? node.start : undefined"
+  >
     <ListItemNode
       v-for="(item, index) in node.items"
       :key="index"
@@ -39,3 +42,10 @@ defineEmits<{
     />
   </component>
 </template>
+
+<style scoped>
+.list-node {
+  margin: 0 0 1rem 1.25rem;
+  padding: 0;
+}
+</style>
