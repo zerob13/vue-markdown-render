@@ -72,6 +72,7 @@ let parserWorkerUrl: string | null = null
 })()
 
 const copyText = ref(false)
+const isCollapsed = ref(false)
 const mermaidContainer = ref<HTMLElement>()
 const mermaidWrapper = ref<HTMLElement>()
 const mermaidContent = ref<HTMLElement>()
@@ -461,10 +462,7 @@ async function canParseOrPrefix(
   return { fullOk: false, prefixOk: false }
 }
 
-// 全屏按钮禁用状态
-const isFullscreenDisabled = computed(
-  () => showSource.value || isRendering.value,
-)
+const isFullscreenDisabled = computed(() => showSource.value || isRendering.value || isCollapsed.value)
 
 /**
  * 健壮地计算并更新容器高度，优先使用viewBox，并提供getBBox作为后备
@@ -1324,6 +1322,26 @@ onUnmounted(() => {
   }
   stopPreviewPolling()
 })
+
+watch(
+  () => isCollapsed.value,
+  async (collapsed) => {
+    if (collapsed) {
+      stopPreviewPolling()
+      if (currentWorkController)
+        currentWorkController.abort()
+    }
+    else {
+      if (!hasRenderedOnce.value) {
+        await nextTick()
+        debouncedProgressiveRender()
+        if (!showSource.value)
+          startPreviewPolling()
+      }
+    }
+  },
+  { immediate: false },
+)
 </script>
 
 <template>
@@ -1384,6 +1402,17 @@ onUnmounted(() => {
       <div class="flex items-center space-x-1">
         <button
           class="mermaid-action-btn p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          :aria-pressed="isCollapsed"
+          @click="isCollapsed = !isCollapsed"
+          @mouseenter="onBtnHover($event, isCollapsed ? 'Expand' : 'Collapse')"
+          @focus="onBtnHover($event, isCollapsed ? 'Expand' : 'Collapse')"
+          @mouseleave="onBtnLeave"
+          @blur="onBtnLeave"
+        >
+          <component :is="Icon ? Icon : 'span'" v-bind="{ icon: isCollapsed ? 'lucide:maximize-2' : 'lucide:minimize-2', class: 'w-3 h-3' }" />
+        </button>
+        <button
+          class="mermaid-action-btn p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           @click="copy"
           @mouseenter="onCopyHover($event)"
           @focus="onCopyHover($event)"
@@ -1421,7 +1450,7 @@ onUnmounted(() => {
     </div>
 
     <!-- 内容区域（带高度过渡的容器） -->
-    <div ref="modeContainerRef">
+    <div ref="modeContainerRef" v-show="!isCollapsed">
       <div v-if="showSource" class="p-4 bg-gray-50 dark:bg-gray-900">
         <pre class="text-sm font-mono whitespace-pre-wrap text-gray-700 dark:text-gray-300">{{ baseFixedCode }}</pre>
       </div>
