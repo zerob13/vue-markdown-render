@@ -46,22 +46,18 @@ const CodeBlockNodeAsync = defineAsyncComponent(async () => {
 })
 let code_block: any = null
 
-// Backwards-compatible global holder. Historically callers used
-// setNodeComponents(...) at app root and other components called
-// getNodeComponents() with no args. Newer code passes `props` into
-// getNodeComponents(props). To support both, expose setNodeComponents and
-// accept an optional props argument in getNodeComponents.
-let globalNodeComponents: Record<string, any> | null = null
+const globalNodeComponents: Record<string, any> | null = null
 preload()
-export function setNodeComponents(component: Record<string, any> | null) {
-  globalNodeComponents = component
+let customComponents: Record<string, any> | null = null
+export function setCustomComponents(component: Record<string, any> | null) {
+  customComponents = component
 }
 
 export function getNodeComponents(props?: any) {
   // If a global mapping was set via setNodeComponents, prefer it when no
   // per-call props are provided. This preserves previous behavior.
   if (!props && globalNodeComponents)
-    return globalNodeComponents
+    return Object.assign(globalNodeComponents, (customComponents || {}))
 
   props = props || {}
 
@@ -103,6 +99,6 @@ export function getNodeComponents(props?: any) {
     reference: ReferenceNode,
     // 可以添加更多节点类型
     // 例如:custom_node: CustomNode,
-    ...(props.customComponents || {}),
+    ...(customComponents || {}),
   }
 }

@@ -1,13 +1,9 @@
 <script setup lang="ts">
 import type { MonacoTheme } from 'vue-use-monaco'
-
 import type { BaseNode } from '../../utils'
 import { computed, ref } from 'vue'
 import { getMarkdown, parseMarkdownToStructure } from '../../utils/markdown'
 import { getNodeComponents } from '../../utils/nodeComponents'
-// CodeBlockNode depends on optional peers (mermaid, vue-use-monaco).
-// Load it lazily and fall back to TextNode when peers are not installed.
-
 import FallbackComponent from './FallbackComponent.vue'
 
 // 组件接收的 props
@@ -16,7 +12,6 @@ const props = defineProps<
   | {
     content: string
     nodes?: undefined
-    customComponents?: Record<string, any>
     // 全局传递到每个 CodeBlockNode 的主题（monaco theme 对象）
     codeBlockDarkTheme?: any
     codeBlockLightTheme?: any
@@ -35,7 +30,6 @@ const props = defineProps<
   | {
     content?: undefined
     nodes: BaseNode[]
-    customComponents?: Record<string, any>
     codeBlockDarkTheme?: any
     codeBlockLightTheme?: any
     codeBlockMonacoOptions?: Record<string, any>

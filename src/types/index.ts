@@ -89,12 +89,10 @@ export type MarkdownRender
   = | {
     content: string
     nodes?: undefined
-    customComponents?: Record<string, any>
   }
   | {
     content?: undefined
     nodes: BaseNode[]
-    customComponents?: Record<string, any>
   }
 export interface BlockquoteNode extends BaseNode {
   type: 'blockquote'
