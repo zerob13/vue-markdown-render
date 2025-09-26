@@ -665,7 +665,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <MermaidBlockNode v-if="isMermaid" :node="node" :loading="props.loading" />
+  <MermaidBlockNode v-if="isMermaid" :node="(node as any)" :loading="props.loading" />
   <div
     v-else
     ref="container"

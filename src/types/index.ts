@@ -79,9 +79,10 @@ export interface ThematicBreakNode extends BaseNode {
 
 export interface MermaidBlockNode {
   node: {
-    type: 'code_block'
+    type: 'mermaid'
     language: string
     code: string
+    loading?: boolean
   }
 }
 

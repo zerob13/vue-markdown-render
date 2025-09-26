@@ -71,7 +71,7 @@ const nodeComponents = getNodeComponents(props)
         :key="index"
         :node="node"
         :loading="node.loading"
-        v-bind="(node.type === 'code_block' && !props.renderCodeBlocksAsPre) ? {
+        v-bind="((node.type === 'code_block') && !props.renderCodeBlocksAsPre) ? {
           darkTheme: props.codeBlockDarkTheme,
           lightTheme: props.codeBlockLightTheme,
           monacoOptions: props.codeBlockMonacoOptions,
