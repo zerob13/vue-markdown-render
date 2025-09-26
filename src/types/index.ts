@@ -79,7 +79,7 @@ export interface ThematicBreakNode extends BaseNode {
 
 export interface MermaidBlockNode {
   node: {
-    type: 'mermaid'
+    type: 'code_block'
     language: string
     code: string
     loading?: boolean
@@ -256,3 +256,35 @@ export type ParsedNode
     | MathInlineNode
     | MathBlockNode
     | ReferenceNode
+
+export interface CustomComponents {
+  text: any
+  paragraph: any
+  heading: any
+  code_block: any
+  list: any
+  blockquote: any
+  table: any
+  definition_list: any
+  footnote: any
+  footnote_reference: any
+  admonition: any
+  hardbreak: any
+  link: any
+  image: any
+  thematic_break: any
+  math_inline: any
+  math_block: any
+  strong: any
+  emphasis: any
+  strikethrough: any
+  highlight: any
+  insert: any
+  subscript: any
+  superscript: any
+  emoji: any
+  checkbox: any
+  inline_code: any
+  reference: any
+  [key: string]: any
+}

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { MermaidBlockNode } from '../../types'
+import type { CodeBlockNode } from '../../types'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { hideTooltip, showTooltipForAnchor } from '../../composables/useSingletonTooltip'
 import mermaidIconUrl from '../../icon/mermaid.svg?url'
@@ -9,7 +9,7 @@ import { getMermaid } from './mermaid'
 const props = withDefaults(
   // 全屏按钮禁用状态
   defineProps<{
-    node: MermaidBlockNode['node']
+    node: CodeBlockNode
     maxHeight?: string | null
     loading?: boolean
   }>(),
