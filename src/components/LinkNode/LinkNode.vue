@@ -62,7 +62,7 @@ const cssVars = computed(() => {
     {{ node.text }}
   </a>
   <span v-show="node.loading" class="link-loading inline-flex items-baseline gap-1.5" :aria-hidden="!node.loading ? 'true' : 'false'" :style="cssVars">
-    <span class="link-text-wrapper relative inline-block">
+    <span class="link-text-wrapper relative inline-flex">
       <span class="leading-[normal] link-text">{{ node.text }}</span>
       <span class="underline-anim" aria-hidden="true" />
     </span>
@@ -74,18 +74,15 @@ const cssVars = computed(() => {
   color: var(--link-color, #0366d6);
   text-decoration: none;
   display: inline-flex;
+  
 }
 
 .link-node:hover {
   text-decoration: underline;
   text-underline-offset: .2rem
 }
-</style>
-
-<style scoped>
 .link-loading .link-text-wrapper {
   position: relative;
-  display: inline-block;
 }
 
 .link-loading .link-text {
