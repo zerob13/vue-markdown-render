@@ -1409,7 +1409,7 @@ watch(
           @mouseleave="onBtnLeave"
           @blur="onBtnLeave"
         >
-          <component :is="Icon ? Icon : 'span'" v-bind="{ icon: isCollapsed ? 'lucide:maximize-2' : 'lucide:minimize-2', class: 'w-3 h-3' }" />
+          <component :is="Icon ? Icon : 'span'" icon="lucide:chevron-right" class="w-3 h-3" :class="{ 'rotate-90': isCollapsed }" />
         </button>
         <button
           class="mermaid-action-btn p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -1450,7 +1450,7 @@ watch(
     </div>
 
     <!-- 内容区域（带高度过渡的容器） -->
-    <div ref="modeContainerRef" v-show="!isCollapsed">
+    <div v-show="!isCollapsed" ref="modeContainerRef">
       <div v-if="showSource" class="p-4 bg-gray-50 dark:bg-gray-900">
         <pre class="text-sm font-mono whitespace-pre-wrap text-gray-700 dark:text-gray-300">{{ baseFixedCode }}</pre>
       </div>
