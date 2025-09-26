@@ -265,7 +265,7 @@ const showSettings = ref(false)
       </Transition>
     </div>
 
-    <main class="main-content prose prose-sm dark:prose-invert h-full flex flex-col-reverse overflow-auto">
+    <main class="main-content prose prose-sm dark:prose-invert h-full flex w-full flex-col-reverse overflow-auto">
       <MarkdownRender
         :content="content"
         :code-block-dark-theme="selectedTheme || undefined"
@@ -349,5 +349,8 @@ const showSettings = ref(false)
 :deep(.prose .markdown-renderer p) {
   margin-top: 0 !important;
   margin-bottom: 0 !important;
+}
+.prose{
+  max-width: 100% !important;
 }
 </style>
