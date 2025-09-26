@@ -27,9 +27,9 @@ export function parseInlineTokens(tokens: MarkdownToken[]): ParsedNode[] {
   let currentTextNode: TextNode | null = null
 
   let i = 0
+
   while (i < tokens.length) {
     const token = tokens[i]
-
     switch (token.type) {
       case 'text': {
         const content = token.content || ''
@@ -52,7 +52,28 @@ export function parseInlineTokens(tokens: MarkdownToken[]): ParsedNode[] {
           i++
           break
         }
+        const linkStart = content.indexOf('[')
         const textNode = parseTextToken(token)
+        if (linkStart !== -1) {
+          const textNodeContent = content.slice(0, linkStart)
+          const linkEnd = content.indexOf('](', linkStart)
+          if (linkEnd !== -1) {
+            result.push({
+              type: 'text',
+              content: textNodeContent,
+              raw: textNodeContent,
+            })
+            result.push({
+              type: 'link',
+              href: '',
+              text: content.slice(linkStart + 1, linkEnd),
+              loading: true,
+            } as any)
+            i++
+            break
+          }
+        }
+
         if (currentTextNode) {
           // Merge with the previous text node
           currentTextNode.content += textNode.content
@@ -85,9 +106,14 @@ export function parseInlineTokens(tokens: MarkdownToken[]): ParsedNode[] {
 
       case 'link_open': {
         currentTextNode = null // Reset current text node
+        const pre = result.length > 0 ? result[result.length - 1] : null
         const { node, nextIndex } = parseLinkToken(tokens, i)
-        result.push(node)
         i = nextIndex
+        if (pre?.type === 'link' && pre.loading) {
+          break
+        }
+        node.loading = false
+        result.push(node)
         break
       }
 

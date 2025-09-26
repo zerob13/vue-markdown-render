@@ -3,7 +3,7 @@ import { Icon } from '@iconify/vue'
 import MarkdownRender from '../../src/components/NodeRenderer'
 import { streamContent } from './const/markdown'
 // 每隔 10 毫秒输出一部分内容
-const content = ref('')
+const content = ref<string>('')
 // To avoid flashing sequences like ":::" during streaming (which later
 // become an AdmonitionNode), we look ahead when encountering ":" and
 // defer appending consecutive colons until a non-colon character is seen.
@@ -265,7 +265,7 @@ const showSettings = ref(false)
       </Transition>
     </div>
 
-    <main class="main-content h-full flex flex-col-reverse overflow-auto">
+    <main class="main-content prose prose-sm dark:prose-invert h-full flex flex-col-reverse overflow-auto">
       <MarkdownRender
         :content="content"
         :code-block-dark-theme="selectedTheme || undefined"

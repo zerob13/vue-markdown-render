@@ -15,6 +15,7 @@ export function parseLinkToken(
 
   let i = startIndex + 1
   const linkTokens: MarkdownToken[] = []
+  const loading = true
 
   // Collect all tokens between link_open and link_close
   while (i < tokens.length && tokens[i].type !== 'link_close') {
@@ -43,6 +44,7 @@ export function parseLinkToken(
     text: linkText,
     children,
     raw: `[${linkText}](${href}${title ? ` "${title}"` : ''})`,
+    loading,
   }
 
   // Skip to after link_close

@@ -24,6 +24,7 @@ import MermaidBlockNode from './components/MermaidBlockNode'
 import MarkdownRender from './components/NodeRenderer'
 import ParagraphNode from './components/ParagraphNode'
 import PreCodeNode from './components/PreCodeNode'
+import ReferenceNode from './components/ReferenceNode'
 import StrikethroughNode from './components/StrikethroughNode'
 import StrongNode from './components/StrongNode'
 import SubscriptNode from './components/SubscriptNode'
@@ -60,6 +61,7 @@ export {
   MermaidBlockNode,
   ParagraphNode,
   PreCodeNode,
+  ReferenceNode,
   StrikethroughNode,
   StrongNode,
   SubscriptNode,
@@ -101,6 +103,7 @@ const componentMap: Record<string, Component> = {
   TableNode,
   TextNode,
   ThematicBreakNode,
+  ReferenceNode,
 }
 
 export const VueRendererMarkdown: Plugin = {

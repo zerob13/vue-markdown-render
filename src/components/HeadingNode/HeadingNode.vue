@@ -1,20 +1,5 @@
 <script setup lang="ts">
-import CheckboxNode from '../CheckboxNode'
-import EmojiNode from '../EmojiNode'
-import EmphasisNode from '../EmphasisNode'
-import FootnoteReferenceNode from '../FootnoteReferenceNode'
-import HardBreakNode from '../HardBreakNode'
-import HighlightNode from '../HighlightNode'
-import ImageNode from '../ImageNode'
-import InlineCodeNode from '../InlineCodeNode'
-import InsertNode from '../InsertNode'
-import LinkNode from '../LinkNode'
-import MathInlineNode from '../MathInlineNode'
-import StrikethroughNode from '../StrikethroughNode'
-import StrongNode from '../StrongNode'
-import SubscriptNode from '../SubscriptNode'
-import SuperscriptNode from '../SuperscriptNode'
-import TextNode from '../TextNode'
+import { getNodeComponents } from '../../utils/nodeComponents'
 // import ReferenceNode from './ReferenceNode.vue';
 
 // Define the type for the node children
@@ -34,26 +19,7 @@ defineProps<{
   }
 }>()
 
-const nodeComponents = {
-  text: TextNode,
-  inline_code: InlineCodeNode,
-  link: LinkNode,
-  image: ImageNode,
-  strong: StrongNode,
-  emphasis: EmphasisNode,
-  strikethrough: StrikethroughNode,
-  highlight: HighlightNode,
-  insert: InsertNode,
-  subscript: SubscriptNode,
-  superscript: SuperscriptNode,
-  emoji: EmojiNode,
-  checkbox: CheckboxNode,
-  footnote_reference: FootnoteReferenceNode,
-  hardbreak: HardBreakNode,
-  math_inline: MathInlineNode,
-  // reference: ReferenceNode
-  // 添加其他内联元素组件
-}
+const nodeComponents = getNodeComponents()
 </script>
 
 <template>

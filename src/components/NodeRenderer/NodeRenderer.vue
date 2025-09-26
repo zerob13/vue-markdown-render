@@ -26,7 +26,8 @@ import ListNode from '../ListNode'
 import MathBlockNode from '../MathBlockNode'
 import MathInlineNode from '../MathInlineNode'
 import ParagraphNode from '../ParagraphNode'
-import PreCodeNode from '../PreCodeNode/PreCodeNode.vue'
+import PreCodeNode from '../PreCodeNode'
+import ReferenceNode from '../ReferenceNode'
 import StrikethroughNode from '../StrikethroughNode'
 import StrongNode from '../StrongNode'
 
@@ -137,6 +138,7 @@ const nodeComponents = {
   emoji: EmojiNode,
   checkbox: CheckboxNode,
   inline_code: InlineCodeNode,
+  reference: ReferenceNode,
   // 可以添加更多节点类型
   // 例如:custom_node: CustomNode,
   ...(props.customComponents || {}),
