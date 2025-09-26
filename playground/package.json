@@ -17,7 +17,7 @@
     "@vueuse/head": "^0.7.13",
     "monaco-editor": "^0.52.2",
     "vite": "^7.1.7",
-    "vue": "^3.5.21",
+    "vue": "^3.5.22",
     "vue-i18n": "^11.1.12",
     "vue-renderer-markdown": "latest",
     "vue-router": "^4.5.1",

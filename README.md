@@ -258,6 +258,46 @@ Example: customize loading and error slots
 
 Tip: to avoid layout shift when switching from placeholder to the image, keep the placeholder's width/height similar to the final image (or use `aspect-ratio` / min-height). This lets the image fade/transform without triggering layout reflow.
 
+### LinkNode: underline animation & color customization
+
+`LinkNode`（库内部用于渲染链接的节点）现在支持通过 props 在运行时定制下划线动画与颜色，而不需要覆盖全局样式。默认行为与之前保持一致。
+
+可用的 props（传递给渲染 `LinkNode` 的组件）：
+
+| Name | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `color` | `string` | `#0366d6` | Link 文本颜色（任意合法 CSS 颜色）。下划线使用 `currentColor`，因此会跟随此颜色。 |
+| `underlineHeight` | `number` | `2` | 下划线高度（像素）。 |
+| `underlineBottom` | `number \| string` | `-3px` | 下划线距离文本底部的偏移（像素或任意 CSS 长度，如 `0.2rem`）。 |
+| `animationDuration` | `number` | `0.8` | 动画总时长（秒）。 |
+| `animationOpacity` | `number` | `0.9` | 下划线的不透明度。 |
+| `animationTiming` | `string` | `linear` | 动画时间函数（如 `linear`, `ease`, `ease-in-out`）。 |
+| `animationIteration` | `string \| number` | `infinite` | 动画迭代次数或 `'infinite'`。 |
+
+示例：
+
+```vue
+<template>
+  <!-- 默认样式 -->
+  <LinkNode :node="node" />
+
+  <!-- 自定义颜色和下划线样式 -->
+  <LinkNode
+    :node="node"
+    color="#e11d48"
+    :underline-height="3"
+    underline-bottom="-4px"
+    :animation-duration="1.2"
+    :animation-opacity="0.8"
+    animation-timing="ease-in-out"
+  />
+</template>
+```
+
+Notes:
+- 下划线颜色使用 `currentColor`，因此默认会与 `color` prop 保持一致。如果需要独立控制下划线颜色，可以考虑后续增加 `underlineColor` prop（这是一个小改动）。
+- 这些 props 均为可选，未提供时会使用默认值，保证向后兼容。
+
 ### Override Language Icons
 
 Override how code language icons are resolved via the plugin option `getLanguageIcon`.

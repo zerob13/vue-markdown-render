@@ -1354,7 +1354,7 @@ watch(
     <div class="mermaid-block-header flex justify-between items-center px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
       <!-- 左侧语言标签 -->
       <div class="flex items-center space-x-2">
-        <img :src="mermaidIconUrl" class="w-4 h-4" alt="Mermaid">
+        <img :src="mermaidIconUrl" class="w-4 h-4 my-0" alt="Mermaid">
         <span class="text-sm font-medium text-gray-600 dark:text-gray-400 font-mono">Mermaid</span>
       </div>
 
@@ -1409,7 +1409,11 @@ watch(
           @mouseleave="onBtnLeave"
           @blur="onBtnLeave"
         >
-          <component :is="Icon ? Icon : 'span'" icon="lucide:chevron-right" class="w-3 h-3" :class="{ 'rotate-90': isCollapsed }" />
+          <component
+            :is="Icon ? Icon : 'span'" icon="lucide:chevron-right" class="w-3 h-3" :style="{
+              rotate: isCollapsed ? '0deg' : '90deg',
+            }"
+          />
         </button>
         <button
           class="mermaid-action-btn p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
