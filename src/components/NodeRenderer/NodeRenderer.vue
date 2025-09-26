@@ -2,42 +2,13 @@
 import type { MonacoTheme } from 'vue-use-monaco'
 
 import type { BaseNode } from '../../utils'
-import { computed, defineAsyncComponent, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { getMarkdown, parseMarkdownToStructure } from '../../utils/markdown'
-import { setNodeComponents } from '../../utils/nodeComponents'
-import AdmonitionNode from '../AdmonitionNode'
-import BlockquoteNode from '../BlockquoteNode'
-import CheckboxNode from '../CheckboxNode'
+import { getNodeComponents } from '../../utils/nodeComponents'
 // CodeBlockNode depends on optional peers (mermaid, vue-use-monaco).
 // Load it lazily and fall back to TextNode when peers are not installed.
-import DefinitionListNode from '../DefinitionListNode'
-import EmojiNode from '../EmojiNode'
-import EmphasisNode from '../EmphasisNode'
-import FootnoteNode from '../FootnoteNode'
-import FootnoteReferenceNode from '../FootnoteReferenceNode'
-import HardBreakNode from '../HardBreakNode'
-import HeadingNode from '../HeadingNode'
-import HighlightNode from '../HighlightNode'
-import ImageNode from '../ImageNode'
-import InlineCodeNode from '../InlineCodeNode'
-import InsertNode from '../InsertNode'
-import LinkNode from '../LinkNode'
-import ListNode from '../ListNode'
-import MathBlockNode from '../MathBlockNode'
-import MathInlineNode from '../MathInlineNode'
-import ParagraphNode from '../ParagraphNode'
-import PreCodeNode from '../PreCodeNode'
-import ReferenceNode from '../ReferenceNode'
-import StrikethroughNode from '../StrikethroughNode'
-import StrongNode from '../StrongNode'
 
-import SubscriptNode from '../SubscriptNode'
-import SuperscriptNode from '../SuperscriptNode'
-import TableNode from '../TableNode'
-import TextNode from '../TextNode'
-import ThematicBreakNode from '../ThematicBreakNode'
 import FallbackComponent from './FallbackComponent.vue'
-import { preload } from './preloadMonaco'
 
 // 组件接收的 props
 // 增加用于统一设置所有 code_block 主题和 Monaco 选项的外部 API
@@ -84,7 +55,6 @@ const props = defineProps<
 defineEmits(['copy', 'handleArtifactClick', 'click', 'mouseover', 'mouseout'])
 const md = getMarkdown()
 const containerRef = ref<HTMLElement>()
-preload()
 const parsedNodes = computed<BaseNode[]>(() => {
   // 解析 content 字符串为节点数组
   return props.nodes?.length
@@ -94,56 +64,8 @@ const parsedNodes = computed<BaseNode[]>(() => {
       : []
 })
 
-// 异步按需加载 CodeBlock 组件；失败时退回为 InlineCodeNode（内联代码渲染）
-const CodeBlockNodeAsync = defineAsyncComponent(async () => {
-  try {
-    const mod = await import('../CodeBlockNode')
-    return mod.default
-  }
-  catch (e) {
-    console.warn(
-      '[vue-markdown-render] Optional peer dependencies for CodeBlockNode are missing. Falling back to inline-code rendering (no Monaco). To enable full code block features, please install "mermaid", "vue-use-monaco" and "@iconify/vue".',
-      e,
-    )
-    return InlineCodeNode
-  }
-})
-
 // 组件映射表
-const nodeComponents = {
-  text: TextNode,
-  paragraph: ParagraphNode,
-  heading: HeadingNode,
-  code_block: props.renderCodeBlocksAsPre ? PreCodeNode : CodeBlockNodeAsync,
-  list: ListNode,
-  blockquote: BlockquoteNode,
-  table: TableNode,
-  definition_list: DefinitionListNode,
-  footnote: FootnoteNode,
-  footnote_reference: FootnoteReferenceNode,
-  admonition: AdmonitionNode,
-  hardbreak: HardBreakNode,
-  link: LinkNode,
-  image: ImageNode,
-  thematic_break: ThematicBreakNode,
-  math_inline: MathInlineNode,
-  math_block: MathBlockNode,
-  strong: StrongNode,
-  emphasis: EmphasisNode,
-  strikethrough: StrikethroughNode,
-  highlight: HighlightNode,
-  insert: InsertNode,
-  subscript: SubscriptNode,
-  superscript: SuperscriptNode,
-  emoji: EmojiNode,
-  checkbox: CheckboxNode,
-  inline_code: InlineCodeNode,
-  reference: ReferenceNode,
-  // 可以添加更多节点类型
-  // 例如:custom_node: CustomNode,
-  ...(props.customComponents || {}),
-}
-setNodeComponents(nodeComponents)
+const nodeComponents = getNodeComponents(props)
 </script>
 
 <template>
