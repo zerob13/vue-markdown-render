@@ -45,9 +45,6 @@ defineEmits(['copy'])
 </template>
 
 <style scoped>
-.list-node > li::marker {
-  color: var(--list-marker-color,#64748b);
-}
 .list-node {
   @apply my-5 pl-[calc(13/8*1em)];
 }

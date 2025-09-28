@@ -76,7 +76,7 @@ const nodeComponents = {
 
 <style scoped>
 .heading-node {
-  @apply font-medium leading-tight text-[var(--heading-text-color,#0f172a)];
+  @apply font-medium leading-tight;
 }
 hr + .heading-node {
   @apply mt-0;
