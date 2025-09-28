@@ -4,7 +4,9 @@ const streamContent = `>>>I'll create a simple Electron + Vue chat application d
 [Star on GitHub](https://github.com/Simon-He95/vue-markdown-render)
 
 ![Vue Markdown Icon](/vue-markdown-icon.svg "Vue Markdown Icon")
-好的，我将为您输出泰勒公式的一般形式及其常见展开式。
+*Figure: Vue Markdown Icon (served from /vue-markdown-icon.svg)*
+
+我将为您输出泰勒公式的一般形式及其常见展开式。
 
 ---
 
@@ -58,10 +60,26 @@ e^x = 1 + x + \\frac{x^2}{2!} + \\frac{x^3}{3!} + \\cdots + \\frac{x^n}{n!} + \\
 (1+x)^m = 1 + mx + \\frac{m(m-1)}{2!}x^2 + \\frac{m(m-1)(m-2)}{3!}x^3 + \\cdots, \\quad |x| < 1
 \\]
 
+- **公式**
+\[
+\text{付费转化率} = \\left( \\frac{\text{付费用户数}}{\text{月活用户数}} \\right) \times 100\%
+\]
+
+- **代入数据**
+   \[
+   \\frac{363}{15,\!135} \times 100\% = 2.398\%
+   \]
+
+- **计算工具验证**
+   通过数学计算工具确认结果：
+   \`363 ÷ 15,135 × 100 = 2.39841427...\`
+
+- **差异说明**
+   $$E=mc^2$$
+
 ---
 
 如果您需要某个特定函数在特定点的泰勒展开，请告诉我，我可以为您详细写出。
-*Figure: Vue Markdown Icon (served from /vue-markdown-icon.svg)*
 
 ::: warning
 这是一个警告块。
@@ -346,28 +364,8 @@ To run the application:
 npm run electron:dev
 \`\`\`
 
-This creates a simple chat application with a contacts sidebar and a chat window. Users can select contacts and send messages, with auto-replies simulated.
 
-
-9. 付费转化率计算验证:
-1. **公式**
-   \[
-   \text{付费转化率} = \\left( \\frac{\text{付费用户数}}{\text{月活用户数}} \\right) \times 100\%
-   \]
-
-2. **代入数据**
-   \[
-   \\frac{363}{15,\!135} \times 100\% = 2.398\%
-   \]
-
-3. **计算工具验证**
-   通过数学计算工具确认结果：
-   \`363 ÷ 15,135 × 100 = 2.39841427...\`
-
-4. **差异说明**
-   $$E=mc^2$$
-
-10. Mermaid graphic:
+9. Mermaid graphic:
 
 \`\`\`mermaid
 graph TD
