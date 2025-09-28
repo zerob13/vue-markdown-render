@@ -147,8 +147,15 @@ const usePreCodeRender = ref(false)
 const codeFontMin = 10
 const codeFontMax = 36
 const codeFontStep = 1
-const defaultCodeFontSize = Number(props.monacoOptions?.fontSize ?? 14)
-const codeFontSize = ref<number>(defaultCodeFontSize)
+const defaultCodeFontSize = ref<number>(
+  typeof props.monacoOptions?.fontSize === 'number' ? props.monacoOptions!.fontSize : Number.NaN,
+)
+const codeFontSize = ref<number>(defaultCodeFontSize.value)
+const fontBaselineReady = computed(() => {
+  const a = defaultCodeFontSize.value
+  const b = codeFontSize.value
+  return typeof a === 'number' && Number.isFinite(a) && a > 0 && typeof b === 'number' && Number.isFinite(b) && b > 0
+})
 // Keep computed height tight to content. Extra padding caused visible bottom gap.
 const CONTENT_PADDING = 0
 // Fine-tuned to avoid bottom gap at default font size
@@ -171,6 +178,35 @@ function measureLineHeightFromDom(): number | null {
   return null
 }
 
+function readActualFontSizeFromEditor(): number | null {
+  try {
+    const ed = isDiff.value ? getDiffEditorView()?.getModifiedEditor?.() ?? getDiffEditorView() : getEditorView()
+    const mon = getEditor()
+    const key = mon?.EditorOption?.fontInfo
+    if (ed && key != null) {
+      const info = ed.getOption?.(key)
+      const size = info?.fontSize
+      if (typeof size === 'number' && Number.isFinite(size) && size > 0)
+        return size
+    }
+  }
+  catch {}
+  try {
+    const root = codeEditor.value as HTMLElement | null
+    if (root) {
+      const lineEl = root.querySelector('.view-lines .view-line') as HTMLElement | null
+      if (lineEl) {
+        const fs = window.getComputedStyle(lineEl).fontSize
+        const m = fs && fs.match(/^(\d+(?:\.\d+)?)/)
+        if (m)
+          return Number.parseFloat(m[1])
+      }
+    }
+  }
+  catch {}
+  return null
+}
+
 function getLineHeightSafe(editor: any): number {
   try {
     const monacoEditor = getEditor()
@@ -185,18 +221,44 @@ function getLineHeightSafe(editor: any): number {
   const domH = measureLineHeightFromDom()
   if (domH && domH > 0)
     return domH
-  const fs = codeFontSize.value || 14
+  const fs = Number.isFinite(codeFontSize.value) && codeFontSize.value! > 0 ? (codeFontSize.value as number) : 12
   // Conservative fallback close to Monaco's default ratio
   return Math.max(12, Math.round(fs * 1.35))
 }
+function ensureFontBaseline() {
+  if (Number.isFinite(codeFontSize.value) && (codeFontSize.value as number) > 0 && Number.isFinite(defaultCodeFontSize.value))
+    return codeFontSize.value as number
+  const actual = readActualFontSizeFromEditor()
+  if (typeof props.monacoOptions?.fontSize === 'number') {
+    defaultCodeFontSize.value = props.monacoOptions.fontSize
+    codeFontSize.value = props.monacoOptions.fontSize
+    return codeFontSize.value as number
+  }
+  if (actual && actual > 0) {
+    defaultCodeFontSize.value = actual
+    codeFontSize.value = actual
+    return actual
+  }
+  // 极端兜底
+  defaultCodeFontSize.value = 12
+  codeFontSize.value = 12
+  return 12
+}
+
 function increaseCodeFont() {
-  codeFontSize.value = Math.min(codeFontMax, codeFontSize.value + codeFontStep)
+  const base = ensureFontBaseline()
+  const after = Math.min(codeFontMax, base + codeFontStep)
+  codeFontSize.value = after
 }
 function decreaseCodeFont() {
-  codeFontSize.value = Math.max(codeFontMin, codeFontSize.value - codeFontStep)
+  const base = ensureFontBaseline()
+  const after = Math.max(codeFontMin, base - codeFontStep)
+  codeFontSize.value = after
 }
 function resetCodeFont() {
-  codeFontSize.value = defaultCodeFontSize
+  ensureFontBaseline()
+  if (Number.isFinite(defaultCodeFontSize.value))
+    codeFontSize.value = defaultCodeFontSize.value as number
 }
 
 function computeContentHeight(): number | null {
@@ -511,11 +573,13 @@ function toggleHeaderCollapse() {
 
 watch(
   () => codeFontSize.value,
-  (size) => {
+  (size, _prev) => {
     const editor = isDiff.value ? getDiffEditorView() : getEditorView()
     if (!editor)
       return
-    editor.updateOptions({ fontSize: size })
+    if (!(typeof size === 'number' && Number.isFinite(size) && size > 0))
+      return
+    try { editor.updateOptions({ fontSize: size }) } catch {}
     // In automaticLayout mode, no manual height updates are needed
     if (isExpanded.value && !isCollapsed.value)
       updateExpandedHeight()
@@ -596,11 +660,28 @@ const stopCreateEditorWatch = watch(
       return
     editorCreated.value = true
 
-    isDiff.value
-      ? createDiffEditor(el as HTMLElement, props.node.originalCode || '', props.node.updatedCode || '', codeLanguage.value)
-      : createEditor(el as HTMLElement, props.node.code, codeLanguage.value)
+    if (isDiff.value)
+      await createDiffEditor(el as HTMLElement, props.node.originalCode || '', props.node.updatedCode || '', codeLanguage.value)
+    else
+      await createEditor(el as HTMLElement, props.node.code, codeLanguage.value)
     const editor = isDiff.value ? getDiffEditorView() : getEditorView()
-    editor?.updateOptions({ fontSize: codeFontSize.value, automaticLayout: false })
+    if (typeof props.monacoOptions?.fontSize === 'number') {
+      try { editor?.updateOptions({ fontSize: props.monacoOptions.fontSize, automaticLayout: false }) } catch {}
+      defaultCodeFontSize.value = props.monacoOptions.fontSize
+      codeFontSize.value = props.monacoOptions.fontSize
+    }
+    else {
+      const actual = readActualFontSizeFromEditor()
+      if (actual && actual > 0) {
+        defaultCodeFontSize.value = actual
+        codeFontSize.value = actual
+      }
+      else {
+        defaultCodeFontSize.value = 12
+        codeFontSize.value = 12
+      }
+    }
+    
     // Ensure a visible baseline height while collapsed
     if (!isExpanded.value && !isCollapsed.value) {
       updateCollapsedHeight()
@@ -680,7 +761,12 @@ watch(
       return
 
     const ed = isDiff.value ? getDiffEditorView() : getEditorView()
-    ed?.updateOptions?.({ fontSize: props.monacoOptions?.fontSize ?? codeFontSize.value })
+    const applying = typeof props.monacoOptions?.fontSize === 'number'
+      ? props.monacoOptions.fontSize
+      : (Number.isFinite(codeFontSize.value) ? (codeFontSize.value as number) : undefined)
+    if (typeof applying === 'number' && Number.isFinite(applying) && applying > 0) {
+      try { ed?.updateOptions?.({ fontSize: applying }) } catch {}
+    }
     if (isExpanded.value && !isCollapsed.value)
       updateExpandedHeight()
     else if (!isCollapsed.value)
@@ -792,7 +878,7 @@ onUnmounted(() => {
             <button
               type="button"
               class="code-action-btn p-2 text-xs rounded-md transition-colors hover:bg-[var(--vscode-editor-selectionBackground)]"
-              :disabled="codeFontSize <= codeFontMin"
+              :disabled="Number.isFinite(codeFontSize) ? codeFontSize <= codeFontMin : false"
               @click="decreaseCodeFont()"
               @mouseenter="onBtnHover($event, t('common.decrease') || 'Decrease')"
               @focus="onBtnHover($event, t('common.decrease') || 'Decrease')"
@@ -804,7 +890,7 @@ onUnmounted(() => {
             <button
               type="button"
               class="code-action-btn p-2 text-xs rounded-md transition-colors hover:bg-[var(--vscode-editor-selectionBackground)]"
-              :disabled="codeFontSize === defaultCodeFontSize"
+              :disabled="!fontBaselineReady || codeFontSize === defaultCodeFontSize"
               @click="resetCodeFont()"
               @mouseenter="onBtnHover($event, t('common.reset') || 'Reset')"
               @focus="onBtnHover($event, t('common.reset') || 'Reset')"
@@ -816,7 +902,7 @@ onUnmounted(() => {
             <button
               type="button"
               class="code-action-btn p-2 text-xs rounded-md transition-colors hover:bg-[var(--vscode-editor-selectionBackground)]"
-              :disabled="codeFontSize >= codeFontMax"
+              :disabled="Number.isFinite(codeFontSize) ? codeFontSize >= codeFontMax : false"
               @click="increaseCodeFont()"
               @mouseenter="onBtnHover($event, t('common.increase') || 'Increase')"
               @focus="onBtnHover($event, t('common.increase') || 'Increase')"
