@@ -141,29 +141,57 @@ const nodeComponents = {
 
 <template>
   <div ref="containerRef" class="markdown-renderer">
-    <TransitionGroup name="typewriter" tag="div">
-      <component
-        :is="nodeComponents[node.type] || FallbackComponent"
-        v-for="(node, index) in parsedNodes"
-        :key="index"
-        :node="node"
-        :loading="node.loading"
-        v-bind="((node.type === 'code_block') && !props.renderCodeBlocksAsPre) ? {
-          darkTheme: props.codeBlockDarkTheme,
-          lightTheme: props.codeBlockLightTheme,
-          monacoOptions: props.codeBlockMonacoOptions,
-          themes: props.themes,
-          minWidth: props.codeBlockMinWidth,
-          maxWidth: props.codeBlockMaxWidth,
-          ...(props.codeBlockProps || {}),
-        } : {}"
-        @copy="$emit('copy', $event)"
-        @handle-artifact-click="$emit('handleArtifactClick', $event)"
-        @click="$emit('click', $event)"
-        @mouseover="$emit('mouseover', $event)"
-        @mouseout="$emit('mouseout', $event)"
-      />
-    </TransitionGroup>
+    <div>
+      <template v-for="(node, index) in parsedNodes" :key="index">
+        <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+        <transition
+          v-if="node.type !== 'code_block'"
+          name="typewriter"
+          appear
+        >
+          <component
+            :is="nodeComponents[node.type] || FallbackComponent"
+            :node="node"
+            :loading="node.loading"
+            v-bind="((node.type === 'code_block') && !props.renderCodeBlocksAsPre) ? {
+              darkTheme: props.codeBlockDarkTheme,
+              lightTheme: props.codeBlockLightTheme,
+              monacoOptions: props.codeBlockMonacoOptions,
+              themes: props.themes,
+              minWidth: props.codeBlockMinWidth,
+              maxWidth: props.codeBlockMaxWidth,
+              ...(props.codeBlockProps || {}),
+            } : {}"
+            @copy="$emit('copy', $event)"
+            @handle-artifact-click="$emit('handleArtifactClick', $event)"
+            @click="$emit('click', $event)"
+            @mouseover="$emit('mouseover', $event)"
+            @mouseout="$emit('mouseout', $event)"
+          />
+        </transition>
+
+        <component
+          :is="nodeComponents[node.type] || FallbackComponent"
+          v-else
+          :node="node"
+          :loading="node.loading"
+          v-bind="((node.type === 'code_block') && !props.renderCodeBlocksAsPre) ? {
+            darkTheme: props.codeBlockDarkTheme,
+            lightTheme: props.codeBlockLightTheme,
+            monacoOptions: props.codeBlockMonacoOptions,
+            themes: props.themes,
+            minWidth: props.codeBlockMinWidth,
+            maxWidth: props.codeBlockMaxWidth,
+            ...(props.codeBlockProps || {}),
+          } : {}"
+          @copy="$emit('copy', $event)"
+          @handle-artifact-click="$emit('handleArtifactClick', $event)"
+          @click="$emit('click', $event)"
+          @mouseover="$emit('mouseover', $event)"
+          @mouseout="$emit('mouseout', $event)"
+        />
+      </template>
+    </div>
   </div>
 </template>
 
@@ -186,11 +214,15 @@ const nodeComponents = {
 
 <style>
 /* Global (unscoped) CSS for TransitionGroup enter animations */
-.typewriter-enter-from { opacity: 0; }
+.typewriter-enter-from {
+  opacity: 0;
+}
 .typewriter-enter-active {
   transition: opacity var(--typewriter-fade-duration, 900ms)
     var(--typewriter-fade-ease, ease-out);
   will-change: opacity;
 }
-.typewriter-enter-to { opacity: 1; }
+.typewriter-enter-to {
+  opacity: 1;
+}
 </style>

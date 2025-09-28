@@ -1,5 +1,5 @@
 export // 模拟流式传输
-  const streamContent = `>>>I'll create a simple Electron + Vue chat application demo. Here's the structure:
+const streamContent = `>>>I'll create a simple Electron + Vue chat application demo. Here's the structure:
 
 [Star on GitHub](https://github.com/Simon-He95/vue-markdown-render)
 

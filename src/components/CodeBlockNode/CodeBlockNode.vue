@@ -584,7 +584,7 @@ watch(
       return
     if (!(typeof size === 'number' && Number.isFinite(size) && size > 0))
       return
-    try { editor.updateOptions({ fontSize: size }) } catch {}
+    editor.updateOptions({ fontSize: size })
     // In automaticLayout mode, no manual height updates are needed
     if (isExpanded.value && !isCollapsed.value)
       updateExpandedHeight()
@@ -671,7 +671,7 @@ const stopCreateEditorWatch = watch(
       await createEditor(el as HTMLElement, props.node.code, codeLanguage.value)
     const editor = isDiff.value ? getDiffEditorView() : getEditorView()
     if (typeof props.monacoOptions?.fontSize === 'number') {
-      try { editor?.updateOptions({ fontSize: props.monacoOptions.fontSize, automaticLayout: false }) } catch {}
+      editor?.updateOptions({ fontSize: props.monacoOptions.fontSize, automaticLayout: false })
       defaultCodeFontSize.value = props.monacoOptions.fontSize
       codeFontSize.value = props.monacoOptions.fontSize
     }
@@ -686,7 +686,7 @@ const stopCreateEditorWatch = watch(
         codeFontSize.value = 12
       }
     }
-    
+
     // Ensure a visible baseline height while collapsed
     if (!isExpanded.value && !isCollapsed.value) {
       updateCollapsedHeight()
@@ -770,7 +770,7 @@ watch(
       ? props.monacoOptions.fontSize
       : (Number.isFinite(codeFontSize.value) ? (codeFontSize.value as number) : undefined)
     if (typeof applying === 'number' && Number.isFinite(applying) && applying > 0) {
-      try { ed?.updateOptions?.({ fontSize: applying }) } catch {}
+      ed?.updateOptions?.({ fontSize: applying })
     }
     if (isExpanded.value && !isCollapsed.value)
       updateExpandedHeight()
