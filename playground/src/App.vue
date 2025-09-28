@@ -265,7 +265,7 @@ const showSettings = ref(false)
       </Transition>
     </div>
 
-    <main class="main-content prose prose-sm dark:prose-invert h-full flex w-full flex-col-reverse overflow-auto">
+    <main class="main-content h-full flex w-full flex-col-reverse overflow-auto">
       <MarkdownRender
         :content="content"
         :code-block-dark-theme="selectedTheme || undefined"

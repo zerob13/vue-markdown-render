@@ -54,7 +54,7 @@ const nodeComponents = {
 </script>
 
 <template>
-  <p dir="auto">
+  <p dir="auto" class="paragraph-node">
     <component
       :is="nodeComponents[child.type]"
       v-for="(child, index) in node.children"
@@ -63,3 +63,12 @@ const nodeComponents = {
     />
   </p>
 </template>
+
+<style scoped>
+.paragraph-node{
+  margin: 1.25em 0;
+}
+li .paragraph-node{
+  margin: 0;
+}
+</style>

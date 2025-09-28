@@ -32,20 +32,30 @@ defineEmits(['copy'])
   <component
     :is="node.ordered ? 'ol' : 'ul'"
     class="list-node"
-    :start="node.ordered && node.start && node.start !== 1 ? node.start : undefined"
+    :class="{ 'list-decimal': node.ordered, 'list-disc': !node.ordered }"
   >
     <ListItemNode
       v-for="(item, index) in node.items"
       :key="index"
       :item="item"
+      :value="node.ordered ? (node.start ?? 1) + index : undefined"
       @copy="$emit('copy', $event)"
     />
   </component>
 </template>
 
 <style scoped>
+.list-node > li::marker {
+  color: var(--list-marker-color,#64748b);
+}
 .list-node {
-  margin: 0 0 1rem 1.25rem;
-  padding: 0;
+  @apply my-5 pl-[calc(13/8*1em)];
+}
+.list-decimal {
+  list-style-type: decimal;
+}
+.list-disc {
+  list-style-type: disc;
+  @apply max-lg:my-[calc(4/3*1em)] max-lg:pl-[calc(14/9*1em)];
 }
 </style>

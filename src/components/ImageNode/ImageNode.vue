@@ -71,7 +71,7 @@ watch(displaySrc, () => {
 </script>
 
 <template>
-  <figure class="text-center my-4">
+  <figure class="text-center my-8">
     <div class="relative inline-block">
       <!-- 包裹条件渲染元素，启用 out-in 模式以在替换时做平滑过渡 -->
       <transition name="img-switch" mode="out-in">

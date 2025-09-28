@@ -25,7 +25,7 @@ defineEmits<{
 </script>
 
 <template>
-  <li class="list-item" dir="auto">
+  <li class="list-item pl-1.5 my-2" dir="auto">
     <NodeRenderer :nodes="item.children" @copy="$emit('copy', $event)" />
   </li>
 </template>

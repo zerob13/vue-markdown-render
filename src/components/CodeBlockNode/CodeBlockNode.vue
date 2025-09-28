@@ -457,7 +457,9 @@ function onCopyHover(e: Event) {
 
 function toggleExpand() {
   isExpanded.value = !isExpanded.value
-  const editor = isDiff.value ? getDiffEditorView() : getEditorView()
+  const editor = isDiff.value
+    ? getDiffEditorView()
+    : getEditorView()
   const container = codeEditor.value
   if (!editor || !container)
     return
@@ -498,7 +500,10 @@ function toggleHeaderCollapse() {
       codeEditor.value.style.height = `${heightBeforeCollapse.value}px`
     }
     const ed = isDiff.value ? getDiffEditorView() : getEditorView()
-    try { ed?.layout?.() } catch {}
+    try {
+      ed?.layout?.()
+    }
+    catch {}
     resumeGuardFrames = 2
     requestAnimationFrame(() => {
       if (isExpanded.value)

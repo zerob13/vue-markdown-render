@@ -76,30 +76,33 @@ const nodeComponents = {
 
 <style scoped>
 .heading-node {
-  @apply font-medium leading-tight;
+  @apply font-medium leading-tight text-[var(--heading-text-color,#0f172a)];
+}
+hr + .heading-node {
+  @apply mt-0;
 }
 
 .heading-1 {
-  @apply mt-6 mb-2 text-xl;
+  @apply mt-0 mb-[calc(8/9*1em)] text-4xl leading-[calc(10/9*1)] font-extrabold;
 }
 
 .heading-2 {
-  @apply mt-5 mb-2 text-lg;
+  @apply mt-8 mb-4 text-2xl leading-[calc(4/3*1)] font-bold;
 }
 
 .heading-3 {
-  @apply mt-4 mb-2 text-base;
+  @apply mt-[calc(8/5*1em)] mb-[calc(3/5*1em)] text-xl font-semibold leading-[calc(5/3*1)];
 }
 
 .heading-4 {
-  @apply mt-4 mb-2 text-base;
+  @apply mt-6 mb-2 text-base font-semibold;
 }
 
 .heading-5 {
-  @apply mt-3.5 mb-2 text-sm;
+  @apply m-0 text-base;
 }
 
 .heading-6 {
-  @apply mt-3.5 mb-2 text-sm text-gray-600;
+  @apply m-0 text-base;
 }
 </style>

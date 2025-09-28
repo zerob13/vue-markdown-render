@@ -28,16 +28,19 @@ defineEmits<{
 
 <template>
   <blockquote class="blockquote" dir="auto" :cite="node.cite">
-    <!-- guard node.children at runtime to avoid passing undefined -->
     <NodeRenderer :nodes="node.children || []" @copy="$emit('copy', $event)" />
   </blockquote>
 </template>
 
 <style scoped>
 .blockquote {
-  margin: 0 0 1rem;
-  padding: 0 1rem;
-  color: #6a737d;
-  border-left: 0.25rem solid #dfe2e5;
+  font-weight: 500;
+  font-style: italic;
+  color: var(--blockquote-text-color,#0f172a);
+  border-left: 0.25rem solid var(--blockquote-border-color,#e2e8f0);
+  quotes: "\201C" "\201D" "\2018" "\2019";
+  margin-top: 1.6em;
+  margin-bottom: 1.6em;
+  padding-left: 1em;
 }
 </style>
