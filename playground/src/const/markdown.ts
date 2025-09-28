@@ -1,10 +1,23 @@
 export // 模拟流式传输
-const streamContent = `>>>I'll create a simple Electron + Vue chat application demo. Here's the structure:
+  const streamContent = `>>>I'll create a simple Electron + Vue chat application demo. Here's the structure:
 
 [Star on GitHub](https://github.com/Simon-He95/vue-markdown-render)
 
 ![Vue Markdown Icon](/vue-markdown-icon.svg "Vue Markdown Icon")
 *Figure: Vue Markdown Icon (served from /vue-markdown-icon.svg)*
+##  表格
+
+| 姓名 | 年龄 | 职业 |
+|------|------|------|
+| 张三 | 25   | 工程师 |
+| 李四 | 30   | 设计师 |
+| 王五 | 28   | 产品经理 |
+
+### 对齐表格
+| 左对齐 | 居中对齐 | 右对齐 |
+|:-------|:--------:|-------:|
+| 内容1  |  内容2   |  内容3 |
+| 内容4  |  内容5   |  内容6 |
 
 我将为您输出泰勒公式的一般形式及其常见展开式。
 
