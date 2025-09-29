@@ -1,7 +1,6 @@
 <script setup lang="ts">
 // Avoid static import of `vue-use-monaco` for types so the runtime bundle
 // doesn't get a reference. Define minimal local types we need here.
-import type { WatchStopHandle } from 'vue'
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { useSafeI18n } from '../../composables/useSafeI18n'
 // Tooltip is provided as a singleton via composable to avoid many DOM nodes
@@ -76,7 +75,6 @@ const isExpanded = ref(false)
 const isCollapsed = ref(false)
 const editorCreated = ref(false)
 let expandRafId: number | null = null
-let resizeObserver: ResizeObserver | null = null
 const heightBeforeCollapse = ref<number | null>(null)
 let resumeGuardFrames = 0
 
@@ -691,30 +689,7 @@ const stopCreateEditorWatch = watch(
     if (!isExpanded.value && !isCollapsed.value) {
       updateCollapsedHeight()
     }
-    // Observe container width to toggle Diff side-by-side for better UX
-    if (!resizeObserver && typeof ResizeObserver !== 'undefined') {
-      resizeObserver = new ResizeObserver(() => {
-        // Toggle side-by-side for narrow containers
-        if (isDiff.value) {
-          const width = (codeEditor.value?.clientWidth) || 0
-          const sideBySide = width >= 700
-          const diffView = getDiffEditorView()
-          try {
-            diffView?.updateOptions?.({ renderSideBySide: sideBySide })
-          }
-          catch {}
-        }
-        // Recompute height when layout mode changes or width changes
-        if (!isCollapsed.value) {
-          if (isExpanded.value)
-            updateExpandedHeight()
-          else
-            updateCollapsedHeight()
-        }
-      })
-      resizeObserver.observe(codeEditor.value as Element)
-    }
-    // 若初始化时 loading 已为 false，等待一帧后再计算展开高度
+
     if (props.loading === false) {
       await nextTick()
       requestAnimationFrame(() => {
@@ -781,8 +756,7 @@ watch(
 )
 
 // 当 loading 变为 false 时：计算并缓存一次展开高度，随后停止观察
-let stopLoadingWatch: WatchStopHandle | undefined
-stopLoadingWatch = watch(
+const stopLoadingWatch = watch(
   () => props.loading,
   async (loaded) => {
     if (isMermaid.value) {
@@ -798,8 +772,7 @@ stopLoadingWatch = watch(
           else
             updateCollapsedHeight()
         }
-        stopLoadingWatch?.()
-        stopLoadingWatch = undefined
+        stopLoadingWatch()
       })
       stopExpandAutoResize()
     }
@@ -821,13 +794,7 @@ onUnmounted(() => {
   // Ensure any RAF loops are stopped and editor resources are released
   stopExpandAutoResize()
   cleanupEditor()
-  if (resizeObserver) {
-    try {
-      resizeObserver.disconnect()
-    }
-    catch {}
-    resizeObserver = null
-  }
+
   if (resizeSyncHandler) {
     try {
       window.removeEventListener('resize', resizeSyncHandler)
