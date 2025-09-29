@@ -47,7 +47,7 @@ defineEmits(['copy'])
             v-for="(cell, index) in node.header.cells"
             :key="`header-${index}`"
             dir="auto"
-            class="p-2 text-left font-semibold bg-gray-100 dark:bg-zinc-900 dark:border-zinc-800 whitespace-nowrap"
+            class="p-2 text-left font-semibold bg-gray-100 dark:bg-zinc-900 dark:border-zinc-800 dark:text-white whitespace-nowrap"
             :class="{
               'border-r ': index < node.header.cells.length - 1,
             }"
@@ -64,9 +64,6 @@ defineEmits(['copy'])
           v-for="(row, rowIndex) in node.rows"
           :key="`row-${rowIndex}`"
           :class="[
-            rowIndex % 2 === 1
-              ? 'bg-gray-100 dark:bg-zinc-900 dark:border-zinc-800'
-              : '',
             rowIndex < node.rows.length - 1
               ? 'border-b dark:border-zinc-800'
               : '',
