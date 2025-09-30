@@ -408,13 +408,6 @@ function getMaxHeightValue(): number {
   return m ? Number.parseFloat(m[1]) : 500
 }
 
-// removed legacy canExpand logic; height is derived directly from content
-
-// 初始化语言检测：若未指定语言则立即检测一次，避免不必要的编辑器创建
-if (!props.node.language) {
-  codeLanguage.value = detectLanguage(props.node.code)
-}
-
 // Check if the language is previewable (HTML or SVG)
 const isPreviewable = computed(() => {
   const lang = codeLanguage.value.trim().toLowerCase()
@@ -429,19 +422,17 @@ const isMermaid = computed(
 watch(
   () => props.node.language,
   (newLanguage) => {
-    if (!newLanguage)
-      codeLanguage.value = detectLanguage(props.node.code)
-    else
-      codeLanguage.value = newLanguage
+    codeLanguage.value = newLanguage
   },
 )
 
-// 如果外部仅提供代码但语言为空，代码变化时也重新检测一次语言
-watch(
+const stopWatch = watch(
   () => props.node.code,
-  (newCode, oldCode) => {
-    if (newCode !== oldCode && !props.node.language)
-      codeLanguage.value = detectLanguage(newCode)
+  (newCode) => {
+    if (codeLanguage.value)
+      return stopWatch() // 如果外部提供了语言，就不再自动检测
+
+    codeLanguage.value = detectLanguage(newCode)
   },
 )
 
@@ -638,7 +629,7 @@ watch(
       requestAnimationFrame(() => updateExpandedHeight())
     }
   },
-  { flush: 'post', immediate: false },
+  { flush: 'post' },
 )
 
 // 延迟创建编辑器：仅当不是 Mermaid 时才创建，避免无意义的初始化
@@ -689,7 +680,6 @@ const stopCreateEditorWatch = watch(
     // automaticLayout handles layout in expanded mode; no manual RAF needed
     stopCreateEditorWatch()
   },
-  { immediate: true },
 )
 
 // Watch for theme changes and try to apply them at runtime. If the helper
