@@ -127,7 +127,7 @@ const usePreCodeRender = ref(false)
       getDiffEditorView = helpers.getDiffEditorView || getDiffEditorView
       cleanupEditor = helpers.cleanupEditor || cleanupEditor
       setTheme = helpers.setTheme || setTheme
-      return
+
       if (!editorCreated.value && codeEditor.value && createEditor) {
         editorCreated.value = true
         isDiff.value
@@ -631,9 +631,9 @@ watch(
       return
     }
 
-    // isDiff.value
-    //   ? updateDiffCode(props.node.originalCode || '', props.node.updatedCode || '', codeLanguage.value)
-    //   : updateCode(props.node.code, codeLanguage.value)
+    isDiff.value
+      ? updateDiffCode(props.node.originalCode || '', props.node.updatedCode || '', codeLanguage.value)
+      : updateCode(props.node.code, codeLanguage.value)
     if (isExpanded.value) {
       requestAnimationFrame(() => updateExpandedHeight())
     }
@@ -647,7 +647,7 @@ const stopCreateEditorWatch = watch(
   async ([el, mermaid]) => {
     if (!el || mermaid || !createEditor)
       return
-    return
+
     editorCreated.value = true
 
     if (isDiff.value)
