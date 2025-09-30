@@ -5,6 +5,7 @@ export function parseMathBlock(token: MarkdownToken): MathBlockNode {
   return {
     type: 'math_block',
     content: token.content || '',
+    loading: !!token.loading,
     raw:
       token.markup === '\\[\\]'
         ? `\\[${token.content}\\]`

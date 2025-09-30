@@ -41,5 +41,26 @@ export async function getMermaid() {
   catch {
     throw new Error('Optional dependency "mermaid" is not installed. Please install it to enable mermaid diagrams.')
   }
+  // Ensure initialize honors a safe default: suppressErrorRendering = true.
+  // This prevents mermaid from injecting verbose error diagrams into the DOM
+  // when parsing/rendering fails. If the consumer passes an explicit
+  // `suppressErrorRendering: false` it will be respected.
+  try {
+    const origInit = (cachedMermaid as any)?.initialize
+    ;(cachedMermaid as any).initialize = (opts: any) => {
+      const merged = { suppressErrorRendering: true, ...(opts || {}) }
+      if (typeof origInit === 'function')
+        return origInit.call(cachedMermaid, merged)
+      // fallback to mermaidAPI.initialize if present
+      if ((cachedMermaid as any)?.mermaidAPI && typeof (cachedMermaid as any).mermaidAPI.initialize === 'function')
+        return (cachedMermaid as any).mermaidAPI.initialize(merged)
+      return undefined
+    }
+  }
+  catch {
+    // be defensive: if anything goes wrong wrapping initialize, ignore and
+    // return the cachedMermaid as-is. Consumers will handle runtime errors.
+  }
+
   return cachedMermaid
 }

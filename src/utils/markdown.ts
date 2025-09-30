@@ -8,12 +8,13 @@ import markdownItSub from 'markdown-it-sub'
 import markdownItSup from 'markdown-it-sup'
 import * as markdownItCheckbox from 'markdown-it-task-checkbox'
 import { useSafeI18n } from '../composables/useSafeI18n'
+import { renderKaTeXInWorker } from '../workers/katexWorkerClient'
+
 import {
   parseInlineTokens,
   parseMarkdownToStructure,
   processTokens,
 } from './markdown-parser'
-
 import { getMarkdown as factory } from './markdown/getMarkdown'
 // import 'katex/dist/katex.min.css'
 
@@ -240,4 +241,50 @@ export function renderMarkdown(md: MarkdownIt, content: string) {
     }
   })
   return newHTML
+}
+
+// Async version that uses the KaTeX worker (if available) to render inline parentheses content
+// to avoid blocking the main thread. Falls back to synchronous renderToString on worker failure.
+export async function renderMarkdownAsync(md: MarkdownIt, content: string) {
+  const html = md.render(content)
+
+  const matches = [...html.matchAll(/\([^)]*\)/g)]
+  if (matches.length === 0)
+    return html
+
+  // Kick off all renders in parallel (worker preferred), then apply replacements
+  const renderPromises = matches.map((m) => {
+    const latex = (m[0] || '').slice(1, -1)
+    return (async () => {
+      try {
+        return await renderKaTeXInWorker(latex, false, 800)
+      }
+      catch {
+        try {
+          return katex.renderToString(latex, {
+            throwOnError: true,
+            displayMode: false,
+          })
+        }
+        catch {
+          return null
+        }
+      }
+    })()
+  })
+
+  const results = await Promise.all(renderPromises)
+
+  // Apply replacements in reverse order so indices remain valid
+  let result = html
+  for (let i = matches.length - 1; i >= 0; i--) {
+    const m = matches[i]
+    const start = m.index ?? 0
+    const end = start + m[0].length
+    const rendered = results[i]
+    if (rendered)
+      result = result.slice(0, start) + rendered + result.slice(end)
+  }
+
+  return result
 }

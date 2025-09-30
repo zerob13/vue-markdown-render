@@ -127,6 +127,7 @@ const usePreCodeRender = ref(false)
       getDiffEditorView = helpers.getDiffEditorView || getDiffEditorView
       cleanupEditor = helpers.cleanupEditor || cleanupEditor
       setTheme = helpers.setTheme || setTheme
+      return
       if (!editorCreated.value && codeEditor.value && createEditor) {
         editorCreated.value = true
         isDiff.value
@@ -216,6 +217,7 @@ function getLineHeightSafe(editor: any): number {
     }
   }
   catch {}
+
   const domH = measureLineHeightFromDom()
   if (domH && domH > 0)
     return domH
@@ -530,7 +532,6 @@ function toggleExpand() {
     container.style.maxHeight = 'none'
     container.style.overflow = 'visible'
     updateExpandedHeight()
-    applyEditorScrollbarOptions(true)
   }
   else {
     stopExpandAutoResize()
@@ -538,7 +539,6 @@ function toggleExpand() {
     setAutomaticLayout(false)
     container.style.overflow = 'auto'
     updateCollapsedHeight()
-    applyEditorScrollbarOptions(false)
   }
 }
 
@@ -609,20 +609,6 @@ function previewCode() {
   })
 }
 
-function applyEditorScrollbarOptions(expanded: boolean) {
-  try {
-    if (isDiff.value) {
-      const diff = getDiffEditorView()
-      diff?.updateOptions?.({ automaticLayout: expanded, scrollbar: { vertical: expanded ? 'hidden' : 'auto', horizontal: 'auto' } })
-    }
-    else {
-      const ed = getEditorView()
-      ed?.updateOptions?.({ automaticLayout: expanded, scrollbar: { vertical: expanded ? 'hidden' : 'auto', horizontal: 'auto' } })
-    }
-  }
-  catch {}
-}
-
 function setAutomaticLayout(expanded: boolean) {
   try {
     if (isDiff.value) {
@@ -645,9 +631,9 @@ watch(
       return
     }
 
-    isDiff.value
-      ? updateDiffCode(props.node.originalCode || '', props.node.updatedCode || '', codeLanguage.value)
-      : updateCode(props.node.code, codeLanguage.value)
+    // isDiff.value
+    //   ? updateDiffCode(props.node.originalCode || '', props.node.updatedCode || '', codeLanguage.value)
+    //   : updateCode(props.node.code, codeLanguage.value)
     if (isExpanded.value) {
       requestAnimationFrame(() => updateExpandedHeight())
     }
@@ -661,6 +647,7 @@ const stopCreateEditorWatch = watch(
   async ([el, mermaid]) => {
     if (!el || mermaid || !createEditor)
       return
+    return
     editorCreated.value = true
 
     if (isDiff.value)
@@ -716,7 +703,6 @@ watch(
 
     themeUpdate()
   },
-  { immediate: false },
 )
 
 function isDark() {
@@ -752,7 +738,7 @@ watch(
     else if (!isCollapsed.value)
       updateCollapsedHeight()
   },
-  { deep: true, immediate: false },
+  { deep: true },
 )
 
 // 当 loading 变为 false 时：计算并缓存一次展开高度，随后停止观察

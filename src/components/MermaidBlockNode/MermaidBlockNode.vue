@@ -3,6 +3,7 @@ import type { CodeBlockNode } from '../../types'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { hideTooltip, showTooltipForAnchor } from '../../composables/useSingletonTooltip'
 import mermaidIconUrl from '../../icon/mermaid.svg?url'
+import { canParseOffthread as canParseOffthreadClient, findPrefixOffthread as findPrefixOffthreadClient, terminateWorker as terminateMermaidWorker } from '../../workers/mermaidWorkerClient'
 import { getIconify, getUseMonaco } from '../CodeBlockNode/utils'
 import { getMermaid } from './mermaid'
 
@@ -23,7 +24,6 @@ const emits = defineEmits(['copy'])
 const Icon: any = getIconify()
 let mermaid: any = null
 const isDark: any = ref(false)
-let parserWorkerUrl: string | null = null
 ;(async () => {
   mermaid = await getMermaid()
   mermaid.initialize?.({ startOnLoad: false, securityLevel: 'loose' })
@@ -58,14 +58,7 @@ let parserWorkerUrl: string | null = null
     // monIsDark is likely a boolean or unavailable -> copy its value
     isDark.value = !!monIsDark
   }
-  // lazy-load worker url only if mermaid exists
-  try {
-    const w = await import('../../workers/mermaidParser.worker?worker&url')
-    parserWorkerUrl = w?.default ?? null
-  }
-  catch {
-    parserWorkerUrl = null
-  }
+  // no-op: worker client will handle worker creation lazily
 })()
 
 const copyText = ref(false)
@@ -257,74 +250,7 @@ function onCopyHover(e: Event) {
   showTooltipForAnchor(e.currentTarget as HTMLElement, txt, 'top', false, origin)
 }
 
-// Worker-backed off-thread parsing (to reduce main-thread jank)
-let parserWorker: Worker | null = null
-const rpcMap = new Map<string, { resolve: (v: any) => void, reject: (e: any) => void }>()
-function ensureParserWorker() {
-  if (parserWorker)
-    return
-  try {
-    parserWorker = new Worker(parserWorkerUrl, { type: 'module' })
-    parserWorker.onmessage = (ev: MessageEvent<any>) => {
-      const { id, ok, result, error } = ev.data || {}
-      const entry = rpcMap.get(id)
-      if (!entry)
-        return
-      if (ok)
-        entry.resolve(result)
-      else entry.reject(new Error(error ?? 'Worker error'))
-      rpcMap.delete(id)
-    }
-  }
-  catch (e) {
-    console.warn('Parser worker unavailable, will fall back to main thread:', e)
-    parserWorker = null
-  }
-}
-function callWorker<T>(
-  action: 'canParse' | 'findPrefix',
-  payload: any,
-  options?: { signal?: AbortSignal, timeoutMs?: number },
-) {
-  ensureParserWorker()
-  return new Promise<T>((resolve, reject) => {
-    if (!parserWorker)
-      return reject(new Error('worker not available'))
-    const id = Math.random().toString(36).slice(2)
-    rpcMap.set(id, { resolve, reject })
-    parserWorker.postMessage({ id, action, payload })
-
-    let timeoutId: number | null = null
-    const onAbort = () => {
-      if (rpcMap.has(id))
-        rpcMap.delete(id)
-      reject(new DOMException('Aborted', 'AbortError'))
-    }
-    if (options?.timeoutMs && options.timeoutMs > 0) {
-      timeoutId = window.setTimeout(() => {
-        if (rpcMap.has(id))
-          rpcMap.delete(id)
-        reject(new Error('Worker call timed out'))
-      }, options.timeoutMs)
-    }
-    if (options?.signal) {
-      if (options.signal.aborted) {
-        if (timeoutId)
-          clearTimeout(timeoutId)
-        if (rpcMap.has(id))
-          rpcMap.delete(id)
-        reject(new DOMException('Aborted', 'AbortError'))
-        return
-      }
-      const handler = () => {
-        if (timeoutId)
-          clearTimeout(timeoutId)
-        onAbort()
-      }
-      options.signal.addEventListener('abort', handler, { once: true })
-    }
-  })
-}
+// Worker-backed off-thread parsing is now provided by the centralized mermaidWorkerClient.
 
 // Apply theme header to arbitrary code snippet
 function applyThemeTo(code: string, theme: 'light' | 'dark') {
@@ -404,10 +330,8 @@ async function canParseOffthread(
   opts?: { signal?: AbortSignal, timeoutMs?: number },
 ) {
   try {
-    return await callWorker<boolean>('canParse', { code, theme }, {
-      signal: opts?.signal,
-      timeoutMs: opts?.timeoutMs ?? WORKER_TIMEOUT_MS,
-    })
+    // client call uses timeout param; if it rejects, fallback to main thread
+    return await canParseOffthreadClient(code, theme, opts?.timeoutMs ?? WORKER_TIMEOUT_MS)
   }
   catch {
     return await canParseOnMain(code, theme, opts)
@@ -436,10 +360,7 @@ async function canParseOrPrefix(
     try {
       // prefer worker to refine, if supported
       try {
-        const found = await callWorker<string>('findPrefix', { code, theme }, {
-          signal: opts?.signal,
-          timeoutMs: opts?.timeoutMs ?? WORKER_TIMEOUT_MS,
-        })
+        const found = await findPrefixOffthreadClient(code, theme, opts?.timeoutMs ?? WORKER_TIMEOUT_MS)
         if (found && found.trim())
           prefix = found
       }
@@ -1064,13 +985,10 @@ function cleanupAfterLoadingSettled() {
     previewPollController = null
   }
   // terminate parser worker to free resources; it will be recreated on demand
-  if (parserWorker) {
-    try {
-      parserWorker.terminate()
-    }
-    catch {}
-    parserWorker = null
+  try {
+    terminateMermaidWorker()
   }
+  catch {}
 }
 
 function scheduleNextPreviewPoll(delay = 800) {
@@ -1313,10 +1231,10 @@ onUnmounted(() => {
     currentWorkController.abort()
     currentWorkController = null
   }
-  if (parserWorker) {
-    parserWorker.terminate()
-    parserWorker = null
+  try {
+    terminateMermaidWorker()
   }
+  catch {}
   stopPreviewPolling()
 })
 

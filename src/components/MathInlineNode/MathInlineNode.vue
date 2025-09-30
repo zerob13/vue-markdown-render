@@ -1,33 +1,36 @@
 <script setup lang="ts">
-import katex from 'katex'
 import { onMounted, ref, watch } from 'vue'
+import { renderKaTeXInWorker } from '../../workers/katexWorkerClient'
 
 const props = defineProps<{
   node: {
     type: 'math_inline'
     content: string
     raw: string
+    loading?: boolean
   }
 }>()
 
 const mathElement = ref<HTMLElement | null>(null)
+let hasRenderedOnce = false
 
 function renderMath() {
-  if (!mathElement.value || !props.node.content)
+  if (!props.node.content)
     return
-
-  try {
-    katex.render(props.node.content, mathElement.value, {
-      throwOnError: false,
-      displayMode: false,
-      output: 'html',
-      strict: 'ignore',
-    })
-  }
-  catch (error) {
-    console.error('KaTeX rendering error:', error)
+  if (!mathElement.value) {
     mathElement.value.textContent = props.node.raw
+    return
   }
+
+  renderKaTeXInWorker(props.node.content, false, 1500)
+    .then((html) => {
+      mathElement.value.innerHTML = html
+      hasRenderedOnce = true
+    })
+    .catch(() => {
+      if (!hasRenderedOnce || !props.node.loading)
+        mathElement.value.textContent = props.node.raw
+    })
 }
 
 watch(

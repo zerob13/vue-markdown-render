@@ -216,6 +216,7 @@ export interface MarkdownToken {
   tag?: string
   content?: string
   info?: string
+  loading?: boolean
   children?: MarkdownToken[]
   attrs?: [string, string][]
   markup?: string

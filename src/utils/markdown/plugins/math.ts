@@ -2,6 +2,33 @@ import type MarkdownIt from 'markdown-it'
 // import mathjax3 from 'markdown-it-mathjax3'
 import * as mathjax3 from 'markdown-it-mathjax3'
 
+// Heuristic to decide whether a piece of text is likely math.
+// Matches common TeX commands, math operators, function-call patterns like f(x),
+// superscripts/subscripts, and common math words.
+export function isMathLike(s: string) {
+  if (!s)
+    return false
+  const stripped = s.trim()
+  // quick bailouts
+  if (stripped.length > 2000)
+    return true // very long blocks likely math
+
+  // TeX commands e.g. \frac, \alpha
+  const texCmd = /\\[a-z]+/i.test(s)
+  // Explicit common TeX tokens (keeps compatibility with previous heuristic)
+  const texSpecific = /\\(?:text|frac|left|right|times)/.test(s)
+  // caret or underscore for super/subscripts
+  const superSub = /\^|_/.test(s)
+  // common math operator symbols or named commands
+  const ops = /[=+\-*/^<>]|\\times|\\pm|\\cdot|\\le|\\ge|\\neq/.test(s)
+  // function-like patterns: f(x), sin(x)
+  const funcCall = /[A-Z]+\s*\([^)]+\)/i.test(s)
+  // common math words
+  const words = /\b(?:sin|cos|tan|log|ln|exp|sqrt|frac|sum|lim|int|prod)\b/.test(s)
+
+  return texCmd || texSpecific || superSub || ops || funcCall || words
+}
+
 export function applyMath(md: MarkdownIt) {
   // Inline rule for \(...\) and $$...$$ and $...$
   const mathInline = (state: any, silent: boolean) => {
@@ -61,8 +88,7 @@ export function applyMath(md: MarkdownIt) {
                 nextLineStart,
                 state.eMarks[startLine + 1],
               )
-              const hasMathContent
-                = /\\text|\\frac|\\left|\\right|\\times/.test(nextLineText)
+              const hasMathContent = isMathLike(nextLineText)
               if (hasMathContent) {
                 matched = true
                 openDelim = open
@@ -101,8 +127,12 @@ export function applyMath(md: MarkdownIt) {
         endDelimIndex,
       )
 
+      // For the heuristic-only bracket delimiter '[', check content is math-like
+      if (openDelim === '[' && !isMathLike(content))
+        return false
+
       const token: any = state.push('math_block', 'math', 0)
-      token.content = normalizeStandaloneBackslashT(content) // 规范化 \t -> \\t
+      token.content = normalizeStandaloneBackslashT(content) // 规范化 \t -> \\\t
       token.markup
         = openDelim === '$$' ? '$$' : openDelim === '[' ? '[]' : '\\[\\]'
       token.map = [startLine, startLine + 1]
@@ -147,16 +177,18 @@ export function applyMath(md: MarkdownIt) {
       }
     }
 
-    if (!found)
+    // For bracket-delimited math, ensure it's math-like before accepting
+    if (openDelim === '[' && !isMathLike(content))
       return false
 
     const token: any = state.push('math_block', 'math', 0)
 
-    token.content = normalizeStandaloneBackslashT(content) // 规范化 \t -> \\t
+    token.content = normalizeStandaloneBackslashT(content) // 规范化 \t -> \\\t
     token.markup
       = openDelim === '$$' ? '$$' : openDelim === '[' ? '[]' : '\\[\\]'
     token.map = [startLine, nextLine + 1]
     token.block = true
+    token.loading = !found
 
     state.line = nextLine + 1
     return true

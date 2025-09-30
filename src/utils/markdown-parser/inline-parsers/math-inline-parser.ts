@@ -5,6 +5,7 @@ export function parseMathInlineToken(token: MarkdownToken): MathInlineNode {
   return {
     type: 'math_inline',
     content: token.content || '',
+    loading: !!token.loading,
     raw:
       token.markup === '\\(\\)'
         ? `\\(${token.content}\\)`

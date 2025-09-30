@@ -91,7 +91,7 @@ export default defineConfig(({ mode }) => {
       format: 'es',
       // Externalize mermaid in worker bundling as well (treat mermaid and mermaid/* as external)
       rollupOptions: {
-        external: (id: string) => /(?:^|\/)mermaid(?:\/|$)/.test(id),
+        external: (id: string) => /(?:^|\/)(?:mermaid|katex)(?:\/|$)/.test(id),
       },
     },
     css: {

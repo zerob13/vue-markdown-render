@@ -1,49 +1,49 @@
 <script setup lang="ts">
-import katex from 'katex'
 import { onMounted, ref, watch } from 'vue'
+import { renderKaTeXInWorker } from '../../workers/katexWorkerClient'
 
 const props = defineProps<{
   node: {
     type: 'math_block'
     content: string
     raw: string
+    loading?: boolean
   }
 }>()
 
 const mathElement = ref<HTMLElement | null>(null)
+let hasRenderedOnce = false
 
 // Function to render math using KaTeX
 function renderMath() {
-  if (!mathElement.value || !props.node.content)
+  if (!props.node.content)
     return
-
-  try {
-    katex.render(props.node.content, mathElement.value, {
-      throwOnError: false,
-      displayMode: true, // Display mode for block math
-      output: 'html',
-      strict: 'ignore',
-    })
-  }
-  catch (error) {
-    console.error('KaTeX rendering error:', error)
-    // Fallback to displaying the raw math
+  if (!mathElement.value) {
     mathElement.value.textContent = props.node.raw
+    return
   }
+
+  renderKaTeXInWorker(props.node.content, true, 3000)
+    .then((html) => {
+      mathElement.value.innerHTML = html
+      hasRenderedOnce = true
+    })
+    .catch(() => {
+      if (!hasRenderedOnce || !props.node.loading) {
+        mathElement.value.textContent = props.node.raw
+      }
+    })
 }
 
-// Render math on component mount
-onMounted(() => {
-  renderMath()
-})
-
-// Re-render when content changes
 watch(
   () => props.node.content,
   () => {
     renderMath()
   },
 )
+onMounted(() => {
+  renderMath()
+})
 </script>
 
 <template>
