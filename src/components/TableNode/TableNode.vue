@@ -49,17 +49,17 @@ const colWidths = computed(() => {
 </script>
 
 <template>
-  <table class="table-node table-auto text-left my-8 text-sm w-full">
+  <table class="table-node table-fixed text-left my-8 text-sm w-full">
     <colgroup>
       <col v-for="(w, i) in colWidths" :key="`col-${i}`" :style="{ width: w }">
     </colgroup>
-    <thead>
+    <thead class="border-[var(--table-border,#cbd5e1)]">
       <tr class="border-b">
         <th
           v-for="(cell, index) in node.header.cells"
           :key="`header-${index}`"
           dir="auto"
-          class="text-left font-semibold dark:border-zinc-800 dark:text-white truncate p-[calc(4/7*1em)]"
+          class="text-left font-semibold  dark:text-white truncate p-[calc(4/7*1em)]"
           :class="[index === 0 ? '!pl-0' : '']"
         >
           <NodeRenderer
@@ -73,9 +73,10 @@ const colWidths = computed(() => {
       <tr
         v-for="(row, rowIndex) in node.rows"
         :key="`row-${rowIndex}`"
+        class="border-[var(--table-border,#cbd5e1)]"
         :class="[
           rowIndex < node.rows.length - 1
-            ? 'border-b dark:border-zinc-800'
+            ? 'border-b'
             : '',
         ]"
       >

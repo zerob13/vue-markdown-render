@@ -29,3 +29,12 @@ defineEmits<{
     <NodeRenderer :nodes="item.children" @copy="$emit('copy', $event)" />
   </li>
 </template>
+
+<style scoped>
+ol > .list-item::marker{
+  color: var(--list-item-counter-marker,#64748b)
+}
+ul > .list-item::marker{
+  color: var(--list-item-marker,#cbd5e1)
+}
+</style>
