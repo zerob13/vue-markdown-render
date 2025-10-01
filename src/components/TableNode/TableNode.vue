@@ -49,57 +49,55 @@ const colWidths = computed(() => {
 </script>
 
 <template>
-  <div
-    class="overflow-x-auto max-w-full mb-4 shadow-sm border border-border rounded-lg"
-  >
-    <table class="border-collapse my-0 min-w-full table-fixed w-auto">
-      <colgroup>
-        <col v-for="(w, i) in colWidths" :key="`col-${i}`" :style="{ width: w }">
-      </colgroup>
-      <thead>
-        <tr class="border-b">
-          <th
-            v-for="(cell, index) in node.header.cells"
-            :key="`header-${index}`"
-            dir="auto"
-            class="p-2 text-left font-semibold bg-gray-100 dark:bg-zinc-900 dark:border-zinc-800 dark:text-white truncate"
-            :class="{
-              'border-r ': index < node.header.cells.length - 1,
-            }"
-          >
-            <NodeRenderer
-              :nodes="cell.children"
-              @copy="$emit('copy', $event)"
-            />
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="(row, rowIndex) in node.rows"
-          :key="`row-${rowIndex}`"
-          :class="[
-            rowIndex < node.rows.length - 1
-              ? 'border-b dark:border-zinc-800'
-              : '',
-          ]"
+  <table class="table-node table-auto text-left my-8 text-sm w-full">
+    <colgroup>
+      <col v-for="(w, i) in colWidths" :key="`col-${i}`" :style="{ width: w }">
+    </colgroup>
+    <thead>
+      <tr class="border-b">
+        <th
+          v-for="(cell, index) in node.header.cells"
+          :key="`header-${index}`"
+          dir="auto"
+          class="text-left font-semibold dark:border-zinc-800 dark:text-white truncate p-[calc(4/7*1em)]"
+          :class="[index === 0 ? '!pl-0' : '']"
         >
-          <td
-            v-for="(cell, cellIndex) in row.cells"
-            :key="`cell-${rowIndex}-${cellIndex}`"
-            class="p-2 text-left truncate"
-            dir="auto"
-            :class="{
-              'border-r': cellIndex < row.cells.length - 1,
-            }"
-          >
-            <NodeRenderer
-              :nodes="cell.children"
-              @copy="$emit('copy', $event)"
-            />
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+          <NodeRenderer
+            :nodes="cell.children"
+            @copy="$emit('copy', $event)"
+          />
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        v-for="(row, rowIndex) in node.rows"
+        :key="`row-${rowIndex}`"
+        :class="[
+          rowIndex < node.rows.length - 1
+            ? 'border-b dark:border-zinc-800'
+            : '',
+        ]"
+      >
+        <td
+          v-for="(cell, cellIndex) in row.cells"
+          :key="`cell-${rowIndex}-${cellIndex}`"
+          class="text-left truncate p-[calc(4/7*1em)]"
+          :class="[cellIndex === 0 ? '!pl-0' : '']"
+          dir="auto"
+        >
+          <NodeRenderer
+            :nodes="cell.children"
+            @copy="$emit('copy', $event)"
+          />
+        </td>
+      </tr>
+    </tbody>
+  </table>
 </template>
+
+<style scoped>
+.hr + .table-node{
+  margin-top: 0;
+}
+</style>

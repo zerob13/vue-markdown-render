@@ -24,7 +24,7 @@ export default defineConfig(({ mode }) => {
         outDir: 'dist/types',
       }),
       UnpluginClassExtractor({
-        safeList: ['rotate-90'],
+        safeList: ['rotate-90', '!pl-0', 'p-[calc(4/7*1em)]'],
         output: 'dist/tailwind.ts',
         include: [/\/src\/components\/(?:[^/]+\/)*[^/]+\.vue(\?.*)?$/],
       }) as any,
@@ -42,11 +42,6 @@ export default defineConfig(({ mode }) => {
       },
       rollupOptions: {
         external: (id: string) => {
-          // Only treat the actual 'mermaid' package (bare import or node_modules path)
-          // as external. The previous regex matched any path segment named `mermaid`,
-          // which accidentally externalized local files like
-          // './components/MermaidBlockNode/mermaid'. That left runtime imports
-          // to non-emitted local modules in the final bundle.
           if (id === 'mermaid' || id.startsWith('mermaid/'))
             return true
           // also match resolved node_modules paths that include /node_modules/mermaid
