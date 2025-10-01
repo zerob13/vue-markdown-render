@@ -91,6 +91,7 @@ let getEditor: () => any = () => null
 let getEditorView: () => any = () => ({ getModel: () => ({ getLineCount: () => 1 }), getOption: () => 14, updateOptions: () => {} })
 let getDiffEditorView: () => any = () => ({ getModel: () => ({ getLineCount: () => 1 }), getOption: () => 14, updateOptions: () => {} })
 let cleanupEditor: () => void = () => {}
+let safeClean = () => {}
 let detectLanguage: (code: string) => string = () => props.node.language || 'plaintext'
 let setTheme: (theme: MonacoTheme) => Promise<void> = async () => {}
 const isDiff = computed(() => props.node.diff)
@@ -126,6 +127,7 @@ const usePreCodeRender = ref(false)
       getEditorView = helpers.getEditorView || getEditorView
       getDiffEditorView = helpers.getDiffEditorView || getDiffEditorView
       cleanupEditor = helpers.cleanupEditor || cleanupEditor
+      safeClean = helpers.cleanupEditor || safeClean
       setTheme = helpers.setTheme || setTheme
 
       if (!editorCreated.value && codeEditor.value && createEditor) {
@@ -426,13 +428,18 @@ watch(
   },
 )
 
-const stopWatch = watch(
+watch(
   () => props.node.code,
   (newCode) => {
-    if (codeLanguage.value)
-      return stopWatch() // 如果外部提供了语言，就不再自动检测
+    if (!codeLanguage.value)
+      codeLanguage.value = detectLanguage(newCode)
 
-    codeLanguage.value = detectLanguage(newCode)
+    isDiff.value
+      ? updateDiffCode(props.node.originalCode || '', props.node.updatedCode || '', codeLanguage.value)
+      : updateCode(props.node.code, codeLanguage.value)
+    if (isExpanded.value) {
+      requestAnimationFrame(() => updateExpandedHeight())
+    }
   },
 )
 
@@ -614,37 +621,28 @@ function setAutomaticLayout(expanded: boolean) {
   catch {}
 }
 
-// 监听代码/语言变化：仅在非 Mermaid 且编辑器已创建时更新，避免重复无效更新
-watch(
-  () => [props.node.code, codeLanguage.value, isMermaid.value, isDiff.value, isCollapsed.value] as const,
-  () => {
-    if (!editorCreated.value || isMermaid.value || isCollapsed.value) {
-      return
-    }
-
-    isDiff.value
-      ? updateDiffCode(props.node.originalCode || '', props.node.updatedCode || '', codeLanguage.value)
-      : updateCode(props.node.code, codeLanguage.value)
-    if (isExpanded.value) {
-      requestAnimationFrame(() => updateExpandedHeight())
-    }
-  },
-  { flush: 'post' },
-)
-
 // 延迟创建编辑器：仅当不是 Mermaid 时才创建，避免无意义的初始化
 const stopCreateEditorWatch = watch(
   () => [codeEditor.value, isMermaid.value, isDiff.value] as const,
-  async ([el, mermaid]) => {
-    if (!el || mermaid || !createEditor)
+  async ([el]) => {
+    if (!el || !createEditor)
       return
+
+    if (isMermaid.value) {
+      cleanupEditor()
+      stopCreateEditorWatch()
+      return
+    }
 
     editorCreated.value = true
 
-    if (isDiff.value)
+    if (isDiff.value) {
+      safeClean()
       await createDiffEditor(el as HTMLElement, props.node.originalCode || '', props.node.updatedCode || '', codeLanguage.value)
-    else
+    }
+    else {
       await createEditor(el as HTMLElement, props.node.code, codeLanguage.value)
+    }
     const editor = isDiff.value ? getDiffEditorView() : getEditorView()
     if (typeof props.monacoOptions?.fontSize === 'number') {
       editor?.updateOptions({ fontSize: props.monacoOptions.fontSize, automaticLayout: false })
@@ -682,14 +680,14 @@ const stopCreateEditorWatch = watch(
   },
 )
 
-// Watch for theme changes and try to apply them at runtime. If the helper
-// exposes an API to update themes/options, use it. Otherwise, recreate the
-// editor to ensure the new themes/options take effect.
-watch(
+const watchTheme = watch(
   () => [props.darkTheme, props.lightTheme, editorCreated.value],
   () => {
     if (!editorCreated.value)
       return
+    if (isMermaid.value) {
+      return watchTheme()
+    }
 
     themeUpdate()
   },
@@ -710,11 +708,14 @@ function themeUpdate() {
 
 // Watch for monacoOptions changes (deep) and try to update editor options or
 // recreate the editor when necessary.
-watch(
+const watchMonacoOptions = watch(
   () => props.monacoOptions,
-  async () => {
+  () => {
     if (!createEditor)
       return
+    if (isMermaid.value) {
+      return watchMonacoOptions()
+    }
 
     const ed = isDiff.value ? getDiffEditorView() : getEditorView()
     const applying = typeof props.monacoOptions?.fontSize === 'number'
@@ -736,25 +737,22 @@ const stopLoadingWatch = watch(
   () => props.loading,
   async (loaded) => {
     if (isMermaid.value) {
-      cleanupEditor()
+      stopLoadingWatch()
       return
     }
-    if (loaded === false) {
-      await nextTick()
-      requestAnimationFrame(() => {
-        if (!isCollapsed.value) {
-          if (isExpanded.value)
-            updateExpandedHeight()
-          else
-            updateCollapsedHeight()
-        }
-        stopLoadingWatch()
-      })
-      stopExpandAutoResize()
-    }
-    else if (loaded === true) {
-      // no-op
-    }
+    if (loaded)
+      return
+    await nextTick()
+    requestAnimationFrame(() => {
+      if (!isCollapsed.value) {
+        if (isExpanded.value)
+          updateExpandedHeight()
+        else
+          updateCollapsedHeight()
+      }
+      stopLoadingWatch()
+    })
+    stopExpandAutoResize()
   },
   { immediate: true, flush: 'post' },
 )
