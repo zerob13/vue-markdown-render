@@ -24,7 +24,6 @@ export default defineConfig(({ mode }) => {
         outDir: 'dist/types',
       }),
       UnpluginClassExtractor({
-        safeList: ['rotate-90', '!pl-0', 'p-[calc(4/7*1em)]'],
         output: 'dist/tailwind.ts',
         include: [/\/src\/components\/(?:[^/]+\/)*[^/]+\.vue(\?.*)?$/],
       }) as any,
