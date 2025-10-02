@@ -29,6 +29,21 @@ export function isMathLike(s: string) {
   return texCmd || texSpecific || superSub || ops || funcCall || words
 }
 
+// Exported helper for direct testing and reuse
+export function normalizeStandaloneBackslashT(s: string) {
+  const map: Record<string, string> = {
+    '\t': 't',
+    '\r': 'r',
+    '\b': 'b',
+    '\f': 'f',
+    '\v': 'v',
+  }
+
+  // eslint-disable-next-line regexp/no-escape-backspace
+  s = s.replace(/(^|[^\\])([\t\r\b\f\v])/g, (_m, p1, p2) => `${p1}\\${map[p2]}`)
+  return s.replace(/!/g, '\\!')
+}
+
 export function applyMath(md: MarkdownIt) {
   // Inline rule for \(...\) and $$...$$ and $...$
   const mathInline = (state: any, silent: boolean) => {
@@ -233,13 +248,5 @@ export function applyMath(md: MarkdownIt) {
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
-  }
-
-  // 将单个 \t 规范化为 \\t；若已为 \\t 则保持不变
-  function normalizeStandaloneBackslashT(s: string) {
-    // 匹配前面不是反斜杠的单个 \t，替换为 \\t
-    return s
-      .replace(/(^|[^\\])\t/g, (_m, p1) => `${p1}\\t`)
-      .replace(/!/g, '\\!') // 处理 ! 符号
   }
 }
