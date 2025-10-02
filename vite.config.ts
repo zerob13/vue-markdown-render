@@ -32,7 +32,7 @@ export default defineConfig(({ mode }) => {
       target: 'es2015',
       cssTarget: 'chrome61',
       copyPublicDir: false,
-      minify: false,
+      minify: true,
       lib: {
         entry: './src/exports.ts',
         formats: ['cjs', 'es'],
