@@ -23,7 +23,7 @@
     "vue-use-monaco": "^0.0.33"
   },
   "devDependencies": {
-    "@types/node": "^20.19.17",
+    "@types/node": "^20.19.19",
     "@unocss/reset": "^0.61.9",
     "@vue/test-utils": "^2.4.6",
     "eslint": "^9.36.0",
