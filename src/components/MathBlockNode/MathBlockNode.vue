@@ -16,12 +16,8 @@ let hasRenderedOnce = false
 
 // Function to render math using KaTeX
 function renderMath() {
-  if (!props.node.content)
+  if (!props.node.content || !mathElement.value)
     return
-  if (!mathElement.value) {
-    mathElement.value.textContent = props.node.raw
-    return
-  }
 
   renderKaTeXInWorker(props.node.content, true, 3000)
     .then((html) => {

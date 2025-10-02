@@ -436,7 +436,7 @@ watch(
 
     isDiff.value
       ? updateDiffCode(props.node.originalCode || '', props.node.updatedCode || '', codeLanguage.value)
-      : updateCode(props.node.code, codeLanguage.value)
+      : updateCode(newCode, codeLanguage.value)
     if (isExpanded.value) {
       requestAnimationFrame(() => updateExpandedHeight())
     }

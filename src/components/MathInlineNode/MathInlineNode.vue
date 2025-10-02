@@ -15,12 +15,8 @@ const mathElement = ref<HTMLElement | null>(null)
 let hasRenderedOnce = false
 
 function renderMath() {
-  if (!props.node.content)
+  if (!props.node.content || !mathElement.value)
     return
-  if (!mathElement.value) {
-    mathElement.value.textContent = props.node.raw
-    return
-  }
 
   renderKaTeXInWorker(props.node.content, false, 1500)
     .then((html) => {
