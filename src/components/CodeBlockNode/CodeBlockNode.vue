@@ -8,7 +8,8 @@ import { hideTooltip, showTooltipForAnchor } from '../../composables/useSingleto
 import { getLanguageIcon, languageMap } from '../../utils'
 import MermaidBlockNode from '../MermaidBlockNode'
 import PreCodeNode from '../PreCodeNode'
-import { getIconify, getUseMonaco } from './utils'
+import { getIconify } from './iconify'
+import { getUseMonaco } from './monaco'
 
 interface MonacoOptions {
   fontSize?: number
@@ -28,6 +29,7 @@ const props = withDefaults(
       originalCode?: string
       updatedCode?: string
     }
+    isDark?: boolean
     loading?: boolean
     darkTheme?: MonacoTheme
     lightTheme?: MonacoTheme
@@ -693,11 +695,8 @@ const watchTheme = watch(
   },
 )
 
-function isDark() {
-  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-}
 function getPreferredColorScheme() {
-  return isDark() ? props.darkTheme : props.lightTheme
+  return props.isDark ? props.darkTheme : props.lightTheme
 }
 
 function themeUpdate() {
@@ -733,11 +732,14 @@ const watchMonacoOptions = watch(
 )
 
 // 当 loading 变为 false 时：计算并缓存一次展开高度，随后停止观察
+
 const stopLoadingWatch = watch(
   () => props.loading,
   async (loaded) => {
     if (isMermaid.value) {
-      stopLoadingWatch()
+      nextTick(() => {
+        stopLoadingWatch?.()
+      })
       return
     }
     if (loaded)
@@ -780,7 +782,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <MermaidBlockNode v-if="isMermaid" :node="(node as any)" :loading="props.loading" />
+  <MermaidBlockNode v-if="isMermaid" :node="(node as any)" :is-dark="isDark" :loading="props.loading" />
   <PreCodeNode v-else-if="usePreCodeRender" :node="(node as any)" :loading="props.loading" />
   <div
     v-else
@@ -794,8 +796,7 @@ onUnmounted(() => {
     <div
       v-if="props.showHeader"
       class="code-block-header flex justify-between items-center px-4 py-2.5 border-b border-gray-400/5"
-      style="color: var(--vscode-editor-foreground);
-    background-color: var(--vscode-editor-background);"
+      style="color: var(--vscode-editor-foreground);background-color: var(--vscode-editor-background);"
     >
       <!-- left slot / fallback language label -->
       <slot name="header-left">

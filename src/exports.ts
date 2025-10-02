@@ -18,6 +18,7 @@ import InsertNode from './components/InsertNode'
 import LinkNode from './components/LinkNode'
 import ListItemNode from './components/ListItemNode'
 import ListNode from './components/ListNode'
+import MarkdownCodeBlockNode from './components/MarkdownCodeBlockNode'
 import MathBlockNode from './components/MathBlockNode'
 import MathInlineNode from './components/MathInlineNode'
 import MermaidBlockNode from './components/MermaidBlockNode'
@@ -56,6 +57,7 @@ export {
   LinkNode,
   ListItemNode,
   ListNode,
+  MarkdownCodeBlockNode,
   MarkdownRender,
   MathBlockNode,
   MathInlineNode,
@@ -106,6 +108,7 @@ const componentMap: Record<string, Component> = {
   TextNode,
   ThematicBreakNode,
   ReferenceNode,
+  MarkdownCodeBlockNode,
 }
 
 export const VueRendererMarkdown: Plugin = {

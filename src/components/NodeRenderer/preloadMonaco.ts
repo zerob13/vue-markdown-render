@@ -1,4 +1,4 @@
-import { getUseMonaco } from '../CodeBlockNode/utils'
+import { getUseMonaco } from '../CodeBlockNode/monaco'
 
 let isPreload = false
 

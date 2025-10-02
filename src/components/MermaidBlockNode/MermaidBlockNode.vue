@@ -4,7 +4,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { hideTooltip, showTooltipForAnchor } from '../../composables/useSingletonTooltip'
 import mermaidIconUrl from '../../icon/mermaid.svg?url'
 import { canParseOffthread as canParseOffthreadClient, findPrefixOffthread as findPrefixOffthreadClient, terminateWorker as terminateMermaidWorker } from '../../workers/mermaidWorkerClient'
-import { getIconify, getUseMonaco } from '../CodeBlockNode/utils'
+import { getIconify } from '../CodeBlockNode/iconify'
 import { getMermaid } from './mermaid'
 
 const props = withDefaults(
@@ -13,6 +13,7 @@ const props = withDefaults(
     node: CodeBlockNode
     maxHeight?: string | null
     loading?: boolean
+    isDark?: boolean
   }>(),
   {
     maxHeight: '500px',
@@ -23,42 +24,10 @@ const emits = defineEmits(['copy'])
 // Optional runtime imports - will be dynamically loaded if available
 const Icon: any = getIconify()
 let mermaid: any = null
-const isDark: any = ref(false)
+
 ;(async () => {
   mermaid = await getMermaid()
   mermaid.initialize?.({ startOnLoad: false, securityLevel: 'loose' })
-  const mon = await getUseMonaco()
-  // prefer exported isDark ref, otherwise try .default
-  // If mon.isDark is a ref, use it directly so we keep reactivity.
-  // Otherwise, if it's a boolean, set the value and try to watch for changes
-  const monIsDark = (mon as any).isDark ?? (mon as any).default?.isDark
-  if (monIsDark && typeof monIsDark === 'object' && 'value' in monIsDark) {
-    // monIsDark is a ref-like object -> mirror it
-    // Replace local isDark with the same ref so consumers react to changes.
-    // Note: we don't reassign the local variable reference declared above
-    // because it's used elsewhere; instead, sync its value and watch for updates.
-    isDark.value = monIsDark.value
-    // Keep in sync if the external ref changes
-    try {
-      // use watch to keep our isDark.value in sync with external ref
-      watch(
-        () => (monIsDark as any).value,
-        (v) => {
-          isDark.value = v
-        },
-        { immediate: false },
-      )
-    }
-    catch {
-      // If runtime watch fails for any reason, fall back to one-time copy
-      isDark.value = (monIsDark as any).value
-    }
-  }
-  else {
-    // monIsDark is likely a boolean or unavailable -> copy its value
-    isDark.value = !!monIsDark
-  }
-  // no-op: worker client will handle worker creation lazily
 })()
 
 const copyText = ref(false)
@@ -759,7 +728,7 @@ async function initMermaid() {
           startOnLoad: false,
         })
       }
-      const currentTheme = isDark.value ? 'dark' : 'light'
+      const currentTheme = props.isDark ? 'dark' : 'light'
       const codeWithTheme = getCodeWithTheme(currentTheme)
       const res: any = await withTimeoutSignal(
         () => mermaid.render(
@@ -786,7 +755,7 @@ async function initMermaid() {
             containerHeight: containerHeight.value,
           }
         }
-        const currentTheme = isDark.value ? 'dark' : 'light'
+        const currentTheme = props.isDark ? 'dark' : 'light'
         svgCache.value[currentTheme] = svg
         if (isThemeRendering.value) {
           isThemeRendering.value = false
@@ -830,7 +799,7 @@ async function renderPartial(code: string) {
   isRendering.value = true
   try {
     const id = `mermaid-partial-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
-    const theme = isDark.value ? 'dark' : 'light'
+    const theme = props.isDark ? 'dark' : 'light'
     // 如果最后一行是不完整的（如以 |、-、> 等连接符结尾），则剪裁到上一行，
     // 提高在输入过程中可渲染出图像的概率
     const safePrefix = getSafePrefixCandidate(code)
@@ -878,7 +847,7 @@ async function progressiveRender() {
   }
   currentWorkController = new AbortController()
   const signal = currentWorkController.signal
-  const theme = isDark.value ? 'dark' : 'light'
+  const theme = props.isDark ? 'dark' : 'light'
   const base = baseFixedCode.value
   // 新增：去除所有空白字符后做比较
   const normalizedBase = base.replace(/\s+/g, '')
@@ -1004,7 +973,7 @@ function scheduleNextPreviewPoll(delay = 800) {
         stopPreviewPolling()
         return
       }
-      const theme = isDark.value ? 'dark' : 'light'
+      const theme = props.isDark ? 'dark' : 'light'
       const base = baseFixedCode.value
       if (!base.trim()) {
         scheduleNextPreviewPoll(previewPollDelay)
@@ -1060,7 +1029,7 @@ watch(
 )
 
 // Watch for dark mode changes with smart caching
-watch(isDark, async () => {
+watch(() => props.isDark, async () => {
   if (!hasRenderedOnce.value) {
     return
   }
@@ -1068,7 +1037,7 @@ watch(isDark, async () => {
   if (hasRenderError.value) {
     return
   }
-  const targetTheme = isDark.value ? 'dark' : 'light'
+  const targetTheme = props.isDark ? 'dark' : 'light'
   if (svgCache.value[targetTheme]) {
     if (mermaidContent.value) {
       mermaidContent.value.innerHTML = svgCache.value[targetTheme]!
@@ -1110,7 +1079,7 @@ watch(
         // 如果当前展示错误，保持错误展示，不去恢复缓存
         return
       }
-      const currentTheme = isDark.value ? 'dark' : 'light'
+      const currentTheme = props.isDark ? 'dark' : 'light'
       if (hasRenderedOnce.value && svgCache.value[currentTheme]) {
         await nextTick()
         if (mermaidContent.value) {
@@ -1151,7 +1120,7 @@ watch(
       const base = baseFixedCode.value.trim()
       if (!base)
         return cleanupAfterLoadingSettled()
-      const theme = isDark.value ? 'dark' : 'light'
+      const theme = props.isDark ? 'dark' : 'light'
       const normalizedBase = base.replace(/\s+/g, '')
 
       // 如果之前已完成一次完整渲染，且内容只有空格差异，避免重复渲染带来的闪烁

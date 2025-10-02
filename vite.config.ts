@@ -64,6 +64,7 @@ export default defineConfig(({ mode }) => {
             'katex',
             'vue-use-monaco',
             'monaco-editor',
+            'shiki',
           ].includes(id)
         },
         output: {

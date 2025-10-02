@@ -8,7 +8,6 @@ body,
   height: 100%;
   margin: 0;
   padding: 0;
-  color: #334155;
 }
 
 /* Provide defaults for Tailwind gradient position variables so var() calls resolve */
@@ -20,5 +19,8 @@ body,
 html.dark {
   background: #121212;
   color: #e0e0e0;
+}
+html{
+  color: #334155;
 }
 

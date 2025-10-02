@@ -271,6 +271,7 @@ const showSettings = ref(false)
         :code-block-dark-theme="selectedTheme || undefined"
         :code-block-light-theme="selectedTheme || undefined"
         :themes="themes"
+        :is-dark="isDark"
         class="flex-1 p-8"
       />
     </main>

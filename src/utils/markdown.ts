@@ -16,7 +16,7 @@ import {
   processTokens,
 } from './markdown-parser'
 import { getMarkdown as factory } from './markdown/getMarkdown'
-// import 'katex/dist/katex.min.css'
+import 'katex/dist/katex.min.css'
 
 // Re-export the node types for backward compatibility
 export * from '../types'

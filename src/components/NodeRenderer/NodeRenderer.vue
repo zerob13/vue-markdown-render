@@ -56,6 +56,7 @@ const props = defineProps<
     /** Arbitrary props to forward to every CodeBlockNode */
     codeBlockProps?: Record<string, any>
     themes?: MonacoTheme[]
+    isDark?: boolean
   }
   | {
     content?: undefined
@@ -72,6 +73,7 @@ const props = defineProps<
     /** Arbitrary props to forward to every CodeBlockNode */
     codeBlockProps?: Record<string, any>
     themes?: MonacoTheme[]
+    isDark?: boolean
   }
 >()
 
@@ -162,6 +164,7 @@ const nodeComponents = {
               maxWidth: props.codeBlockMaxWidth,
               ...(props.codeBlockProps || {}),
             } : {}"
+            :is-dark="props.isDark"
             @copy="$emit('copy', $event)"
             @handle-artifact-click="$emit('handleArtifactClick', $event)"
             @click="$emit('click', $event)"
@@ -184,6 +187,7 @@ const nodeComponents = {
             maxWidth: props.codeBlockMaxWidth,
             ...(props.codeBlockProps || {}),
           } : {}"
+          :is-dark="props.isDark"
           @copy="$emit('copy', $event)"
           @handle-artifact-click="$emit('handleArtifactClick', $event)"
           @click="$emit('click', $event)"

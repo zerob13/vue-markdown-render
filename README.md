@@ -18,6 +18,7 @@ Traditional Markdown renderers typically convert a finished Markdown string into
 - Streaming-aware code blocks and "code-jump" UX: large code blocks are updated incrementally and the renderer can maintain cursor/selection context and fine-grained edits. This enables smooth code-editing experiences and programmatic "jump to" behaviors that traditional renderers do not support.
 - Built-in diff/code-stream components: show diffs as they arrive (line-by-line or token-by-token) with minimal reflow. This is ideal for streaming AI edits or progressive code reviews — functionality that is not available in plain Markdown renderers.
 - Progressive diagrams and editors: Mermaid diagrams and Monaco-based previews update progressively and render as soon as they become valid.
+- Flexible code block rendering: Choose between full Monaco Editor integration for interactive editing or lightweight Shiki-based syntax highlighting for display-only scenarios.
 - Smooth, interactive UI: the renderer is optimized for minimal DOM churn and silky interactions (e.g. streaming diffs, incremental diagram updates, and editor integrations) so UX remains responsive even with very large documents.
 
 These features make the library especially suited for real-time, AI-driven, and large-document scenarios where a conventional, static Markdown-to-HTML conversion would lag or break the user experience.
@@ -37,6 +38,7 @@ These features make the library especially suited for real-time, AI-driven, and 
 - 🔄 **Real-Time Updates**: Handles partial content and incremental updates without breaking formatting
 - 📦 **TypeScript First**: Full type definitions with intelligent auto-completion
 - 🔌 **Zero Configuration**: Drop-in component that works with any Vue 3 project out of the box
+- 🎨 **Flexible Code Rendering**: Choose between Monaco Editor integration (`CodeBlockNode`) or lightweight markdown-style syntax highlighting (`MarkdownCodeBlockNode`)
 
 ## Install
 
@@ -87,6 +89,55 @@ Notes:
   - `@iconify/vue` — enables iconography in the UI (toolbar buttons). If absent, simple fallback elements are shown in place of icons so the UI remains functional.
 - `vue-i18n` is optional: the library provides a synchronous fallback translator. If your app uses `vue-i18n`, the library will automatically wire into it at runtime when available.
 - If you're installing this library inside a monorepo or using pnpm workspaces, install peers at the workspace root so they are available to consuming packages.
+
+## Quick Start
+
+### Choose Your Code Block Rendering Style
+
+The library offers two code block rendering approaches:
+
+**Option 1: Default Monaco Editor Integration (Full Features)**
+```vue
+<script setup lang="ts">
+import MarkdownRender from 'vue-renderer-markdown'
+
+const content = `
+# Code Example
+\`\`\`javascript
+console.log('Hello World!')
+\`\`\`
+`
+</script>
+
+<template>
+  <!-- Uses CodeBlockNode by default - includes Monaco editor, copy buttons, etc. -->
+  <MarkdownRender :content="content" />
+</template>
+```
+
+**Option 2: Lightweight Markdown-Style Highlighting**
+```vue
+<script setup lang="ts">
+import MarkdownRender, { setCustomComponents, MarkdownCodeBlockNode } from 'vue-renderer-markdown'
+
+// Override globally to use markdown-style rendering
+setCustomComponents({
+  code_block: MarkdownCodeBlockNode,
+})
+
+const content = `
+# Code Example
+\`\`\`javascript
+console.log('Hello World!')
+\`\`\`
+`
+</script>
+
+<template>
+  <!-- Now uses MarkdownCodeBlockNode - lightweight syntax highlighting only -->
+  <MarkdownRender :content="content" />
+</template>
+```
 
 ## Why vue-renderer-markdown?
 
@@ -231,10 +282,55 @@ setCustomComponents({
 app.mount('#app')
 ```
 
+#### MarkdownCodeBlockNode: Alternative Code Block Renderer
+
+The library now includes `MarkdownCodeBlockNode` - an alternative code block component that provides markdown-style syntax highlighting instead of Monaco Editor integration. This gives you the flexibility to choose between two rendering approaches for code blocks:
+
+- **CodeBlockNode** (default): Full-featured code blocks with Monaco Editor integration, copy buttons, expand/collapse, and advanced features
+- **MarkdownCodeBlockNode**: Lightweight markdown-style rendering with syntax highlighting using Shiki
+
+**When to use MarkdownCodeBlockNode:**
+- You want syntax-highlighted code blocks without Monaco Editor dependencies
+- You prefer a lighter-weight solution for code display
+- You need consistent markdown-style rendering across your application
+- You don't need Monaco's editing capabilities
+
+**Usage Example:**
+
+```ts
+import { createApp } from 'vue'
+import MarkdownRender, { setCustomComponents, MarkdownCodeBlockNode } from 'vue-renderer-markdown'
+import App from './App.vue'
+
+const app = createApp(App)
+
+// Override code_block to use markdown-style rendering
+setCustomComponents({
+  code_block: MarkdownCodeBlockNode,
+})
+
+app.mount('#app')
+```
+
+**MarkdownCodeBlockNode Props:**
+
+| Name | Type | Default | Description |
+| ---- | ---- | ------- | ----------- |
+| `node` | `CodeBlockNode` | - | The code block node object |
+| `loading` | `boolean` | `true` | Whether to show loading state |
+| `darkTheme` | `string` | `'vitesse-dark'` | Dark theme for syntax highlighting |
+| `lightTheme` | `string` | `'vitesse-light'` | Light theme for syntax highlighting |
+| `isDark` | `boolean` | `false` | Whether to use dark theme |
+| `themes` | `string[]` | - | Array of [darkTheme, lightTheme] for highlighting |
+| `showHeader` | `boolean` | `true` | Whether to show the code block header |
+
+The component automatically handles Mermaid diagrams and provides clean syntax highlighting for all other languages using Shiki themes.
+
 Notes:
 
 - `setCustomComponents` applies globally to all `MarkdownRender` instances. Call it before mounting your app to ensure components are registered before rendering occurs.
 - If you need per-instance overrides, you can still merge your mapping into the result of the `getNodeComponents` util in advanced setups (internal API) but the public supported approach is to use `setCustomComponents`.
+- When using `MarkdownCodeBlockNode`, Monaco Editor related props won't have any effect since this component uses Shiki for highlighting instead.
 
 **TypeScript**:
   Full type support. Import types as needed:
