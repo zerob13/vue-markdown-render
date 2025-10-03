@@ -34,7 +34,7 @@ import TableNode from './components/TableNode'
 import TextNode from './components/TextNode'
 import ThematicBreakNode from './components/ThematicBreakNode'
 import { setLanguageIconResolver } from './utils/languageIcon'
-import { setCustomComponents } from './utils/nodeComponents'
+import { clearGlobalCustomComponents, getCustomNodeComponents, removeCustomComponents, setCustomComponents } from './utils/nodeComponents'
 import './index.css'
 
 export * from './utils'
@@ -43,11 +43,13 @@ export {
   AdmonitionNode,
   BlockquoteNode,
   CheckboxNode,
+  clearGlobalCustomComponents,
   CodeBlockNode,
   DefinitionListNode,
   EmojiNode,
   FootnoteNode,
   FootnoteReferenceNode,
+  getCustomNodeComponents,
   HardBreakNode,
   HeadingNode,
   HighlightNode,
@@ -65,6 +67,7 @@ export {
   ParagraphNode,
   PreCodeNode,
   ReferenceNode,
+  removeCustomComponents,
   setCustomComponents,
   StrikethroughNode,
   StrongNode,

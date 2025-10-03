@@ -20,12 +20,13 @@ interface NodeChild {
   [key: string]: unknown
 }
 
-defineProps<{
+const props = defineProps<{
   node: {
     type: 'insert'
     children: NodeChild[]
     raw: string
   }
+  customId?: string
 }>()
 
 // Available node components for child rendering
@@ -43,7 +44,7 @@ const nodeComponents = {
   footnote_reference: FootnoteReferenceNode,
   math_inline: MathInlineNode,
   reference: ReferenceNode,
-  ...(getCustomNodeComponents() || {}),
+  ...getCustomNodeComponents(props.customId),
 }
 </script>
 
@@ -54,6 +55,7 @@ const nodeComponents = {
       v-for="(child, index) in node.children"
       :key="index"
       :node="child"
+      :custom-id="props.customId"
     />
   </ins>
 </template>

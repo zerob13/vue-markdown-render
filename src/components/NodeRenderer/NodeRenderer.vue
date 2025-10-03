@@ -57,6 +57,7 @@ const props = defineProps<
     codeBlockProps?: Record<string, any>
     themes?: MonacoTheme[]
     isDark?: boolean
+    customId?: string
   }
   | {
     content?: undefined
@@ -74,6 +75,7 @@ const props = defineProps<
     codeBlockProps?: Record<string, any>
     themes?: MonacoTheme[]
     isDark?: boolean
+    customId?: string
   }
 >()
 
@@ -137,7 +139,7 @@ const nodeComponents = {
   reference: ReferenceNode,
   // 可以添加更多节点类型
   // 例如:custom_node: CustomNode,
-  ...(getCustomNodeComponents() || {}),
+  ...getCustomNodeComponents(props.customId),
 }
 </script>
 
@@ -164,6 +166,7 @@ const nodeComponents = {
               maxWidth: props.codeBlockMaxWidth,
               ...(props.codeBlockProps || {}),
             } : {}"
+            :custom-id="props.customId"
             :is-dark="props.isDark"
             @copy="$emit('copy', $event)"
             @handle-artifact-click="$emit('handleArtifactClick', $event)"
