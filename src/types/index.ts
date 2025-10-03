@@ -287,5 +287,6 @@ export interface CustomComponents {
   checkbox: any
   inline_code: any
   reference: any
+  mermaid: any
   [key: string]: any
 }

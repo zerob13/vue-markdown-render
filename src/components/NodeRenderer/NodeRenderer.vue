@@ -20,6 +20,7 @@ import LinkNode from '../../components/LinkNode'
 import ListNode from '../../components/ListNode'
 import MathBlockNode from '../../components/MathBlockNode'
 import MathInlineNode from '../../components/MathInlineNode'
+import MermaidBlockNode from '../../components/MermaidBlockNode'
 import ParagraphNode from '../../components/ParagraphNode'
 import PreCodeNode from '../../components/PreCodeNode'
 import ReferenceNode from '../../components/ReferenceNode'
@@ -141,6 +142,40 @@ const nodeComponents = {
   // 例如:custom_node: CustomNode,
   ...getCustomNodeComponents(props.customId),
 }
+
+// Decide which component to use for a given node. Ensure that code blocks
+// with language `mermaid` are rendered with `MermaidBlockNode` (unless a
+// custom component named `mermaid` is registered for the given customId).
+function getNodeComponent(node: BaseNode) {
+  if (!node)
+    return FallbackComponent
+  if (node.type === 'code_block') {
+    const lang = String((node as any).language || '').trim().toLowerCase()
+    const custom = getCustomNodeComponents(props.customId).mermaid
+    if (lang === 'mermaid')
+      return (custom as any) || MermaidBlockNode
+    return nodeComponents.code_block
+  }
+  return (nodeComponents as any)[node.type] || FallbackComponent
+}
+
+function getBindingsFor(node: BaseNode) {
+  // For mermaid blocks we don't forward CodeBlock-specific props
+  if (node?.type === 'code_block' && String((node as any).language || '').trim().toLowerCase() === 'mermaid')
+    return {}
+
+  return node.type === 'code_block'
+    ? {
+        darkTheme: props.codeBlockDarkTheme,
+        lightTheme: props.codeBlockLightTheme,
+        monacoOptions: props.codeBlockMonacoOptions,
+        themes: props.themes,
+        minWidth: props.codeBlockMinWidth,
+        maxWidth: props.codeBlockMaxWidth,
+        ...(props.codeBlockProps || {}),
+      }
+    : {}
+}
 </script>
 
 <template>
@@ -154,18 +189,10 @@ const nodeComponents = {
           appear
         >
           <component
-            :is="nodeComponents[node.type] || FallbackComponent"
+            :is="getNodeComponent(node)"
             :node="node"
             :loading="node.loading"
-            v-bind="((node.type === 'code_block') && !props.renderCodeBlocksAsPre) ? {
-              darkTheme: props.codeBlockDarkTheme,
-              lightTheme: props.codeBlockLightTheme,
-              monacoOptions: props.codeBlockMonacoOptions,
-              themes: props.themes,
-              minWidth: props.codeBlockMinWidth,
-              maxWidth: props.codeBlockMaxWidth,
-              ...(props.codeBlockProps || {}),
-            } : {}"
+            v-bind="getBindingsFor(node)"
             :custom-id="props.customId"
             :is-dark="props.isDark"
             @copy="$emit('copy', $event)"
@@ -177,19 +204,12 @@ const nodeComponents = {
         </transition>
 
         <component
-          :is="nodeComponents[node.type] || FallbackComponent"
+          :is="getNodeComponent(node)"
           v-else
           :node="node"
           :loading="node.loading"
-          v-bind="((node.type === 'code_block') && !props.renderCodeBlocksAsPre) ? {
-            darkTheme: props.codeBlockDarkTheme,
-            lightTheme: props.codeBlockLightTheme,
-            monacoOptions: props.codeBlockMonacoOptions,
-            themes: props.themes,
-            minWidth: props.codeBlockMinWidth,
-            maxWidth: props.codeBlockMaxWidth,
-            ...(props.codeBlockProps || {}),
-          } : {}"
+          v-bind="getBindingsFor(node)"
+          :custom-id="props.customId"
           :is-dark="props.isDark"
           @copy="$emit('copy', $event)"
           @handle-artifact-click="$emit('handleArtifactClick', $event)"

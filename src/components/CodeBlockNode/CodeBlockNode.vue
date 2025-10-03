@@ -6,7 +6,6 @@ import { useSafeI18n } from '../../composables/useSafeI18n'
 // Tooltip is provided as a singleton via composable to avoid many DOM nodes
 import { hideTooltip, showTooltipForAnchor } from '../../composables/useSingletonTooltip'
 import { getLanguageIcon, languageMap } from '../../utils'
-import MermaidBlockNode from '../MermaidBlockNode'
 import PreCodeNode from '../PreCodeNode'
 import { getIconify } from './iconify'
 import { getUseMonaco } from './monaco'
@@ -47,6 +46,7 @@ const props = withDefaults(
     showExpandButton?: boolean
     showPreviewButton?: boolean
     showFontSizeButtons?: boolean
+    customId?: string
   }>(),
   {
     isShowPreview: true,
@@ -67,6 +67,7 @@ const props = withDefaults(
 
 const emits = defineEmits(['previewCode', 'copy'])
 const { t } = useSafeI18n()
+// No mermaid-specific handling here; NodeRenderer routes mermaid blocks.
 const codeEditor = ref<HTMLElement | null>(null)
 const container = ref<HTMLElement | null>(null)
 const copyText = ref(false)
@@ -782,8 +783,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <MermaidBlockNode v-if="isMermaid" :node="(node as any)" :is-dark="isDark" :loading="props.loading" />
-  <PreCodeNode v-else-if="usePreCodeRender" :node="(node as any)" :loading="props.loading" />
+  <PreCodeNode v-if="usePreCodeRender" :node="(node as any)" :loading="props.loading" />
   <div
     v-else
     ref="container"

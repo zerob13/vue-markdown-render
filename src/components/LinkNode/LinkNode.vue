@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, useAttrs } from 'vue'
 
 // 定义链接节点
 interface LinkNode {
@@ -46,22 +46,26 @@ const cssVars = computed(() => {
     '--underline-iteration': typeof props.animationIteration === 'number' ? String(props.animationIteration) : (props.animationIteration ?? 'infinite'),
   } as Record<string, string>
 })
+
+// forward any non-prop attributes (e.g. custom-id) to the rendered element
+const attrs = useAttrs()
 </script>
 
 <template>
   <a
-    v-show="!node.loading"
+    v-if="!node.loading"
     class="link-node"
     :href="node.href"
     :title="node.title || ''"
     :aria-hidden="node.loading ? 'true' : 'false'"
     target="_blank"
     rel="noopener noreferrer"
+    v-bind="attrs"
     :style="cssVars"
   >
     {{ node.text }}
   </a>
-  <span v-show="node.loading" class="link-loading inline-flex items-baseline gap-1.5" :aria-hidden="!node.loading ? 'true' : 'false'" :style="cssVars">
+  <span v-else class="link-loading inline-flex items-baseline gap-1.5" :aria-hidden="!node.loading ? 'true' : 'false'" v-bind="attrs" :style="cssVars">
     <span class="link-text-wrapper relative inline-flex">
       <span class="leading-[normal] link-text">{{ node.text }}</span>
       <span class="underline-anim" aria-hidden="true" />

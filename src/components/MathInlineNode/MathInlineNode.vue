@@ -24,6 +24,8 @@ function renderMath() {
       hasRenderedOnce = true
     })
     .catch(() => {
+      if (!mathElement.value)
+        return
       if (!hasRenderedOnce || !props.node.loading)
         mathElement.value.textContent = props.node.raw
     })
