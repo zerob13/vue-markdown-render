@@ -134,6 +134,8 @@ watch(() => props.themes, async (newThemes) => {
 
 const highlightedCode = ref<string>('')
 watch(() => [props.node.code, props.node.language], async ([code, lang]) => {
+  if (lang !== codeLanguage.value)
+    codeLanguage.value = lang
   if (!highlighter.value)
     return
   if (!code)
