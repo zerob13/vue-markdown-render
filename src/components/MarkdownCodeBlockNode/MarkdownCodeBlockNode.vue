@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Highlighter } from 'shiki'
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useSafeI18n } from '../../composables/useSafeI18n'
 import { hideTooltip, showTooltipForAnchor } from '../../composables/useSingletonTooltip'
 import { getLanguageIcon, languageMap } from '../../utils'
@@ -64,6 +64,10 @@ const copyText = ref(false)
 const isExpanded = ref(false)
 const isCollapsed = ref(false)
 const codeBlockContent = ref<HTMLElement | null>(null)
+
+// Auto-scroll state management
+const autoScrollEnabled = ref(true) // Start with auto-scroll enabled
+const isUserScrolling = ref(false) // Track if user is manually scrolling
 
 // Font size control
 const codeFontMin = 10
@@ -145,6 +149,48 @@ watch(() => [props.node.code, props.node.language], async ([code, lang]) => {
   highlightedCode.value = await highlighter.value.codeToHtml(code, { lang, theme })
 })
 
+// Auto-scroll to bottom when content changes (if not expanded and auto-scroll is enabled)
+watch(() => props.node.code, async () => {
+  if (isExpanded.value || !autoScrollEnabled.value)
+    return
+
+  await nextTick()
+  const content = codeBlockContent.value
+  if (!content)
+    return
+
+  // Check if content has scrollbar (scrollHeight > clientHeight)
+  if (content.scrollHeight > content.clientHeight) {
+    // Scroll to bottom
+    content.scrollTop = content.scrollHeight
+  }
+})
+
+// Check if user is at the bottom of scroll area
+function isAtBottom(element: HTMLElement, threshold = 5): boolean {
+  return element.scrollHeight - element.scrollTop - element.clientHeight <= threshold
+}
+
+// Handle scroll event to detect user interaction
+function handleScroll() {
+  const content = codeBlockContent.value
+  if (!content || isExpanded.value)
+    return
+
+  // Mark that user is actively scrolling
+  isUserScrolling.value = true
+
+  // Check if user has scrolled to bottom
+  if (isAtBottom(content)) {
+    // Re-enable auto-scroll when user scrolls back to bottom
+    autoScrollEnabled.value = true
+  }
+  else {
+    // Disable auto-scroll when user scrolls away from bottom
+    autoScrollEnabled.value = false
+  }
+}
+
 // Copy code functionality
 async function copy() {
   try {
@@ -202,6 +248,13 @@ function toggleExpand() {
   else {
     content.style.maxHeight = '500px'
     content.style.overflow = 'auto'
+    // When collapsing, re-enable auto-scroll and scroll to bottom
+    autoScrollEnabled.value = true
+    nextTick(() => {
+      if (content.scrollHeight > content.clientHeight) {
+        content.scrollTop = content.scrollHeight
+      }
+    })
   }
 }
 
@@ -369,6 +422,7 @@ function previewCode() {
       ref="codeBlockContent"
       class="code-block-content px-4 pb-4"
       :style="contentStyle"
+      @scroll="handleScroll"
       v-html="highlightedCode"
     />
   </div>
