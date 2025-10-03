@@ -69,7 +69,7 @@ describe('markdownCodeBlockNode props and features', () => {
     // Test when at bottom
     expect(isAtBottom(1000, 900, 100, 5)).toBe(true) // exactly at bottom
     expect(isAtBottom(1000, 896, 100, 5)).toBe(true) // within threshold
-    
+
     // Test when not at bottom
     expect(isAtBottom(1000, 890, 100, 5)).toBe(false) // beyond threshold
     expect(isAtBottom(1000, 500, 100, 5)).toBe(false) // in middle
