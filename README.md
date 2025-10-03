@@ -260,9 +260,16 @@ const markdown = `Here is an AI thinking output:\n\n\`\`\`text\nStep 1...\nStep 
 
 Custom Components
 
-Instead of passing a `customComponents` prop, the library exposes a runtime API to override node component mappings globally. Import `setCustomComponents` from the package and call it during app initialization (for example in your `main.ts`) to provide a mapping of node names to Vue components.
+You can override how internal node types are rendered by supplying a mapping from node keys
+to your Vue components. This library supports two approaches:
 
-Example (global replacement):
+- Scoped per-instance mappings (recommended): provide a `customId` prop to `MarkdownRender`
+  and call `setCustomComponents(id, mapping)` to scope overrides to that renderer instance.
+- Legacy global mapping: call `setCustomComponents(mapping)` with a single argument. This
+  remains supported for backward compatibility but is less flexible and is considered
+  deprecated in new code.
+
+Scoped example (recommended):
 
 ```ts
 import { createApp } from 'vue'
@@ -272,14 +279,37 @@ import MyCustomNode from './components/MyCustomNode.vue'
 
 const app = createApp(App)
 
-// Provide a mapping of node keys to components. Keys match the internal node names
-// (for example: `admonition`, `code_block`, `image`, `math_block`, etc.).
-setCustomComponents({
+// Scope this mapping to instances that use customId="docs-page"
+setCustomComponents('docs-page', {
   admonition: MyCustomNode,
   // ...other overrides
 })
 
 app.mount('#app')
+```
+
+Then, pass the matching `customId` prop to the `MarkdownRender` instance you want to affect:
+
+```vue
+<MarkdownRender :content="markdownContent" custom-id="docs-page" />
+```
+
+If you create scoped mappings dynamically (for example in a single-page app that mounts/unmounts
+multiple different renderers), you can remove a mapping to free memory or avoid stale overrides:
+
+```ts
+import { removeCustomComponents } from 'vue-renderer-markdown'
+
+removeCustomComponents('docs-page')
+```
+
+Legacy/global example (backwards compatible):
+
+```ts
+// Deprecated-style global mapping (still supported)
+setCustomComponents({
+  code_block: MarkdownCodeBlockNode,
+})
 ```
 
 #### MarkdownCodeBlockNode: Alternative Code Block Renderer
@@ -328,8 +358,11 @@ The component automatically handles Mermaid diagrams and provides clean syntax h
 
 Notes:
 
-- `setCustomComponents` applies globally to all `MarkdownRender` instances. Call it before mounting your app to ensure components are registered before rendering occurs.
-- If you need per-instance overrides, you can still merge your mapping into the result of the `getNodeComponents` util in advanced setups (internal API) but the public supported approach is to use `setCustomComponents`.
+Notes:
+
+- Use the scoped API when you need different component mappings for different renderer instances — e.g. one mapping for a docs site and another for an editor preview. Call `setCustomComponents('my-id', mapping)` and pass `custom-id="my-id"` to the `MarkdownRender` instance.
+- The single-argument form `setCustomComponents(mapping)` continues to work as a global fallback but is deprecated for new usage.
+- When using `MarkdownCodeBlockNode`, Monaco Editor related props won't have any effect since that component uses Shiki for highlighting instead.
 - When using `MarkdownCodeBlockNode`, Monaco Editor related props won't have any effect since this component uses Shiki for highlighting instead.
 
 **TypeScript**:

@@ -20,12 +20,13 @@ interface NodeChild {
   [key: string]: unknown
 }
 
-defineProps<{
+const props = defineProps<{
   node: {
     type: 'strong'
     children: NodeChild[]
     raw: string
   }
+  customId?: string
 }>()
 
 // Available node components for child rendering
@@ -44,7 +45,7 @@ const nodeComponents = {
   math_inline: MathInlineNode,
   reference: ReferenceNode,
   // 添加其他内联元素组件
-  ...(getCustomNodeComponents() || {}),
+  ...getCustomNodeComponents(props.customId),
 }
 </script>
 
@@ -55,6 +56,7 @@ const nodeComponents = {
       v-for="(child, index) in node.children"
       :key="index"
       :node="child"
+      :custom-id="props.customId"
     />
   </strong>
 </template>

@@ -25,7 +25,7 @@ interface NodeChild {
   [key: string]: unknown
 }
 
-defineProps<{
+const props = defineProps<{
   node: {
     type: 'heading'
     level: number
@@ -33,6 +33,7 @@ defineProps<{
     children: NodeChild[]
     raw: string
   }
+  customId?: string
 }>()
 
 const nodeComponents = {
@@ -54,7 +55,7 @@ const nodeComponents = {
   math_inline: MathInlineNode,
   reference: ReferenceNode,
   // 添加其他内联元素组件
-  ...(getCustomNodeComponents() || {}),
+  ...getCustomNodeComponents(props.customId),
 }
 </script>
 
@@ -69,6 +70,7 @@ const nodeComponents = {
       :is="nodeComponents[child.type]"
       v-for="(child, index) in node.children"
       :key="index"
+      :custom-id="props.customId"
       :node="child"
     />
   </component>

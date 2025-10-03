@@ -24,12 +24,13 @@ interface NodeChild {
   [key: string]: unknown
 }
 
-defineProps<{
+const props = defineProps<{
   node: {
     type: 'paragraph'
     children: NodeChild[]
     raw: string
   }
+  customId?: string
 }>()
 const nodeComponents = {
   text: TextNode,
@@ -49,7 +50,7 @@ const nodeComponents = {
   math_inline: MathInlineNode,
   reference: ReferenceNode,
   // 添加其他内联元素组件
-  ...(getCustomNodeComponents() || {}),
+  ...getCustomNodeComponents(props.customId),
 }
 </script>
 
@@ -60,6 +61,7 @@ const nodeComponents = {
       v-for="(child, index) in node.children"
       :key="index"
       :node="child"
+      :custom-id="props.customId"
     />
   </p>
 </template>
