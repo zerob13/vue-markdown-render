@@ -1230,12 +1230,12 @@ watch(
 
 <template>
   <div
-    class="my-4 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm bg-white dark:bg-gray-900" :class="[
+    class="my-4 rounded-lg border border-gray-200 dark:border-gray-700/30 overflow-hidden shadow-sm bg-white dark:bg-gray-900" :class="[
       { 'is-rendering': props.loading },
     ]"
   >
     <!-- 重新设计的头部区域 -->
-    <div class="mermaid-block-header flex justify-between items-center px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+    <div class="mermaid-block-header flex justify-between items-center px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700/30">
       <!-- 左侧语言标签 -->
       <div class="flex items-center space-x-2">
         <img :src="mermaidIconUrl" class="w-4 h-4 my-0" alt="Mermaid">
