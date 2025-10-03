@@ -8,7 +8,6 @@ import App from './App.vue'
 // import JsLocalIcon from './assets/javascript.svg?raw'
 import '@unocss/reset/tailwind.css'
 import './styles/main.css'
-import 'vue-renderer-markdown/index.css'
 
 const app = createApp(App)
 app.use(createPinia())

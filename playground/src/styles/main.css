@@ -2,6 +2,10 @@
 @tailwind utilities;
 
 
+@layer components {
+  @import 'vue-renderer-markdown/index.css';
+}
+
 html,
 body,
 #app {

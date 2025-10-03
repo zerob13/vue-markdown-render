@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: ['selector', '[data-theme="dark"]'],
+  darkMode: ['selector'],
   safelist: [
     'border-gray-400/5',
     'hover:bg-[var(--vscode-editor-selectionBackground)]',
