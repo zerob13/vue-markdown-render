@@ -9,7 +9,11 @@ import { name } from './package.json'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  const base = '/'
+  // Use an empty base for library (npm) builds so emitted asset URLs are relative.
+  // If base is '/', Vite will emit absolute '/assets/...' paths which can break
+  // consumers that bundle this package. Leaving base empty lets the consumer
+  // resolve assets correctly during their build.
+  const base = mode === 'npm' ? '' : '/'
   let plugins = [Vue(), Components()]
 
   let build: Record<string, any> = {
