@@ -118,7 +118,7 @@ console.log('Hello World!')
 **Option 2: Lightweight Markdown-Style Highlighting**
 ```vue
 <script setup lang="ts">
-import MarkdownRender, { setCustomComponents, MarkdownCodeBlockNode } from 'vue-renderer-markdown'
+import MarkdownRender, { MarkdownCodeBlockNode, setCustomComponents } from 'vue-renderer-markdown'
 
 // Override globally to use markdown-style rendering
 setCustomComponents({
@@ -299,7 +299,7 @@ The library now includes `MarkdownCodeBlockNode` - an alternative code block com
 
 ```ts
 import { createApp } from 'vue'
-import MarkdownRender, { setCustomComponents, MarkdownCodeBlockNode } from 'vue-renderer-markdown'
+import MarkdownRender, { MarkdownCodeBlockNode, setCustomComponents } from 'vue-renderer-markdown'
 import App from './App.vue'
 
 const app = createApp(App)
