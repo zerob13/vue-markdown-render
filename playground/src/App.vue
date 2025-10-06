@@ -280,18 +280,38 @@ watch(content, () => {
     <div class="chatbot-container max-w-5xl w-full h-[85vh] bg-white dark:bg-gray-800 rounded-2xl shadow-2xl dark:shadow-gray-900/50 flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
       <!-- Header -->
       <div class="chatbot-header px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-800">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-            <Icon icon="carbon:chat" class="w-5 h-5 text-white" />
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+              <Icon icon="carbon:chat" class="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 class="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                Vue Markdown Renderer
+              </h1>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                Streaming markdown demo
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 class="text-lg font-semibold text-gray-800 dark:text-gray-100">
-              Vue Markdown Renderer
-            </h1>
-            <p class="text-xs text-gray-500 dark:text-gray-400">
-              Streaming markdown demo
-            </p>
-          </div>
+
+          <!-- GitHub Star Button -->
+          <a
+            href="https://github.com/Simon-He95/vue-markdown-render"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="
+              github-star-btn flex items-center gap-2 px-3 py-1.5
+              bg-gray-800 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600
+              text-white text-sm font-medium rounded-lg
+              transition-all duration-200
+              shadow-md hover:shadow-lg
+              focus:outline-none focus:ring-2 focus:ring-blue-500/50
+            "
+          >
+            <Icon icon="carbon:star" class="w-4 h-4" />
+            <span>Star</span>
+          </a>
         </div>
       </div>
 
@@ -317,6 +337,10 @@ watch(content, () => {
 
 .chatbot-container {
   transition: all 0.3s ease;
+}
+
+.github-star-btn:active {
+  transform: scale(0.95);
 }
 
 .chatbot-messages {
