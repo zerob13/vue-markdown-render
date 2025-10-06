@@ -118,10 +118,21 @@ function formatThemeName(themeName: string) {
 
 // 设置面板显示状态
 const showSettings = ref(false)
+
+// Auto-scroll to bottom as content streams in
+const messagesContainer = ref<HTMLElement | null>(null)
+
+watch(content, () => {
+  nextTick(() => {
+    if (messagesContainer.value) {
+      messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+    }
+  })
+})
 </script>
 
 <template>
-  <div class="h-screen relative app-container">
+  <div class="h-screen flex items-center justify-center p-4 app-container bg-gray-50 dark:bg-gray-900">
     <!-- 设置按钮和面板 -->
     <div class="fixed top-4 right-4 z-10">
       <!-- 设置按钮 -->
@@ -265,20 +276,102 @@ const showSettings = ref(false)
       </Transition>
     </div>
 
-    <main class="main-content h-full flex w-full flex-col-reverse overflow-auto">
-      <MarkdownRender
-        :content="content"
-        :code-block-dark-theme="selectedTheme || undefined"
-        :code-block-light-theme="selectedTheme || undefined"
-        :themes="themes"
-        :is-dark="isDark"
-        class="flex-1 p-8"
-      />
-    </main>
+    <!-- Chatbot-style container -->
+    <div class="chatbot-container max-w-5xl w-full h-[85vh] bg-white dark:bg-gray-800 rounded-2xl shadow-2xl dark:shadow-gray-900/50 flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
+      <!-- Header -->
+      <div class="chatbot-header px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-800">
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+              <Icon icon="carbon:chat" class="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 class="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                Vue Markdown Renderer
+              </h1>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                Streaming markdown demo
+              </p>
+            </div>
+          </div>
+
+          <!-- GitHub Star Button -->
+          <a
+            href="https://github.com/Simon-He95/vue-markdown-render"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="
+              github-star-btn flex items-center gap-2 px-3 py-1.5
+              bg-gray-800 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600
+              text-white text-sm font-medium rounded-lg
+              transition-all duration-200
+              shadow-md hover:shadow-lg
+              focus:outline-none focus:ring-2 focus:ring-blue-500/50
+            "
+          >
+            <Icon icon="carbon:star" class="w-4 h-4" />
+            <span>Star</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Messages area with scroll -->
+      <main ref="messagesContainer" class="chatbot-messages flex-1 overflow-y-auto">
+        <MarkdownRender
+          :content="content"
+          :code-block-dark-theme="selectedTheme || undefined"
+          :code-block-light-theme="selectedTheme || undefined"
+          :themes="themes"
+          :is-dark="isDark"
+          class="p-6"
+        />
+      </main>
+    </div>
   </div>
 </template>
 
 <style scoped>
+.app-container {
+  transition: background-color 0.3s ease;
+}
+
+.chatbot-container {
+  transition: all 0.3s ease;
+}
+
+.github-star-btn:active {
+  transform: scale(0.95);
+}
+
+.chatbot-messages {
+  scroll-behavior: smooth;
+}
+
+.chatbot-messages::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chatbot-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chatbot-messages::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.dark .chatbot-messages::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+.chatbot-messages::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.dark .chatbot-messages::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
 .settings-toggle {
   backdrop-filter: blur(8px);
 }
