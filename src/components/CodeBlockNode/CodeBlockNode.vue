@@ -133,7 +133,7 @@ const usePreCodeRender = ref(false)
       safeClean = helpers.cleanupEditor || safeClean
       setTheme = helpers.setTheme || setTheme
 
-      if (!editorCreated.value && codeEditor.value && createEditor) {
+      if (!editorCreated.value && codeEditor.value) {
         editorCreated.value = true
         isDiff.value
           ? createDiffEditor(codeEditor.value as HTMLElement, props.node.originalCode || '', props.node.updatedCode || '', codeLanguage.value)

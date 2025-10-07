@@ -55,7 +55,7 @@ function ensureWorker() {
   return worker
 }
 
-export async function renderKaTeXInWorker(content: string, displayMode = true, timeout = 2000): Promise<string> {
+export async function renderKaTeXInWorker(content: string, displayMode = true, timeout = 2000, signal?: AbortSignal): Promise<string> {
   // Quick cache hit
   const cacheKey = `${displayMode ? 'd' : 'i'}:${content}`
   const cached = cache.get(cacheKey)
@@ -67,11 +67,30 @@ export async function renderKaTeXInWorker(content: string, displayMode = true, t
     return Promise.reject(new Error('Web Worker not available'))
 
   return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      // align with DOM abort semantics
+      const err = new Error('Aborted')
+      ;(err as any).name = 'AbortError'
+      reject(err)
+      return
+    }
     const id = Math.random().toString(36).slice(2)
     const timeoutId = window.setTimeout(() => {
       pending.delete(id)
       reject(new Error('Worker render timed out'))
     }, timeout)
+
+    // Listen for abort to cancel this pending request
+    const onAbort = () => {
+      window.clearTimeout(timeoutId)
+      if (pending.has(id))
+        pending.delete(id)
+      const err = new Error('Aborted')
+      ;(err as any).name = 'AbortError'
+      reject(err)
+    }
+    if (signal)
+      signal.addEventListener('abort', onAbort, { once: true })
 
     pending.set(id, { resolve, reject, timeoutId })
 

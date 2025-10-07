@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { renderKaTeXInWorker } from '../../workers/katexWorkerClient'
 
 const props = defineProps<{
@@ -13,17 +13,35 @@ const props = defineProps<{
 
 const mathElement = ref<HTMLElement | null>(null)
 let hasRenderedOnce = false
+let currentRenderId = 0
+let isUnmounted = false
+let currentAbortController: AbortController | null = null
 
 function renderMath() {
-  if (!props.node.content || !mathElement.value)
+  if (!props.node.content || !mathElement.value || isUnmounted)
     return
 
-  renderKaTeXInWorker(props.node.content, false, 1500)
+  if (currentAbortController) {
+    currentAbortController.abort()
+    currentAbortController = null
+  }
+
+  const renderId = ++currentRenderId
+  const abortController = new AbortController()
+  currentAbortController = abortController
+
+  renderKaTeXInWorker(props.node.content, false, 1500, abortController.signal)
     .then((html) => {
+      if (isUnmounted || renderId !== currentRenderId)
+        return
+      if (!mathElement.value)
+        return
       mathElement.value.innerHTML = html
       hasRenderedOnce = true
     })
     .catch(() => {
+      if (isUnmounted || renderId !== currentRenderId)
+        return
       if (!mathElement.value)
         return
       if (!hasRenderedOnce || !props.node.loading)
@@ -40,6 +58,14 @@ watch(
 
 onMounted(() => {
   renderMath()
+})
+
+onBeforeUnmount(() => {
+  isUnmounted = true
+  if (currentAbortController) {
+    currentAbortController.abort()
+    currentAbortController = null
+  }
 })
 </script>
 

@@ -151,9 +151,10 @@ function getNodeComponent(node: BaseNode) {
     return FallbackComponent
   if (node.type === 'code_block') {
     const lang = String((node as any).language || '').trim().toLowerCase()
-    const custom = getCustomNodeComponents(props.customId).mermaid
-    if (lang === 'mermaid')
+    if (lang === 'mermaid') {
+      const custom = getCustomNodeComponents(props.customId).mermaid
       return (custom as any) || MermaidBlockNode
+    }
     return nodeComponents.code_block
   }
   return (nodeComponents as any)[node.type] || FallbackComponent
