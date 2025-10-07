@@ -121,8 +121,40 @@ const showSettings = ref(false)
 
 // Auto-scroll to bottom as content streams in
 const messagesContainer = ref<HTMLElement | null>(null)
+const autoScrollEnabled = ref(true) // Track if auto-scroll is enabled
+const lastScrollTop = ref(0) // Track last scroll position to detect scroll direction
+
+// Check if user is at the bottom of scroll area
+function isAtBottom(element: HTMLElement, threshold = 50): boolean {
+  return element.scrollHeight - element.scrollTop - element.clientHeight <= threshold
+}
+
+// Handle scroll event to manage auto-scroll behavior
+function handleContainerScroll() {
+  if (!messagesContainer.value)
+    return
+
+  const currentScrollTop = messagesContainer.value.scrollTop
+
+  // Detect scroll direction: if user scrolls up (scrollTop decreased), disable auto-scroll immediately
+  if (currentScrollTop < lastScrollTop.value) {
+    // User is scrolling up - disable auto-scroll
+    autoScrollEnabled.value = false
+  }
+  else if (isAtBottom(messagesContainer.value)) {
+    // User is scrolling down and near bottom - re-enable auto-scroll
+    autoScrollEnabled.value = true
+  }
+
+  // Update last scroll position
+  lastScrollTop.value = currentScrollTop
+}
 
 watch(content, () => {
+  // Only auto-scroll if enabled (user hasn't scrolled away from bottom)
+  if (!autoScrollEnabled.value)
+    return
+
   nextTick(() => {
     if (messagesContainer.value) {
       messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
@@ -316,7 +348,7 @@ watch(content, () => {
       </div>
 
       <!-- Messages area with scroll -->
-      <main ref="messagesContainer" class="chatbot-messages flex-1 overflow-y-auto">
+      <main ref="messagesContainer" class="chatbot-messages flex-1 overflow-y-auto" @scroll="handleContainerScroll">
         <MarkdownRender
           :content="content"
           :code-block-dark-theme="selectedTheme || undefined"
