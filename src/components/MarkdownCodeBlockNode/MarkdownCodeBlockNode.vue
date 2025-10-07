@@ -67,7 +67,6 @@ const codeBlockContent = ref<HTMLElement | null>(null)
 
 // Auto-scroll state management
 const autoScrollEnabled = ref(true) // Start with auto-scroll enabled
-const isUserScrolling = ref(false) // Track if user is manually scrolling
 
 // Font size control
 const codeFontMin = 10
@@ -172,7 +171,8 @@ watch(() => props.node.code, async () => {
 })
 
 // Check if user is at the bottom of scroll area
-function isAtBottom(element: HTMLElement, threshold = 5): boolean {
+// Increased threshold to 50px to better detect "near bottom" state
+function isAtBottom(element: HTMLElement, threshold = 50): boolean {
   return element.scrollHeight - element.scrollTop - element.clientHeight <= threshold
 }
 
@@ -182,12 +182,9 @@ function handleScroll() {
   if (!content || isExpanded.value)
     return
 
-  // Mark that user is actively scrolling
-  isUserScrolling.value = true
-
-  // Check if user has scrolled to bottom
+  // Check if user has scrolled to bottom (within 50px threshold)
   if (isAtBottom(content)) {
-    // Re-enable auto-scroll when user scrolls back to bottom
+    // Re-enable auto-scroll when user scrolls back to bottom or near bottom
     autoScrollEnabled.value = true
   }
   else {

@@ -61,18 +61,18 @@ describe('markdownCodeBlockNode props and features', () => {
   })
 
   it('should support auto-scroll to bottom behavior', () => {
-    // Test the isAtBottom helper function logic
-    const isAtBottom = (scrollHeight: number, scrollTop: number, clientHeight: number, threshold = 5): boolean => {
+    // Test the isAtBottom helper function logic with 50px threshold
+    const isAtBottom = (scrollHeight: number, scrollTop: number, clientHeight: number, threshold = 50): boolean => {
       return scrollHeight - scrollTop - clientHeight <= threshold
     }
 
     // Test when at bottom
-    expect(isAtBottom(1000, 900, 100, 5)).toBe(true) // exactly at bottom
-    expect(isAtBottom(1000, 896, 100, 5)).toBe(true) // within threshold
+    expect(isAtBottom(1000, 900, 100, 50)).toBe(true) // exactly at bottom
+    expect(isAtBottom(1000, 860, 100, 50)).toBe(true) // within threshold (40px from bottom)
 
     // Test when not at bottom
-    expect(isAtBottom(1000, 890, 100, 5)).toBe(false) // beyond threshold
-    expect(isAtBottom(1000, 500, 100, 5)).toBe(false) // in middle
-    expect(isAtBottom(1000, 0, 100, 5)).toBe(false) // at top
+    expect(isAtBottom(1000, 840, 100, 50)).toBe(false) // beyond threshold (60px from bottom)
+    expect(isAtBottom(1000, 500, 100, 50)).toBe(false) // in middle
+    expect(isAtBottom(1000, 0, 100, 50)).toBe(false) // at top
   })
 })
