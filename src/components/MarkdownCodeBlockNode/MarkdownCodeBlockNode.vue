@@ -67,6 +67,7 @@ const codeBlockContent = ref<HTMLElement | null>(null)
 
 // Auto-scroll state management
 const autoScrollEnabled = ref(true) // Start with auto-scroll enabled
+const lastScrollTop = ref(0) // Track last scroll position to detect scroll direction
 
 // Font size control
 const codeFontMin = 10
@@ -182,15 +183,20 @@ function handleScroll() {
   if (!content || isExpanded.value)
     return
 
-  // Check if user has scrolled to bottom (within 50px threshold)
-  if (isAtBottom(content)) {
-    // Re-enable auto-scroll when user scrolls back to bottom or near bottom
-    autoScrollEnabled.value = true
-  }
-  else {
-    // Disable auto-scroll when user scrolls away from bottom
+  const currentScrollTop = content.scrollTop
+
+  // Detect scroll direction: if user scrolls up (scrollTop decreased), disable auto-scroll immediately
+  if (currentScrollTop < lastScrollTop.value) {
+    // User is scrolling up - disable auto-scroll
     autoScrollEnabled.value = false
   }
+  else if (isAtBottom(content)) {
+    // User is scrolling down and near bottom - re-enable auto-scroll
+    autoScrollEnabled.value = true
+  }
+
+  // Update last scroll position
+  lastScrollTop.value = currentScrollTop
 }
 
 // Copy code functionality

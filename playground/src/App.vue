@@ -122,6 +122,7 @@ const showSettings = ref(false)
 // Auto-scroll to bottom as content streams in
 const messagesContainer = ref<HTMLElement | null>(null)
 const autoScrollEnabled = ref(true) // Track if auto-scroll is enabled
+const lastScrollTop = ref(0) // Track last scroll position to detect scroll direction
 
 // Check if user is at the bottom of scroll area
 function isAtBottom(element: HTMLElement, threshold = 50): boolean {
@@ -133,14 +134,20 @@ function handleContainerScroll() {
   if (!messagesContainer.value)
     return
 
-  // Check if user is near bottom - if so, enable auto-scroll
-  if (isAtBottom(messagesContainer.value)) {
-    autoScrollEnabled.value = true
-  }
-  else {
-    // User scrolled away from bottom - disable auto-scroll
+  const currentScrollTop = messagesContainer.value.scrollTop
+
+  // Detect scroll direction: if user scrolls up (scrollTop decreased), disable auto-scroll immediately
+  if (currentScrollTop < lastScrollTop.value) {
+    // User is scrolling up - disable auto-scroll
     autoScrollEnabled.value = false
   }
+  else if (isAtBottom(messagesContainer.value)) {
+    // User is scrolling down and near bottom - re-enable auto-scroll
+    autoScrollEnabled.value = true
+  }
+
+  // Update last scroll position
+  lastScrollTop.value = currentScrollTop
 }
 
 watch(content, () => {
