@@ -130,17 +130,19 @@ const contentStyle = computed(() => {
 
 const highlighter = ref<Highlighter | null>(null)
 const highlightedCode = ref<string>('')
-watch(() => props.themes, async (newThemes) => {
-  disposeHighlighter()
-  highlighter.value = await registerHighlight({
-    themes: newThemes as any,
-  })
-  if (!props.loading) {
-    const theme = props.themes && props.themes.length > 0 ? (props.isDark ? props.themes[0] : props.themes[1] || props.themes[0]) : (props.isDark ? props.darkTheme || 'vitesse-dark' : props.lightTheme || 'vitesse-light')
-    const lang = props.node.language.split(':')[0] // 支持 language:variant 形式
-    highlightedCode.value = await highlighter.value.codeToHtml(props.node.code, { lang, theme })
-  }
-}, { immediate: true })
+if (typeof window !== 'undefined') {
+  watch(() => props.themes, async (newThemes) => {
+    disposeHighlighter()
+    highlighter.value = await registerHighlight({
+      themes: newThemes as any,
+    })
+    if (!props.loading) {
+      const theme = props.themes && props.themes.length > 0 ? (props.isDark ? props.themes[0] : props.themes[1] || props.themes[0]) : (props.isDark ? props.darkTheme || 'vitesse-dark' : props.lightTheme || 'vitesse-light')
+      const lang = props.node.language.split(':')[0] // 支持 language:variant 形式
+      highlightedCode.value = await highlighter.value.codeToHtml(props.node.code, { lang, theme })
+    }
+  }, { immediate: true })
+}
 
 watch(() => [props.node.code, props.node.language], async ([code, lang]) => {
   if (lang !== codeLanguage.value)
@@ -202,7 +204,9 @@ function handleScroll() {
 // Copy code functionality
 async function copy() {
   try {
-    await navigator.clipboard.writeText(props.node.code)
+    if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      await navigator.clipboard.writeText(props.node.code)
+    }
     copyText.value = true
     emits('copy', props.node.code)
     setTimeout(() => {

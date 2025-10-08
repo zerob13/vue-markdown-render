@@ -3,6 +3,7 @@ import type { CodeBlockNode } from '../../types'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { hideTooltip, showTooltipForAnchor } from '../../composables/useSingletonTooltip'
 import mermaidIconUrl from '../../icon/mermaid.svg?url'
+import { safeRaf } from '../../utils/safeRaf'
 import { canParseOffthread as canParseOffthreadClient, findPrefixOffthread as findPrefixOffthreadClient, terminateWorker as terminateMermaidWorker } from '../../workers/mermaidWorkerClient'
 import { getIconify } from '../CodeBlockNode/iconify'
 import { getMermaid } from './mermaid'
@@ -25,10 +26,13 @@ const emits = defineEmits(['copy'])
 const Icon: any = getIconify()
 let mermaid: any = null
 
-;(async () => {
-  mermaid = await getMermaid()
-  mermaid.initialize?.({ startOnLoad: false, securityLevel: 'loose' })
-})()
+// Only initialize mermaid on the client to avoid SSR errors
+if (typeof window !== 'undefined') {
+  ;(async () => {
+    mermaid = await getMermaid()
+    mermaid.initialize?.({ startOnLoad: false, securityLevel: 'loose' })
+  })()
+}
 
 const copyText = ref(false)
 const isCollapsed = ref(false)
@@ -138,7 +142,8 @@ function withTimeoutSignal<T>(
     }
 
     if (timeoutMs && timeoutMs > 0) {
-      timer = window.setTimeout(() => {
+      // use globalThis so this code doesn't assume `window` exists (SSR)
+      timer = (globalThis as any).setTimeout(() => {
         if (settled)
           return
         settled = true
@@ -178,6 +183,8 @@ function withTimeoutSignal<T>(
 
 // Unified error renderer (only used when props.loading === false)
 function renderErrorToContainer(error: unknown) {
+  if (typeof document === 'undefined')
+    return
   if (!mermaidContent.value)
     return
   const errorDiv = document.createElement('div')
@@ -439,8 +446,18 @@ function handleKeydown(e: KeyboardEvent) {
 
 function openModal() {
   isModalOpen.value = true
-  document.body.style.overflow = 'hidden'
-  window.addEventListener('keydown', handleKeydown)
+  if (typeof document !== 'undefined') {
+    try {
+      document.body.style.overflow = 'hidden'
+    }
+    catch {}
+  }
+  if (typeof window !== 'undefined') {
+    try {
+      window.addEventListener('keydown', handleKeydown)
+    }
+    catch {}
+  }
 
   nextTick(() => {
     if (mermaidContainer.value && modalContent.value) {
@@ -472,8 +489,18 @@ function closeModal() {
     modalContent.value.innerHTML = ''
   }
   modalCloneWrapper.value = null
-  document.body.style.overflow = ''
-  window.removeEventListener('keydown', handleKeydown)
+  if (typeof document !== 'undefined') {
+    try {
+      document.body.style.overflow = ''
+    }
+    catch {}
+  }
+  if (typeof window !== 'undefined') {
+    try {
+      window.removeEventListener('keydown', handleKeydown)
+    }
+    catch {}
+  }
 }
 
 function debounce<T extends (...args: any[]) => any>(
@@ -622,7 +649,9 @@ function handleWheel(event: WheelEvent) {
 // Copy functionality
 async function copy() {
   try {
-    await navigator.clipboard.writeText(baseFixedCode.value)
+    if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      await navigator.clipboard.writeText(baseFixedCode.value)
+    }
     copyText.value = true
     emits('copy', baseFixedCode.value)
     setTimeout(() => {
@@ -646,13 +675,18 @@ async function exportSvg() {
     const svgData = new XMLSerializer().serializeToString(svgElement)
     const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' })
     const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `mermaid-diagram-${Date.now()}.svg`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
+    if (typeof document !== 'undefined') {
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `mermaid-diagram-${Date.now()}.svg`
+      try {
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      }
+      catch {}
+      URL.revokeObjectURL(url)
+    }
   }
   catch (error) {
     console.error('Failed to export SVG:', error)
@@ -922,7 +956,7 @@ function stopPreviewPolling() {
     previewPollController = null
   }
   if (previewPollTimeoutId) {
-    clearTimeout(previewPollTimeoutId)
+    ;(globalThis as any).clearTimeout(previewPollTimeoutId)
     previewPollTimeoutId = null
   }
   if (previewPollIdleId) {
@@ -964,8 +998,8 @@ function scheduleNextPreviewPoll(delay = 800) {
   if (!isPreviewPolling)
     return
   if (previewPollTimeoutId)
-    clearTimeout(previewPollTimeoutId)
-  previewPollTimeoutId = window.setTimeout(() => {
+    (globalThis as any).clearTimeout(previewPollTimeoutId)
+  previewPollTimeoutId = (globalThis as any).setTimeout(() => {
     previewPollIdleId = requestIdle(async () => {
       if (!isPreviewPolling)
         return
@@ -1167,9 +1201,8 @@ watch(
 
       resizeObserver = new ResizeObserver((entries) => {
         if (entries && entries.length > 0 && !hasRenderedOnce.value && !isThemeRendering.value) {
-          // 使用 requestAnimationFrame 确保在下一次重绘前执行更新
-          // 这给了DOM充足的时间来完成SVG的内部布局更新
-          requestAnimationFrame(() => {
+          // 使用 safeRaf 确保在 SSR 环境下不会抛错，同时在浏览器中使用 RAF
+          safeRaf(() => {
             const newWidth = entries[0].contentRect.width
             updateContainerHeight(newWidth)
           })

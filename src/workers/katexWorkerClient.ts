@@ -14,8 +14,14 @@ function ensureWorker() {
   if (worker)
     return worker
   try {
-    // Vite-friendly worker instantiation. Bundlers will inline the worker when configured.
-    worker = new Worker(new URL('./katexRenderer.worker.ts', import.meta.url), { type: 'module' })
+    // Only create a Worker in a browser environment
+    if (typeof window === 'undefined') {
+      worker = null
+    }
+    else {
+      // Vite-friendly worker instantiation. Bundlers will inline the worker when configured.
+      worker = new Worker(new URL('./katexRenderer.worker.ts', import.meta.url), { type: 'module' })
+    }
   }
   catch {
     worker = null
@@ -25,9 +31,10 @@ function ensureWorker() {
     worker.addEventListener('message', (ev: MessageEvent) => {
       const { id, html, error, content, displayMode } = ev.data as any
       const p = pending.get(id)
-      if (!p)
+      if (!p) {
         return
-      window.clearTimeout(p.timeoutId)
+      }
+      (globalThis as any).clearTimeout(p.timeoutId)
       pending.delete(id)
       if (error) {
         p.reject(new Error(error))
@@ -75,14 +82,14 @@ export async function renderKaTeXInWorker(content: string, displayMode = true, t
       return
     }
     const id = Math.random().toString(36).slice(2)
-    const timeoutId = window.setTimeout(() => {
+    const timeoutId = (globalThis as any).setTimeout(() => {
       pending.delete(id)
       reject(new Error('Worker render timed out'))
     }, timeout)
 
     // Listen for abort to cancel this pending request
     const onAbort = () => {
-      window.clearTimeout(timeoutId)
+      (globalThis as any).clearTimeout(timeoutId)
       if (pending.has(id))
         pending.delete(id)
       const err = new Error('Aborted')

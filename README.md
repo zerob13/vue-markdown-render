@@ -90,6 +90,115 @@ Notes:
 - `vue-i18n` is optional: the library provides a synchronous fallback translator. If your app uses `vue-i18n`, the library will automatically wire into it at runtime when available.
 - If you're installing this library inside a monorepo or using pnpm workspaces, install peers at the workspace root so they are available to consuming packages.
 
+## Server-Side Rendering (SSR)
+
+This library is designed to be safe to import in SSR builds, but several features depend on browser-only APIs (DOM, Clipboard, Web Workers, Monaco, Mermaid, KaTeX). To avoid runtime errors during server-side rendering, the library lazy-loads heavyweight peers and guards browser globals where possible. However, some advanced features (Monaco editor, Mermaid progressive rendering, Web Workers) are inherently client-side and must be used inside client-only blocks in SSR environments.
+
+Recommended consumption patterns:
+
+- For Nuxt 3 (or other SSR frameworks): render the component client-side only. Example using Nuxt's <client-only> wrapper:
+
+```vue
+<template>
+  <client-only>
+    <MarkdownRender :content="markdown" />
+  </client-only>
+</template>
+```
+
+For a fuller Nuxt 3 recipe and extra notes, see the docs: `docs/nuxt-ssr.md`.
+
+- For Vite + plain SSR (or when you control hydration): conditionally render on the client with a small wrapper component:
+
+```vue
+<script setup lang="ts">
+import { onMounted, ref } from 'vue'
+import MarkdownRender from 'vue-renderer-markdown'
+
+const mounted = ref(false)
+onMounted(() => {
+  mounted.value = true
+})
+</script>
+
+<template>
+  <div v-if="mounted">
+    <MarkdownRender :content="markdown" />
+  </div>
+  <div v-else>
+    <!-- SSR fallback: simple preformatted text to avoid heavy client peers -->
+    <pre>{{ markdown }}</pre>
+  </div>
+</template>
+```
+
+Notes and caveats:
+
+- If you depend on Monaco, Mermaid, KaTeX or the optional icon pack at runtime, install those peers in your app and ensure they are available on the client. The library will attempt to lazy-load them only in the browser.
+- The library aims to avoid throwing on import during SSR. If you still see ReferenceErrors (e.g. `window is not defined`), please open an issue and include the stack trace — I'll prioritize a fix.
+- For server-rendered markup that needs diagrams or highlighted code server-side, consider generating static HTML on the server (e.g., pre-render Mermaid/KaTeX output) and pass it into the renderer as raw HTML or a safe, server-side AST.
+
+If you'd like, I can add an explicit "SSR" recipe and a Nuxt module example to the repo — say the word and I'll add it.
+
+### SSR recipe (Nuxt 3 and Vite SSR)
+
+Below are concrete recipes to run this renderer safely in SSR environments. These cover common setups and show how to avoid importing client-only peers during server rendering.
+
+- Nuxt 3 (recommended for full-app SSR)
+
+  1. Install peers you need on the client (for example `mermaid`, `vue-use-monaco`) as normal dependencies in your Nuxt app.
+  2. Use Nuxt's `<client-only>` wrapper for pages or components that rely on client-only features like Monaco or progressive Mermaid:
+
+  ```vue
+  <template>
+    <client-only>
+      <MarkdownRender :content="markdown" />
+    </client-only>
+  </template>
+  ```
+
+  3. If you need server-rendered HTML for specific diagrams or math, pre-render those outputs on the server (for example using a small service or build step that runs KaTeX or Mermaid CLI) and pass the resulting HTML into your page as pre-rendered fragments.
+
+- Vite + custom SSR (manual hydrate)
+
+  If you run your own Vite SSR pipeline, prefer a client-only wrapper to delay browser-only initialization until hydration:
+
+  ```vue
+  <script setup lang="ts">
+  import { onMounted, ref } from 'vue'
+  import MarkdownRender from 'vue-renderer-markdown'
+
+  const mounted = ref(false)
+  onMounted(() => {
+    mounted.value = true
+  })
+  </script>
+
+  <template>
+    <div v-if="mounted">
+      <MarkdownRender :content="markdown" />
+    </div>
+    <div v-else>
+      <!-- Lightweight SSR fallback to avoid heavy peers on the server -->
+      <pre>{{ markdown }}</pre>
+    </div>
+  </template>
+  ```
+
+Notes:
+
+- The package aims to be import-safe during SSR: heavy peers are lazy-loaded in the browser and many DOM/Worker usages are guarded. However, some features (Monaco editor, Web Workers, progressive Mermaid rendering) are client-only by nature — they must be used inside client-only wrappers or deferred with lifecycle hooks.
+- To guard against regressions, this repo includes a small SSR smoke test you can run locally:
+
+  ```bash
+  pnpm run check:ssr
+  ```
+
+  This uses Vitest to import the library entry (`src/exports`) in a Node environment and will fail if the import throws during SSR.
+
+- CI: a small GitHub Actions workflow (`.github/workflows/ci.yml`) has been added to run typecheck and tests (including the SSR smoke test) on push and PR to `main`.
+
+If you'd like, I can add a short Nuxt module wrapper or a dedicated example page for Nuxt to the `playground/` directory — say the word and I'll scaffold it.
 ## Quick Start
 
 ### Choose Your Code Block Rendering Style
@@ -636,10 +745,21 @@ If your project uses Webpack instead of Vite, you can use the official `monaco-e
 Install:
 
 ```bash
+# pnpm (dev)
 pnpm add -D monaco-editor monaco-editor-webpack-plugin
-# or
+```
+
+```bash
+# npm (dev)
 npm install --save-dev monaco-editor monaco-editor-webpack-plugin
 ```
+
+```bash
+# yarn (dev)
+yarn add -D monaco-editor monaco-editor-webpack-plugin
+```
+
+Note: `pnpm add -D` and `yarn add -D` are equivalent to `npm install --save-dev` and install the packages as development dependencies.
 
 Example `webpack.config.js`:
 
