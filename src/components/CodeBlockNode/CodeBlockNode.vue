@@ -6,6 +6,7 @@ import { useSafeI18n } from '../../composables/useSafeI18n'
 // Tooltip is provided as a singleton via composable to avoid many DOM nodes
 import { hideTooltip, showTooltipForAnchor } from '../../composables/useSingletonTooltip'
 import { getLanguageIcon, languageMap } from '../../utils'
+import { safeRaf, safeCancelRaf } from '../../utils/safeRaf'
 import PreCodeNode from '../PreCodeNode'
 import { getIconify } from './iconify'
 import { getUseMonaco } from './monaco'
@@ -99,54 +100,57 @@ let detectLanguage: (code: string) => string = () => props.node.language || 'pla
 let setTheme: (theme: MonacoTheme) => Promise<void> = async () => {}
 const isDiff = computed(() => props.node.diff)
 const usePreCodeRender = ref(false)
-;(async () => {
-  try {
-    const mod = await getUseMonaco()
-    // `useMonaco` and `detectLanguage` should be available
-    const useMonaco = (mod as any).useMonaco
-    const det = (mod as any).detectLanguage
-    if (typeof det === 'function')
-      detectLanguage = det
-    if (typeof useMonaco === 'function') {
-      const theme = getPreferredColorScheme()
-      if (theme && props.themes && Array.isArray(props.themes) && !props.themes.includes(theme)) {
-        throw new Error('Preferred theme not in provided themes array')
-      }
-      const helpers = useMonaco({
-        wordWrap: 'on',
-        wrappingIndent: 'same',
-        themes: props.themes,
-        theme,
-        ...(props.monacoOptions || {}),
-        onThemeChange() {
-          syncEditorCssVars()
-        },
-      })
-      createEditor = helpers.createEditor || createEditor
-      createDiffEditor = helpers.createDiffEditor || createDiffEditor
-      updateCode = helpers.updateCode || updateCode
-      updateDiffCode = helpers.updateDiff || updateDiffCode
-      getEditor = helpers.getEditor || getEditor
-      getEditorView = helpers.getEditorView || getEditorView
-      getDiffEditorView = helpers.getDiffEditorView || getDiffEditorView
-      cleanupEditor = helpers.cleanupEditor || cleanupEditor
-      safeClean = helpers.cleanupEditor || safeClean
-      setTheme = helpers.setTheme || setTheme
+// Defer client-only editor initialization to the browser to avoid SSR errors
+if (typeof window !== 'undefined') {
+  ;(async () => {
+    try {
+      const mod = await getUseMonaco()
+      // `useMonaco` and `detectLanguage` should be available
+      const useMonaco = (mod as any).useMonaco
+      const det = (mod as any).detectLanguage
+      if (typeof det === 'function')
+        detectLanguage = det
+      if (typeof useMonaco === 'function') {
+        const theme = getPreferredColorScheme()
+        if (theme && props.themes && Array.isArray(props.themes) && !props.themes.includes(theme)) {
+          throw new Error('Preferred theme not in provided themes array')
+        }
+        const helpers = useMonaco({
+          wordWrap: 'on',
+          wrappingIndent: 'same',
+          themes: props.themes,
+          theme,
+          ...(props.monacoOptions || {}),
+          onThemeChange() {
+            syncEditorCssVars()
+          },
+        })
+        createEditor = helpers.createEditor || createEditor
+        createDiffEditor = helpers.createDiffEditor || createDiffEditor
+        updateCode = helpers.updateCode || updateCode
+        updateDiffCode = helpers.updateDiff || updateDiffCode
+        getEditor = helpers.getEditor || getEditor
+        getEditorView = helpers.getEditorView || getEditorView
+        getDiffEditorView = helpers.getDiffEditorView || getDiffEditorView
+        cleanupEditor = helpers.cleanupEditor || cleanupEditor
+        safeClean = helpers.cleanupEditor || safeClean
+        setTheme = helpers.setTheme || setTheme
 
-      if (!editorCreated.value && codeEditor.value) {
-        editorCreated.value = true
-        isDiff.value
-          ? createDiffEditor(codeEditor.value as HTMLElement, props.node.originalCode || '', props.node.updatedCode || '', codeLanguage.value)
-          : createEditor(codeEditor.value as HTMLElement, props.node.code, codeLanguage.value)
+        if (!editorCreated.value && codeEditor.value) {
+          editorCreated.value = true
+          isDiff.value
+            ? createDiffEditor(codeEditor.value as HTMLElement, props.node.originalCode || '', props.node.updatedCode || '', codeLanguage.value)
+            : createEditor(codeEditor.value as HTMLElement, props.node.code, codeLanguage.value)
+        }
       }
     }
-  }
-  catch {
-    console.warn('vue-use-monaco not available; code blocks will not be rendered with Monaco editor')
-    // 使用 PreCodeNode 渲染
-    usePreCodeRender.value = true
-  }
-})()
+    catch {
+      console.warn('vue-use-monaco not available; code blocks will not be rendered with Monaco editor')
+      // 使用 PreCodeNode 渲染
+      usePreCodeRender.value = true
+    }
+  })()
+}
 
 const codeFontMin = 10
 const codeFontMax = 36
@@ -165,6 +169,8 @@ const CONTENT_PADDING = 0
 // Fine-tuned to avoid bottom gap at default font size
 const LINE_EXTRA_PER_LINE = 1.5
 const PIXEL_EPSILON = 1
+
+// Use shared safeRaf / safeCancelRaf from utils to avoid duplication
 
 function measureLineHeightFromDom(): number | null {
   try {
@@ -200,10 +206,15 @@ function readActualFontSizeFromEditor(): number | null {
     if (root) {
       const lineEl = root.querySelector('.view-lines .view-line') as HTMLElement | null
       if (lineEl) {
-        const fs = window.getComputedStyle(lineEl).fontSize
-        const m = fs && fs.match(/^(\d+(?:\.\d+)?)/)
-        if (m)
-          return Number.parseFloat(m[1])
+        try {
+          if (typeof window !== 'undefined' && typeof window.getComputedStyle === 'function') {
+            const fs = window.getComputedStyle(lineEl).fontSize
+            const m = fs && fs.match(/^(\d+(?:\.\d+)?)/)
+            if (m)
+              return Number.parseFloat(m[1])
+          }
+        }
+        catch {}
       }
     }
   }
@@ -317,10 +328,18 @@ function syncEditorCssVars() {
     // Monaco usually applies theme variables on an element with class
     // 'monaco-editor' or on the editor root; try to read from either.
   const src = editorEl.querySelector('.monaco-editor') || editorEl
-  const styles = window.getComputedStyle(src as Element)
-  const fg = styles.getPropertyValue('--vscode-editor-foreground') || ''
-  const bg = styles.getPropertyValue('--vscode-editor-background') || ''
-  const hoverBg = styles.getPropertyValue('--vscode-editor-hoverHighlightBackground') || ''
+  let styles: CSSStyleDeclaration | null = null
+  try {
+    if (typeof window !== 'undefined' && typeof window.getComputedStyle === 'function') {
+      styles = window.getComputedStyle(src as Element)
+    }
+  }
+  catch {
+    styles = null
+  }
+  const fg = (styles && styles.getPropertyValue('--vscode-editor-foreground')) || ''
+  const bg = (styles && styles.getPropertyValue('--vscode-editor-background')) || ''
+  const hoverBg = (styles && styles.getPropertyValue('--vscode-editor-hoverHighlightBackground')) || ''
   if (fg && bg) {
     rootEl.style.setProperty('--vscode-editor-foreground', fg.trim())
     rootEl.style.setProperty('--vscode-editor-background', bg.trim())
@@ -441,7 +460,7 @@ watch(
       ? updateDiffCode(props.node.originalCode || '', props.node.updatedCode || '', codeLanguage.value)
       : updateCode(newCode, codeLanguage.value)
     if (isExpanded.value) {
-      requestAnimationFrame(() => updateExpandedHeight())
+      safeRaf(() => updateExpandedHeight())
     }
   },
 )
@@ -478,7 +497,9 @@ const containerStyle = computed(() => {
 // 复制代码
 async function copy() {
   try {
-    await navigator.clipboard.writeText(props.node.code)
+    if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      await navigator.clipboard.writeText(props.node.code)
+    }
     copyText.value = true
     emits('copy', props.node.code)
     setTimeout(() => {
@@ -527,7 +548,7 @@ function toggleExpand() {
   if (!editor || !container)
     return
 
-  if (isExpanded.value) {
+    if (isExpanded.value) {
     // Expanded: enable automaticLayout and explicitly size container by lines
     setAutomaticLayout(true)
     container.style.maxHeight = 'none'
@@ -536,7 +557,6 @@ function toggleExpand() {
   }
   else {
     stopExpandAutoResize()
-    // Collapsed: cap height via maxHeight and let internal scroll
     setAutomaticLayout(false)
     container.style.overflow = 'auto'
     updateCollapsedHeight()
@@ -566,7 +586,7 @@ function toggleHeaderCollapse() {
     }
     catch {}
     resumeGuardFrames = 2
-    requestAnimationFrame(() => {
+    safeRaf(() => {
       if (isExpanded.value)
         updateExpandedHeight()
       else
@@ -671,7 +691,7 @@ const stopCreateEditorWatch = watch(
 
     if (props.loading === false) {
       await nextTick()
-      requestAnimationFrame(() => {
+      safeRaf(() => {
         if (isExpanded.value && !isCollapsed.value)
           updateExpandedHeight()
         else if (!isCollapsed.value)
@@ -746,7 +766,7 @@ const stopLoadingWatch = watch(
     if (loaded)
       return
     await nextTick()
-    requestAnimationFrame(() => {
+    safeRaf(() => {
       if (!isCollapsed.value) {
         if (isExpanded.value)
           updateExpandedHeight()
@@ -762,7 +782,7 @@ const stopLoadingWatch = watch(
 
 function stopExpandAutoResize() {
   if (expandRafId != null) {
-    cancelAnimationFrame(expandRafId)
+    safeCancelRaf(expandRafId)
     expandRafId = null
   }
 }
@@ -774,7 +794,8 @@ onUnmounted(() => {
 
   if (resizeSyncHandler) {
     try {
-      window.removeEventListener('resize', resizeSyncHandler)
+      if (typeof window !== 'undefined')
+        window.removeEventListener('resize', resizeSyncHandler)
     }
     catch {}
     resizeSyncHandler = null

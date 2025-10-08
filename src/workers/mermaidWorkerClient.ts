@@ -8,7 +8,13 @@ function ensureWorker() {
     return worker
   try {
     // Vite-style worker URL import
-    worker = new Worker(new URL('./mermaidParser.worker.ts', import.meta.url), { type: 'module' })
+    // Only create a Worker if running in a browser environment
+    if (typeof window === 'undefined') {
+      worker = null
+    }
+    else {
+      worker = new Worker(new URL('./mermaidParser.worker.ts', import.meta.url), { type: 'module' })
+    }
   }
   catch {
     worker = null
@@ -40,7 +46,7 @@ function callWorker<T>(action: 'canParse' | 'findPrefix', payload: any, timeout 
     rpcMap.set(id, { resolve, reject })
     wk.postMessage({ id, action, payload })
 
-    const timeoutId = window.setTimeout(() => {
+    const timeoutId = (globalThis as any).setTimeout(() => {
       if (rpcMap.has(id))
         rpcMap.delete(id)
       reject(new Error('Worker call timed out'))
@@ -48,11 +54,11 @@ function callWorker<T>(action: 'canParse' | 'findPrefix', payload: any, timeout 
 
     // clear timeout on resolution
     const wrapResolve = (v: any) => {
-      clearTimeout(timeoutId)
+      (globalThis as any).clearTimeout(timeoutId)
       resolve(v)
     }
     const wrapReject = (e: any) => {
-      clearTimeout(timeoutId)
+      (globalThis as any).clearTimeout(timeoutId)
       reject(e)
     }
     rpcMap.set(id, { resolve: wrapResolve, reject: wrapReject })

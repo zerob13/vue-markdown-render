@@ -12,6 +12,10 @@ const props = defineProps<{
 }>()
 const href = `#footnote-${props.node.id}`
 function handleScroll() {
+  if (typeof document === 'undefined') {
+    // SSR: nothing to do
+    return
+  }
   const element = document.querySelector(href)
   if (element) {
     element.scrollIntoView({ behavior: 'smooth' })
