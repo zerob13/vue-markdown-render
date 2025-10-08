@@ -105,6 +105,15 @@ if (typeof window !== 'undefined') {
   ;(async () => {
     try {
       const mod = await getUseMonaco()
+      // If mod is null, vue-use-monaco is not available
+      if (!mod) {
+        // Only log warning in development mode
+        if (import.meta.env?.DEV) {
+          console.warn('[vue-renderer-markdown] vue-use-monaco is not installed. Code blocks will use basic rendering. Install vue-use-monaco for enhanced code editor features.')
+        }
+        usePreCodeRender.value = true
+        return
+      }
       // `useMonaco` and `detectLanguage` should be available
       const useMonaco = (mod as any).useMonaco
       const det = (mod as any).detectLanguage
@@ -144,9 +153,12 @@ if (typeof window !== 'undefined') {
         }
       }
     }
-    catch {
-      console.warn('vue-use-monaco not available; code blocks will not be rendered with Monaco editor')
-      // 使用 PreCodeNode 渲染
+    catch (err) {
+      // Only log warning in development mode
+      if (import.meta.env?.DEV) {
+        console.warn('[vue-renderer-markdown] Failed to initialize Monaco editor:', err)
+      }
+      // Use PreCodeNode for rendering
       usePreCodeRender.value = true
     }
   })()
