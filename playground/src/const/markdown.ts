@@ -1,10 +1,17 @@
-export // 模拟流式传输
-const streamContent = `>>>I'll create a simple Electron + Vue chat application demo. Here's the structure:
+export const streamContent = `>>>I'll create a simple Electron + Vue chat application demo. Here's the structure:
 
 [Star on GitHub](https://github.com/Simon-He95/vue-markdown-render)
 
 ![Vue Markdown Icon](/vue-markdown-icon.svg "Vue Markdown Icon")
 *Figure: Vue Markdown Icon (served from /vue-markdown-icon.svg)*
+
+这是 ~~已删除的文本~~，这是一个表情 :smile:。
+
+- [ ] Star this repo
+- [x] Fork this repo
+- [ ] Create issues
+- [x] Submit PRs
+
 ##  表格
 
 | 姓名 | 年龄 | 职业 |

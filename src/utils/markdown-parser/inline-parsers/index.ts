@@ -1,5 +1,5 @@
 import type { MarkdownToken, ParsedNode, TextNode } from '../../../types'
-import { parseCheckboxToken } from './checkbox-parser'
+import { parseCheckboxInputToken, parseCheckboxToken } from './checkbox-parser'
 import { parseEmojiToken } from './emoji-parser'
 import { parseEmphasisToken } from './emphasis-parser'
 import { parseFenceToken } from './fence-parser'
@@ -222,7 +222,11 @@ export function parseInlineTokens(tokens: MarkdownToken[]): ParsedNode[] {
         result.push(parseCheckboxToken(token))
         i++
         break
-
+      case 'checkbox_input':
+        currentTextNode = null // Reset current text node
+        result.push(parseCheckboxInputToken(token))
+        i++
+        break
       case 'footnote_ref':
         currentTextNode = null // Reset current text node
         result.push(parseFootnoteRefToken(token))

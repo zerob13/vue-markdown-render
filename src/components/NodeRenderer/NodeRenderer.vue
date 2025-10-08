@@ -136,6 +136,7 @@ const nodeComponents = {
   superscript: SuperscriptNode,
   emoji: EmojiNode,
   checkbox: CheckboxNode,
+  checkbox_input: CheckboxNode,
   inline_code: InlineCodeNode,
   reference: ReferenceNode,
   // 可以添加更多节点类型

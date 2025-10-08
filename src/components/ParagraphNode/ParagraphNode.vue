@@ -48,6 +48,7 @@ const nodeComponents = {
   emoji: EmojiNode,
   checkbox: CheckboxNode,
   math_inline: MathInlineNode,
+  checkbox_input: CheckboxNode,
   reference: ReferenceNode,
   // 添加其他内联元素组件
   ...getCustomNodeComponents(props.customId),

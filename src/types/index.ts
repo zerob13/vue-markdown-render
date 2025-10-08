@@ -186,6 +186,11 @@ export interface CheckboxNode extends BaseNode {
   checked: boolean
 }
 
+export interface CheckboxInputNode extends BaseNode {
+  type: 'checkbox_input'
+  checked: boolean
+}
+
 export interface EmojiNode extends BaseNode {
   type: 'emoji'
   name: string
@@ -247,6 +252,7 @@ export type ParsedNode
     | SubscriptNode
     | SuperscriptNode
     | CheckboxNode
+    | CheckboxInputNode
     | EmojiNode
     | DefinitionListNode
     | DefinitionItemNode

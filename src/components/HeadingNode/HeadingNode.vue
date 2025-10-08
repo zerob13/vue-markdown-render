@@ -50,6 +50,7 @@ const nodeComponents = {
   superscript: SuperscriptNode,
   emoji: EmojiNode,
   checkbox: CheckboxNode,
+  checkbox_input: CheckboxNode,
   footnote_reference: FootnoteReferenceNode,
   hardbreak: HardBreakNode,
   math_inline: MathInlineNode,
