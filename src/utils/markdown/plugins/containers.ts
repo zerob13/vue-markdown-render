@@ -65,9 +65,15 @@ export function applyContainers(md: MarkdownIt) {
         contentLines.push(state.src.slice(sPos, ePos))
       }
 
-      const inline = state.push('inline', '', 0)
-      inline.content = contentLines.join('\n')
-      inline.map = [startLine + 1, nextLine]
+      // Open a paragraph, push inline content and then close paragraph
+      state.push('paragraph_open', 'p', 1)
+      const inlineToken = state.push('inline', '', 0)
+      inlineToken.content = contentLines.join('\n')
+      inlineToken.map = [startLine + 1, nextLine]
+      // Ensure children exist and parse the inline content into them so the renderer
+      // won't encounter a null children array (which causes .length read errors).
+      inlineToken.children = []
+      state.md.inline.parse(inlineToken.content, state.md, state.env, inlineToken.children)
       state.push('paragraph_close', 'p', -1)
 
       state.push('vmr_container_close', 'div', -1)
