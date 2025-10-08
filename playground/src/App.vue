@@ -162,7 +162,7 @@ function disableAutoScrollOnUserInteraction(e?: Event | WheelEvent | TouchEvent 
       }
     }
   }
-  catch (err) {
+  catch {
     // ignore
   }
 
