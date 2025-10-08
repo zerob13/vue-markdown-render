@@ -1,12 +1,20 @@
-let mod = null
+let mod: any = null
+let importAttempted = false
+
 export async function getUseMonaco() {
   if (mod)
     return mod
+  if (importAttempted)
+    return null
+
   try {
     mod = await import('vue-use-monaco')
+    return mod
   }
   catch {
-    throw new Error('Optional dependency "vue-use-monaco" is not installed. Please install it to enable code editor features.')
+    importAttempted = true
+    // Return null to indicate the module is not available
+    // The caller should handle the fallback gracefully
+    return null
   }
-  return mod
 }
