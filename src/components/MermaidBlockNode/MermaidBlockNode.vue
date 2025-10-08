@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { CodeBlockNode } from '../../types'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import { safeRaf } from '../../utils/safeRaf'
 import { hideTooltip, showTooltipForAnchor } from '../../composables/useSingletonTooltip'
 import mermaidIconUrl from '../../icon/mermaid.svg?url'
+import { safeRaf } from '../../utils/safeRaf'
 import { canParseOffthread as canParseOffthreadClient, findPrefixOffthread as findPrefixOffthreadClient, terminateWorker as terminateMermaidWorker } from '../../workers/mermaidWorkerClient'
 import { getIconify } from '../CodeBlockNode/iconify'
 import { getMermaid } from './mermaid'
@@ -447,10 +447,16 @@ function handleKeydown(e: KeyboardEvent) {
 function openModal() {
   isModalOpen.value = true
   if (typeof document !== 'undefined') {
-    try { document.body.style.overflow = 'hidden' } catch {}
+    try {
+      document.body.style.overflow = 'hidden'
+    }
+    catch {}
   }
   if (typeof window !== 'undefined') {
-    try { window.addEventListener('keydown', handleKeydown) } catch {}
+    try {
+      window.addEventListener('keydown', handleKeydown)
+    }
+    catch {}
   }
 
   nextTick(() => {
@@ -484,10 +490,16 @@ function closeModal() {
   }
   modalCloneWrapper.value = null
   if (typeof document !== 'undefined') {
-    try { document.body.style.overflow = '' } catch {}
+    try {
+      document.body.style.overflow = ''
+    }
+    catch {}
   }
   if (typeof window !== 'undefined') {
-    try { window.removeEventListener('keydown', handleKeydown) } catch {}
+    try {
+      window.removeEventListener('keydown', handleKeydown)
+    }
+    catch {}
   }
 }
 
@@ -667,9 +679,12 @@ async function exportSvg() {
       const link = document.createElement('a')
       link.href = url
       link.download = `mermaid-diagram-${Date.now()}.svg`
-      try { document.body.appendChild(link) } catch {}
-      try { link.click() } catch {}
-      try { document.body.removeChild(link) } catch {}
+      try {
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      }
+      catch {}
       URL.revokeObjectURL(url)
     }
   }

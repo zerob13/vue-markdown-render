@@ -6,7 +6,7 @@ import { useSafeI18n } from '../../composables/useSafeI18n'
 // Tooltip is provided as a singleton via composable to avoid many DOM nodes
 import { hideTooltip, showTooltipForAnchor } from '../../composables/useSingletonTooltip'
 import { getLanguageIcon, languageMap } from '../../utils'
-import { safeRaf, safeCancelRaf } from '../../utils/safeRaf'
+import { safeCancelRaf, safeRaf } from '../../utils/safeRaf'
 import PreCodeNode from '../PreCodeNode'
 import { getIconify } from './iconify'
 import { getUseMonaco } from './monaco'
@@ -548,7 +548,7 @@ function toggleExpand() {
   if (!editor || !container)
     return
 
-    if (isExpanded.value) {
+  if (isExpanded.value) {
     // Expanded: enable automaticLayout and explicitly size container by lines
     setAutomaticLayout(true)
     container.style.maxHeight = 'none'

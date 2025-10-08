@@ -31,9 +31,10 @@ function ensureWorker() {
     worker.addEventListener('message', (ev: MessageEvent) => {
       const { id, html, error, content, displayMode } = ev.data as any
       const p = pending.get(id)
-      if (!p)
+      if (!p) {
         return
-      ;(globalThis as any).clearTimeout(p.timeoutId)
+      }
+      (globalThis as any).clearTimeout(p.timeoutId)
       pending.delete(id)
       if (error) {
         p.reject(new Error(error))
@@ -98,7 +99,7 @@ export async function renderKaTeXInWorker(content: string, displayMode = true, t
     if (signal)
       signal.addEventListener('abort', onAbort, { once: true })
 
-  pending.set(id, { resolve, reject, timeoutId })
+    pending.set(id, { resolve, reject, timeoutId })
 
     wk.postMessage({ id, content, displayMode })
   })

@@ -110,11 +110,13 @@ Recommended consumption patterns:
 
 ```vue
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import MarkdownRender from 'vue-renderer-markdown'
 
 const mounted = ref(false)
-onMounted(() => { mounted.value = true })
+onMounted(() => {
+  mounted.value = true
+})
 </script>
 
 <template>
@@ -161,11 +163,13 @@ Below are concrete recipes to run this renderer safely in SSR environments. Thes
 
   ```vue
   <script setup lang="ts">
-  import { ref, onMounted } from 'vue'
+  import { onMounted, ref } from 'vue'
   import MarkdownRender from 'vue-renderer-markdown'
 
   const mounted = ref(false)
-  onMounted(() => { mounted.value = true })
+  onMounted(() => {
+    mounted.value = true
+  })
   </script>
 
   <template>
