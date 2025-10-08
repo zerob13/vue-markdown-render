@@ -150,30 +150,91 @@ function handleContainerScroll() {
   lastScrollTop.value = currentScrollTop
 }
 
-// Extra listeners to detect explicit user interactions that should disable auto-scroll.
-// These help when the user uses the wheel, touch, keyboard or drags the scrollbar.
-function disableAutoScrollOnUserInteraction(e?: Event | WheelEvent | TouchEvent | PointerEvent | KeyboardEvent) {
+// Track touch/pointer start positions to detect direction
+const touchStartY = ref<number | null>(null)
+const pointerStartY = ref<number | null>(null)
+
+// Wheel: only disable auto-scroll when user scrolls up (deltaY < 0).
+function handleWheel(e: WheelEvent) {
   try {
-    // If it's a wheel event and it scrolls down while already at bottom, ignore.
-    if (e && 'deltaY' in (e as WheelEvent)) {
-      const we = e as WheelEvent
-      if (messagesContainer.value && we.deltaY > 0 && isAtBottom(messagesContainer.value)) {
-        return
-      }
+    if (!messagesContainer.value)
+      return
+
+    // User scrolled up (want older content)
+    if (e.deltaY < 0) {
+      autoScrollEnabled.value = false
+    }
+    else {
+      // Scrolling down: if near bottom, re-enable
+      if (isAtBottom(messagesContainer.value))
+        autoScrollEnabled.value = true
     }
   }
   catch {
     // ignore
   }
-
-  autoScrollEnabled.value = false
 }
 
-// Keyboard interactions that imply user navigation (PageUp, ArrowUp, Home, etc.)
+// Touch handlers: detect move direction between touchstart and touchmove
+function handleTouchStart(e: TouchEvent) {
+  if (e.touches && e.touches.length > 0) {
+    touchStartY.value = e.touches[0].clientY
+  }
+}
+
+function handleTouchMove(e: TouchEvent) {
+  if (!messagesContainer.value || touchStartY.value == null || !e.touches || e.touches.length === 0)
+    return
+
+  const currentY = e.touches[0].clientY
+  const delta = currentY - touchStartY.value
+  // Positive delta means finger moved down -> content scrolls up (towards top) -> user viewing earlier content
+  if (delta > 0) {
+    autoScrollEnabled.value = false
+  }
+  else {
+    if (isAtBottom(messagesContainer.value))
+      autoScrollEnabled.value = true
+  }
+}
+
+// Pointer handlers for scrollbar drag / pointer-based dragging
+function handlePointerDown(e: PointerEvent) {
+  pointerStartY.value = (e as PointerEvent).clientY
+  // Attach move/up listeners to document to track the drag
+  const move = (ev: PointerEvent) => {
+    if (pointerStartY.value == null)
+      return
+    const delta = ev.clientY - pointerStartY.value
+    if (delta > 0) {
+      autoScrollEnabled.value = false
+    }
+    else {
+      if (messagesContainer.value && isAtBottom(messagesContainer.value))
+        autoScrollEnabled.value = true
+    }
+  }
+
+  const up = () => {
+    document.removeEventListener('pointermove', move)
+    document.removeEventListener('pointerup', up)
+    pointerStartY.value = null
+  }
+
+  document.addEventListener('pointermove', move)
+  document.addEventListener('pointerup', up)
+}
+
+// Keyboard interactions: only treat upward navigation as disabling; downward navigation may re-enable when near bottom.
 function handleKeyDown(e: KeyboardEvent) {
-  const keysThatMove = ['PageUp', 'PageDown', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'Space']
-  if (keysThatMove.includes(e.key)) {
-    disableAutoScrollOnUserInteraction(e)
+  const upKeys = ['PageUp', 'ArrowUp', 'Home']
+  const downKeys = ['PageDown', 'ArrowDown', 'End', 'Space']
+  if (upKeys.includes(e.key)) {
+    autoScrollEnabled.value = false
+  }
+  else if (downKeys.includes(e.key)) {
+    if (messagesContainer.value && isAtBottom(messagesContainer.value))
+      autoScrollEnabled.value = true
   }
 }
 
@@ -181,10 +242,10 @@ onMounted(() => {
   // Initialize lastScrollTop and attach extra listeners
   if (messagesContainer.value) {
     lastScrollTop.value = messagesContainer.value.scrollTop
-
-    messagesContainer.value.addEventListener('wheel', disableAutoScrollOnUserInteraction, { passive: true })
-    messagesContainer.value.addEventListener('touchstart', disableAutoScrollOnUserInteraction, { passive: true })
-    messagesContainer.value.addEventListener('pointerdown', disableAutoScrollOnUserInteraction)
+    messagesContainer.value.addEventListener('wheel', handleWheel, { passive: true })
+    messagesContainer.value.addEventListener('touchstart', handleTouchStart, { passive: true })
+    messagesContainer.value.addEventListener('touchmove', handleTouchMove, { passive: true })
+    messagesContainer.value.addEventListener('pointerdown', handlePointerDown)
     // keydown could be on document
     document.addEventListener('keydown', handleKeyDown)
   }
@@ -192,9 +253,10 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (messagesContainer.value) {
-    messagesContainer.value.removeEventListener('wheel', disableAutoScrollOnUserInteraction)
-    messagesContainer.value.removeEventListener('touchstart', disableAutoScrollOnUserInteraction)
-    messagesContainer.value.removeEventListener('pointerdown', disableAutoScrollOnUserInteraction)
+    messagesContainer.value.removeEventListener('wheel', handleWheel)
+    messagesContainer.value.removeEventListener('touchstart', handleTouchStart)
+    messagesContainer.value.removeEventListener('touchmove', handleTouchMove)
+    messagesContainer.value.removeEventListener('pointerdown', handlePointerDown)
     document.removeEventListener('keydown', handleKeyDown)
   }
 })
@@ -203,14 +265,40 @@ watch(content, () => {
   // Only auto-scroll if enabled (user hasn't scrolled away from bottom)
   if (!autoScrollEnabled.value)
     return
+  // Sometimes the rendered height isn't stable immediately (async rendering, images, third-party
+  // renderers like mermaid, or syntax highlighting). Retry a few times while yielding to the
+  // browser (nextTick + requestAnimationFrame) so we reliably end up at the bottom.
+  async function scrollToBottomWithRetries(maxAttempts = 6, delay = 20) {
+    if (!messagesContainer.value)
+      return
 
-  nextTick(() => {
-    if (messagesContainer.value) {
-      // Use scrollTo with behavior 'auto' to force immediate jump to bottom and avoid issues with
-      // CSS smooth scrolling that can make programmatic jumps behave inconsistently.
-      messagesContainer.value.scrollTo({ top: messagesContainer.value.scrollHeight, behavior: 'auto' })
+    for (let i = 0; i < maxAttempts; i++) {
+      // Wait for Vue DOM updates
+
+      await nextTick()
+      // Wait for a frame so layout/paint settle
+
+      await new Promise(resolve => requestAnimationFrame(() => resolve(undefined)))
+
+      if (!messagesContainer.value)
+        return
+
+      const el = messagesContainer.value
+      const prevScrollHeight = el.scrollHeight
+      // Force immediate jump to bottom
+      el.scrollTo({ top: el.scrollHeight, behavior: 'auto' })
+
+      // If height didn't change much or we're at bottom, stop retrying
+      if (Math.abs(el.scrollHeight - prevScrollHeight) < 2 || isAtBottom(el, 2))
+        return
+
+      // Small delay before next attempt
+
+      await new Promise(resolve => setTimeout(resolve, delay))
     }
-  })
+  }
+
+  scrollToBottomWithRetries()
 })
 </script>
 
