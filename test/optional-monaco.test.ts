@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-describe('Optional monaco dependency', () => {
+describe('optional monaco dependency', () => {
   it('should handle missing vue-use-monaco gracefully', async () => {
     // Dynamically import the monaco module
     const { getUseMonaco } = await import('../src/components/CodeBlockNode/monaco')
