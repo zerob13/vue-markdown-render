@@ -150,6 +150,55 @@ function handleContainerScroll() {
   lastScrollTop.value = currentScrollTop
 }
 
+// Extra listeners to detect explicit user interactions that should disable auto-scroll.
+// These help when the user uses the wheel, touch, keyboard or drags the scrollbar.
+function disableAutoScrollOnUserInteraction(e?: Event | WheelEvent | TouchEvent | PointerEvent | KeyboardEvent) {
+  try {
+    // If it's a wheel event and it scrolls down while already at bottom, ignore.
+    if (e && 'deltaY' in (e as WheelEvent)) {
+      const we = e as WheelEvent
+      if (messagesContainer.value && we.deltaY > 0 && isAtBottom(messagesContainer.value)) {
+        return
+      }
+    }
+  }
+  catch (err) {
+    // ignore
+  }
+
+  autoScrollEnabled.value = false
+}
+
+// Keyboard interactions that imply user navigation (PageUp, ArrowUp, Home, etc.)
+function handleKeyDown(e: KeyboardEvent) {
+  const keysThatMove = ['PageUp', 'PageDown', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'Space']
+  if (keysThatMove.includes(e.key)) {
+    disableAutoScrollOnUserInteraction(e)
+  }
+}
+
+onMounted(() => {
+  // Initialize lastScrollTop and attach extra listeners
+  if (messagesContainer.value) {
+    lastScrollTop.value = messagesContainer.value.scrollTop
+
+    messagesContainer.value.addEventListener('wheel', disableAutoScrollOnUserInteraction, { passive: true })
+    messagesContainer.value.addEventListener('touchstart', disableAutoScrollOnUserInteraction, { passive: true })
+    messagesContainer.value.addEventListener('pointerdown', disableAutoScrollOnUserInteraction)
+    // keydown could be on document
+    document.addEventListener('keydown', handleKeyDown)
+  }
+})
+
+onUnmounted(() => {
+  if (messagesContainer.value) {
+    messagesContainer.value.removeEventListener('wheel', disableAutoScrollOnUserInteraction)
+    messagesContainer.value.removeEventListener('touchstart', disableAutoScrollOnUserInteraction)
+    messagesContainer.value.removeEventListener('pointerdown', disableAutoScrollOnUserInteraction)
+    document.removeEventListener('keydown', handleKeyDown)
+  }
+})
+
 watch(content, () => {
   // Only auto-scroll if enabled (user hasn't scrolled away from bottom)
   if (!autoScrollEnabled.value)
@@ -157,7 +206,9 @@ watch(content, () => {
 
   nextTick(() => {
     if (messagesContainer.value) {
-      messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+      // Use scrollTo with behavior 'auto' to force immediate jump to bottom and avoid issues with
+      // CSS smooth scrolling that can make programmatic jumps behave inconsistently.
+      messagesContainer.value.scrollTo({ top: messagesContainer.value.scrollHeight, behavior: 'auto' })
     }
   })
 })
@@ -348,7 +399,7 @@ watch(content, () => {
       </div>
 
       <!-- Messages area with scroll -->
-      <main ref="messagesContainer" class="chatbot-messages flex-1 overflow-y-auto" @scroll="handleContainerScroll">
+      <main ref="messagesContainer" class="chatbot-messages flex-1 overflow-y-auto mr-[1px] mb-4" @scroll="handleContainerScroll">
         <MarkdownRender
           :content="content"
           :code-block-dark-theme="selectedTheme || undefined"
