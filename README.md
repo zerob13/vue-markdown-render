@@ -106,6 +106,8 @@ Recommended consumption patterns:
 </template>
 ```
 
+For a fuller Nuxt 3 recipe and extra notes, see the docs: `docs/nuxt-ssr.md`.
+
 - For Vite + plain SSR (or when you control hydration): conditionally render on the client with a small wrapper component:
 
 ```vue
