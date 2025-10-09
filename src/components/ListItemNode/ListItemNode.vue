@@ -32,7 +32,8 @@ defineEmits<{
 
 <style scoped>
 ol > .list-item::marker{
-  color: var(--list-item-counter-marker,#64748b)
+  color: var(--list-item-counter-marker,#64748b);
+  line-height: 1.6;
 }
 ul > .list-item::marker{
   color: var(--list-item-marker,#cbd5e1)
