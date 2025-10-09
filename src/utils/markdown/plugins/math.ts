@@ -89,7 +89,10 @@ export const ESCAPED_KATEX_COMMANDS = KATEX_COMMANDS
   .map(c => c.replace(/[.*+?^${}()|[\\]\\\]/g, '\\$&'))
   .join('|')
 const CONTROL_CHARS_CLASS = '[\t\r\b\f\v]'
-const DEFAULT_KATEX_RE = new RegExp('(^|[^\\\\])(' + `(?:${ESCAPED_KATEX_COMMANDS})\\b|${CONTROL_CHARS_CLASS}` + ')', 'g')
+// Match when command words appear at start, after whitespace, or after a
+// non-word (but not after a backslash). This avoids matching inside words
+// like "sin" (we only want to match " in" -> "\\in" when separated).
+const DEFAULT_KATEX_RE = new RegExp('(^|\\s|[^\\\\\\w])(' + `(?:${ESCAPED_KATEX_COMMANDS})\\b|${CONTROL_CHARS_CLASS}` + ')', 'g')
 
 // Precompiled regexes for isMathLike to avoid reconstructing them per-call
 const TEX_CMD_RE = /\\[a-z]+/i
@@ -166,7 +169,7 @@ export function normalizeStandaloneBackslashT(s: string, opts?: MathOptions) {
   // otherwise build one from the provided commands.
   const re = (opts?.commands == null)
     ? DEFAULT_KATEX_RE
-    : new RegExp('(^|[^\\\\])(' + `(?:${commands.slice().sort((a, b) => b.length - a.length).map(c => c.replace(/[.*+?^${}()|[\\]\\\]/g, '\\$&')).join('|')})\\b|${CONTROL_CHARS_CLASS}` + ')', 'g')
+    : new RegExp('(^|\\s|[^\\\\\\w])(' + `(?:${commands.slice().sort((a, b) => b.length - a.length).map(c => c.replace(/[.*+?^${}()|[\\]\\\]/g, '\\$&')).join('|')})\\b|${CONTROL_CHARS_CLASS}` + ')', 'g')
 
   let out = s.replace(re, (_m, p1, p2) => {
     // If p2 is a control character, map it to its escaped letter (t, r, ...)
@@ -203,7 +206,6 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
     const delimiters: [string, string][] = [
       ['$$', '$$'],
       ['\\(', '\\)'],
-      ['(', ')'],
     ]
     let searchPos = 0
     // use findMatchingClose from util
@@ -216,6 +218,21 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
       const pushText = (text: string) => {
         if (!text)
           return
+        const strongMatch = text.match(/^(\*+)([^*]+)\*+/)
+        if (strongMatch) {
+          const strongToken = state.push('strong_open', '', 0)
+          strongToken.markup = strongMatch[1]
+          const strongTextToken = state.push('text', '', 0)
+          strongTextToken.content = strongMatch[2]
+          const strongCloseToken = state.push('strong_close', '', 0)
+          strongCloseToken.markup = strongMatch[1]
+          text = text.slice(strongMatch[0].length)
+          if (text) {
+            const t = state.push('text', '', 0)
+            t.content = text
+          }
+          return
+        }
         const t = state.push('text', '', 0)
         t.content = text
       }
@@ -248,14 +265,28 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
           // If we already consumed some content, avoid duplicating the prefix
           // Only push the portion from previous search position
           const prevConsumed = src.slice(0, searchPos)
+          // Determine whether there's an unclosed strong opener (**) or (__)
+          // before this math delimiter. We only want to treat a prefix as a
+          // strong-open when the number of unescaped strong markers in the
+          // preceding segment is odd (i.e. there's an unmatched opener). This
+          // avoids treating a fully paired `**bold**` as an open prefix.
+          const countUnescapedStrong = (s: string) => {
+            const re = /(^|[^\\])(__|\*\*)/g
+            let m: RegExpExecArray | null
+            let c = 0
+            // eslint-disable-next-line unused-imports/no-unused-vars
+            while ((m = re.exec(s)) !== null) {
+              c++
+            }
+            return c
+          }
+
           let isStrongPrefix = false
-          let toPushBefore = prevConsumed ? src.slice(searchPos, index) : before
-          if (isStrongPrefix = index !== 0 && /(?:^|[^\\])(?:__|\*\*)/.test(before.slice(state.pos))) {
-            toPushBefore = before.slice(state.pos, index)
+          const toPushBefore = prevConsumed ? src.slice(searchPos, index) : before
+          if (countUnescapedStrong(toPushBefore) % 2 === 1) {
+            isStrongPrefix = true
           }
-          else {
-            isStrongPrefix = index !== 0 && /(?:^|[^\\])(?:__|\*\*)/.test(toPushBefore)
-          }
+
           // strong prefix handling (preserve previous behavior)
           pushText(isStrongPrefix ? toPushBefore.replace(/^\*+/, '') : toPushBefore)
 
@@ -313,7 +344,6 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
   ) => {
     if (silent)
       return true
-
     const delimiters: [string, string][] = [
       ['\\[', '\\]'],
       ['$$', '$$'],
