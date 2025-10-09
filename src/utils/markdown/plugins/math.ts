@@ -1,5 +1,4 @@
 import type MarkdownIt from 'markdown-it'
-// Exported helper for direct testing and reuse
 import type { MathOptions } from '../config'
 
 import findMatchingClose from '../findMatchingClose'
@@ -37,6 +36,9 @@ export const ESCAPED_TEX_BRACE_COMMANDS = TEX_BRACE_COMMANDS.map(c => c.replace(
 // Common KaTeX/TeX command names that might lose their leading backslash.
 // Keep this list conservative to avoid false-positives in normal text.
 export const KATEX_COMMANDS = [
+  'ldots',
+  'cdots',
+  'quad',
   'in',
   'infty',
   'perp',
@@ -76,6 +78,10 @@ export const KATEX_COMMANDS = [
   'exp',
   'lim',
   'frac',
+  'text',
+  'left',
+  'right',
+  'times',
 ]
 
 // Precompute escaped KATEX commands and default regex used by
@@ -89,10 +95,6 @@ export const ESCAPED_KATEX_COMMANDS = KATEX_COMMANDS
   .map(c => c.replace(/[.*+?^${}()|[\\]\\\]/g, '\\$&'))
   .join('|')
 const CONTROL_CHARS_CLASS = '[\t\r\b\f\v]'
-// Match when command words appear at start, after whitespace, or after a
-// non-word (but not after a backslash). This avoids matching inside words
-// like "sin" (we only want to match " in" -> "\\in" when separated).
-const DEFAULT_KATEX_RE = new RegExp('(^|\\s|[^\\\\\\w])(' + `(?:${ESCAPED_KATEX_COMMANDS})\\b|${CONTROL_CHARS_CLASS}` + ')', 'g')
 
 // Precompiled regexes for isMathLike to avoid reconstructing them per-call
 const TEX_CMD_RE = /\\[a-z]+/i
@@ -166,22 +168,29 @@ export function normalizeStandaloneBackslashT(s: string, opts?: MathOptions) {
   const escapeExclamation = opts?.escapeExclamation ?? true
 
   // Choose a prebuilt regex when using default command set for performance,
-  // otherwise build one from the provided commands.
-  const re = (opts?.commands == null)
-    ? DEFAULT_KATEX_RE
-    : new RegExp('(^|\\s|[^\\\\\\w])(' + `(?:${commands.slice().sort((a, b) => b.length - a.length).map(c => c.replace(/[.*+?^${}()|[\\]\\\]/g, '\\$&')).join('|')})\\b|${CONTROL_CHARS_CLASS}` + ')', 'g')
+  // otherwise build one from the provided commands. Use a negative
+  // lookbehind to ensure the matched command isn't already escaped (i.e.
+  // not preceded by a backslash) and not part of a larger word. We also
+  // match literal control characters (tab, backspace, etc.). This form
+  // avoids capturing the prefix (p1) which previously caused overlapping
+  // replacement issues.
+  const commandPattern = (opts?.commands == null)
+    ? `(?:${ESCAPED_KATEX_COMMANDS})`
+    : `(?:${commands.slice().sort((a, b) => b.length - a.length).map(c => c.replace(/[.*+?^${}()|[\\]\\"\]/g, '\\$&')).join('|')})`
 
-  let out = s.replace(re, (_m, p1, p2) => {
-    // If p2 is a control character, map it to its escaped letter (t, r, ...)
-    if (controlMap[p2] !== undefined) {
-      return `${p1}\\${controlMap[p2]}`
-    }
+  // Match either a control character or an unescaped command word.
+  const re = new RegExp(`${CONTROL_CHARS_CLASS}|(?<!\\\\|\\w)(${commandPattern})\\b`, 'g')
 
-    // Otherwise if it's one of the katex command words, prefix with backslash
-    if (commands.includes(p2))
-      return `${p1}\\${p2}`
+  let out = s.replace(re, (m, cmd) => {
+    // If m is a literal control character (e.g. '\t' as actual tab), map it.
+    if (controlMap[m] !== undefined)
+      return `\\${controlMap[m]}`
 
-    return _m
+    // Otherwise cmd will be populated with the matched command word.
+    if (cmd && commands.includes(cmd))
+      return `\\${cmd}`
+
+    return m
   })
 
   // Escape standalone '!' but don't double-escape already escaped ones.
@@ -192,8 +201,12 @@ export function normalizeStandaloneBackslashT(s: string, opts?: MathOptions) {
   // lost their leading backslash, e.g. "operatorname{span}". Ensure we
   // restore a backslash before known brace-taking commands when they are
   // followed by '{' and are not already escaped.
-  // Use default escaped list when possible.
-  const braceEscaped = (opts?.commands == null) ? ESCAPED_KATEX_COMMANDS : commands.map(c => c.replace(/[.*+?^${}()|[\\]\\\]/g, '\\$&')).join('|')
+  // Use default escaped list when possible. Include TEX_BRACE_COMMANDS so
+  // known brace-taking TeX commands (e.g. `text`, `boldsymbol`) are also
+  // restored when their leading backslash was lost.
+  const braceEscaped = (opts?.commands == null)
+    ? [ESCAPED_TEX_BRACE_COMMANDS, ESCAPED_KATEX_COMMANDS].filter(Boolean).join('|')
+    : [commands.map(c => c.replace(/[.*+?^${}()|[\\]\\\]/g, '\\$&')).join('|'), ESCAPED_TEX_BRACE_COMMANDS].filter(Boolean).join('|')
   if (braceEscaped) {
     const braceCmdRe = new RegExp(`(^|[^\\\\])(${braceEscaped})\\s*\\{`, 'g')
     out = out.replace(braceCmdRe, (_m, p1, p2) => `${p1}\\${p2}{`)
@@ -203,18 +216,20 @@ export function normalizeStandaloneBackslashT(s: string, opts?: MathOptions) {
 export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
   // Inline rule for \(...\) and $$...$$ and $...$
   const mathInline = (state: any, silent: boolean) => {
+    if (state.src.includes('\n')) {
+      return false
+    }
     const delimiters: [string, string][] = [
       ['$$', '$$'],
+      ['\(', '\)'],
       ['\\(', '\\)'],
     ]
     let searchPos = 0
     // use findMatchingClose from util
-
     for (const [open, close] of delimiters) {
       // We'll scan the entire inline source and tokenize all occurrences
       const src = state.src
       let foundAny = false
-
       const pushText = (text: string) => {
         if (!text)
           return
@@ -243,7 +258,18 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
         const index = src.indexOf(open, searchPos)
         if (index === -1)
           break
-
+        // If the delimiter is immediately preceded by a ']' (possibly with
+        // intervening spaces), it's likely part of a markdown link like
+        // `[text](...)`, so we should not treat this '(' as the start of
+        // an inline math span. Also guard the index to avoid OOB access.
+        if (index > 0) {
+          let i = index - 1
+          // skip spaces between ']' and the delimiter
+          while (i >= 0 && src[i] === ' ')
+            i--
+          if (i >= 0 && src[i] === ']')
+            return false
+        }
         // 有可能遇到 \((\operatorname{span}\\{\boldsymbol{\alpha}\\})^\perp\)
         // 这种情况，前面的 \( 是数学公式的开始，后面的 ( 是普通括号
         // endIndex 需要找到与 open 对应的 close
@@ -281,10 +307,10 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
             return c
           }
 
-          let isStrongPrefix = false
-          const toPushBefore = prevConsumed ? src.slice(searchPos, index) : before
-          if (countUnescapedStrong(toPushBefore) % 2 === 1) {
-            isStrongPrefix = true
+          let toPushBefore = prevConsumed ? src.slice(searchPos, index) : before
+          const isStrongPrefix = countUnescapedStrong(toPushBefore) % 2 === 1
+          if (index !== state.pos && isStrongPrefix) {
+            toPushBefore = src.slice(state.pos, index)
           }
 
           // strong prefix handling (preserve previous behavior)
@@ -342,8 +368,6 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
     endLine: number,
     silent: boolean,
   ) => {
-    if (silent)
-      return true
     const delimiters: [string, string][] = [
       ['\\[', '\\]'],
       ['$$', '$$'],
@@ -367,8 +391,7 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
                 nextLineStart,
                 state.eMarks[startLine + 1],
               )
-              const hasMathContent = isMathLike(nextLineText)
-              if (hasMathContent) {
+              if (isMathLike(nextLineText.trim())) {
                 matched = true
                 openDelim = open
                 closeDelim = close
@@ -389,6 +412,9 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
 
     if (!matched)
       return false
+    if (silent)
+      return true
+
     if (
       lineText.includes(closeDelim)
       && lineText.indexOf(closeDelim) > openDelim.length
@@ -403,13 +429,8 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
         endDelimIndex,
       )
 
-      // For the heuristic-only bracket delimiter '[', check content is math-like
-      if (openDelim === '[' && !isMathLike(content))
-        return false
-
       const token: any = state.push('math_block', 'math', 0)
-
-      token.content = normalizeStandaloneBackslashT(content, mathOpts) // 规范化 \t -> \\\t
+      token.content = normalizeStandaloneBackslashT(content)
       token.markup
         = openDelim === '$$' ? '$$' : openDelim === '[' ? '[]' : '\\[\\]'
       token.map = [startLine, startLine + 1]
@@ -437,9 +458,9 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
         content = firstLineContent
 
       for (nextLine = startLine + 1; nextLine < endLine; nextLine++) {
-        const lineStart = state.bMarks[nextLine] + state.tShift[nextLine] - 1
+        const lineStart = state.bMarks[nextLine] + state.tShift[nextLine]
         const lineEnd = state.eMarks[nextLine]
-        const currentLine = state.src.slice(lineStart, lineEnd)
+        const currentLine = state.src.slice(lineStart - 1, lineEnd)
         if (currentLine.trim() === closeDelim) {
           found = true
           break
@@ -454,18 +475,13 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
       }
     }
 
-    // For bracket-delimited math, ensure it's math-like before accepting
-    if (openDelim === '[' && !isMathLike(content))
-      return false
-
     const token: any = state.push('math_block', 'math', 0)
-    token.content = normalizeStandaloneBackslashT(content, mathOpts) // 规范化 \t -> \\\t
+    token.content = normalizeStandaloneBackslashT(content)
     token.markup
       = openDelim === '$$' ? '$$' : openDelim === '[' ? '[]' : '\\[\\]'
     token.map = [startLine, nextLine + 1]
     token.block = true
     token.loading = !found
-
     state.line = nextLine + 1
     return true
   }

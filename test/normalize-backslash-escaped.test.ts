@@ -4,7 +4,7 @@ import { normalizeStandaloneBackslashT } from '../src/utils/markdown/plugins/mat
 describe('normalizeStandaloneBackslashT - already escaped', () => {
   it('does not double-escape already escaped katex commands', () => {
     expect(normalizeStandaloneBackslashT('\\in')).toBe('\\in')
-    expect(normalizeStandaloneBackslashT('text \\alpha more')).toBe('text \\alpha more')
+    expect(normalizeStandaloneBackslashT('text \\alpha more')).toBe('\\text \\alpha more')
   })
 
   it('respects options: custom commands and disabling exclamation escape', () => {

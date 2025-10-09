@@ -22,7 +22,8 @@ export function parseMarkdownToStructure(
   md: MarkdownIt,
 ): ParsedNode[] {
   // Ensure markdown is a string — guard against null/undefined inputs from callers
-  const safeMarkdown = (markdown ?? '').toString()
+  const safeMarkdown = (markdown ?? '').toString().replace(/\right/g, '\\right')
+
   // Get tokens from markdown-it
   const tokens = md.parse(safeMarkdown, {}) as MarkdownToken[]
   // Defensive: ensure tokens is an array
