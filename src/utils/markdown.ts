@@ -96,57 +96,6 @@ export function getMarkdown(msgId: string = `editor-${Date.now()}`, options: Get
     }
   })
 
-  // strong rule (legacy)
-  md.inline.ruler.before(
-    'emphasis',
-    'strong',
-    (state: any, silent: boolean) => {
-      let found = false
-      let token
-      let pos = state.pos
-      const max = state.posMax
-      const start = pos
-      const marker = state.src.charCodeAt(pos)
-
-      if (silent)
-        return false
-      if (marker !== 0x2A /* * */ && marker !== 0x5F /* _ */)
-        return false
-      let scan = pos
-      const mem = pos
-      while (scan < max && state.src.charCodeAt(scan) === marker) scan++
-      const len = scan - pos
-      if (len < 2)
-        return false
-      pos = scan
-      const markerCount = len
-      while (pos < max) {
-        if (state.src.charCodeAt(pos) === marker) {
-          if (state.src.slice(pos, pos + markerCount).length === markerCount) {
-            found = true
-            break
-          }
-        }
-        pos++
-      }
-      if (!found) {
-        state.pos = mem
-        return false
-      }
-      if (!silent) {
-        state.pos = start + markerCount
-        token = state.push('strong_open', 'strong', 1)
-        token.markup = marker === 0x2A ? '**' : '__'
-        token = state.push('text', '', 0)
-        token.content = state.src.slice(start + markerCount, pos)
-        token = state.push('strong_close', 'strong', -1)
-        token.markup = marker === 0x2A ? '**' : '__'
-      }
-      state.pos = pos + markerCount
-      return true
-    },
-  )
-
   // wave rule (legacy)
   const waveRule = (state: any, silent: boolean) => {
     const start = state.pos

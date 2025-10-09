@@ -1,10 +1,32 @@
 import type MarkdownIt from 'markdown-it'
-// import mathjax3 from 'markdown-it-mathjax3'
-import * as mathjax3 from 'markdown-it-mathjax3'
 
 // Heuristic to decide whether a piece of text is likely math.
 // Matches common TeX commands, math operators, function-call patterns like f(x),
 // superscripts/subscripts, and common math words.
+// Common TeX formatting commands that take a brace argument, e.g. \boldsymbol{...}
+// Keep this list in a single constant so it's easy to extend/test.
+export const TEX_BRACE_COMMANDS = [
+  'mathbf',
+  'boldsymbol',
+  'mathbb',
+  'mathcal',
+  'mathfrak',
+  'mathrm',
+  'mathit',
+  'mathsf',
+  'vec',
+  'hat',
+  'bar',
+  'tilde',
+  'overline',
+  'underline',
+  'mathscr',
+  'mathnormal',
+  'operatorname',
+  'mathrm',
+  'mathbf*',
+]
+
 export function isMathLike(s: string) {
   if (!s)
     return false
@@ -15,6 +37,8 @@ export function isMathLike(s: string) {
 
   // TeX commands e.g. \frac, \alpha
   const texCmd = /\\[a-z]+/i.test(s)
+  // TeX formatting commands with brace args, using the constant list above
+  const texCmdWithBraces = new RegExp(`\\\\(?:${TEX_BRACE_COMMANDS.join('|')})\\s*\\{[^}]+\\}`, 'i').test(s)
   // Explicit common TeX tokens (keeps compatibility with previous heuristic)
   const texSpecific = /\\(?:text|frac|left|right|times)/.test(s)
   // caret or underscore for super/subscripts
@@ -26,7 +50,7 @@ export function isMathLike(s: string) {
   // common math words
   const words = /\b(?:sin|cos|tan|log|ln|exp|sqrt|frac|sum|lim|int|prod)\b/.test(s)
 
-  return texCmd || texSpecific || superSub || ops || funcCall || words
+  return texCmd || texCmdWithBraces || texSpecific || superSub || ops || funcCall || words
 }
 
 // Exported helper for direct testing and reuse
@@ -43,31 +67,40 @@ export function normalizeStandaloneBackslashT(s: string) {
   s = s.replace(/(^|[^\\])([\t\r\b\f\v])/g, (_m, p1, p2) => `${p1}\\${map[p2]}`)
   return s.replace(/!/g, '\\!')
 }
-
 export function applyMath(md: MarkdownIt) {
   // Inline rule for \(...\) and $$...$$ and $...$
   const mathInline = (state: any, silent: boolean) => {
     const delimiters: [string, string, boolean][] = [
       ['\\(', '\\)', true],
+      ['(', ')', true],
       ['$$', '$$', true],
     ]
-
+debugger
     for (const [open, close] of delimiters) {
       const start = state.pos
-      if (state.src.slice(start, start + open.length) !== open)
+      const src = state.src.slice(start)
+      let before = ''
+      const fixedSrc = src.replace(/^\*+/,(m)=>{
+        before = m
+        return ''
+      })
+      if (fixedSrc.slice(0, open.length) !== open)
         continue
 
-      const end = state.src.indexOf(close, start + open.length)
+      const end = fixedSrc.indexOf(close, start + open.length)
       if (end === -1)
         continue
 
       if (!silent) {
         const token = state.push('math_inline', 'math', 0)
-        token.content = state.src.slice(start + open.length, end)
+        const content = fixedSrc.slice(open.length, end)
+        const after = fixedSrc.slice(end + close.length)
+        token.content =  normalizeStandaloneBackslashT(content)
         token.markup = open === '$$' ? '$$' : '\\(\\)'
+        state.pos = before.length + start + open.length + content.length + close.length
+      } else { 
+        state.pos = end + close.length
       }
-
-      state.pos = end + close.length
       return true
     }
     return false
@@ -91,7 +124,7 @@ export function applyMath(md: MarkdownIt) {
     let matched = false
     let openDelim = ''
     let closeDelim = ''
-
+    
     for (const [open, close] of delimiters) {
       if (lineText === open || lineText.startsWith(open)) {
         if (open === '[') {
@@ -147,6 +180,7 @@ export function applyMath(md: MarkdownIt) {
         return false
 
       const token: any = state.push('math_block', 'math', 0)
+
       token.content = normalizeStandaloneBackslashT(content) // 规范化 \t -> \\\t
       token.markup
         = openDelim === '$$' ? '$$' : openDelim === '[' ? '[]' : '\\[\\]'
@@ -213,40 +247,4 @@ export function applyMath(md: MarkdownIt) {
   md.block.ruler.before('paragraph', 'math_block', mathBlock, {
     alt: ['paragraph', 'reference', 'blockquote', 'list'],
   })
-
-  md.renderer.rules.math_inline = (tokens, idx) => {
-    const token = tokens[idx]
-    return `<span class="math-inline">${escapeHtml(token.content)}</span>`
-  }
-
-  md.renderer.rules.math_block = (tokens, idx) => {
-    const token = tokens[idx]
-    return `<div class="math-block">${escapeHtml(token.content)}</div>`
-  }
-
-  // Configure MathJax for better rendering if available
-  const mathjaxPlugin = (mathjax3 as any).default ?? mathjax3
-  md.use(mathjaxPlugin, {
-    tex: {
-      inlineMath: [
-        ['\\(', '\\)'],
-        ['$', '$'],
-      ],
-      displayMath: [
-        ['$$', '$$'],
-        ['\\[', '\\]'],
-        ['[', ']'],
-      ],
-      processEscapes: true,
-      processEnvironments: true,
-      processRefs: true,
-    },
-  })
-
-  function escapeHtml(str: string) {
-    return str
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-  }
 }

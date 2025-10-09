@@ -22,5 +22,6 @@ defineEmits(['copy'])
 .text-node {
   display: inline;
   font-weight: inherit;
+  vertical-align: middle;
 }
 </style>
