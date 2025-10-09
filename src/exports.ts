@@ -34,10 +34,15 @@ import TableNode from './components/TableNode'
 import TextNode from './components/TextNode'
 import ThematicBreakNode from './components/ThematicBreakNode'
 import { setLanguageIconResolver } from './utils/languageIcon'
+import { setDefaultMathOptions } from './utils/markdown/config'
 import { clearGlobalCustomComponents, getCustomNodeComponents, removeCustomComponents, setCustomComponents } from './utils/nodeComponents'
 import './index.css'
 
 export * from './utils'
+export { setDefaultMathOptions } from './utils/markdown/config'
+export type { MathOptions } from './utils/markdown/config'
+export { KATEX_COMMANDS } from './utils/markdown/plugins/math'
+export { normalizeStandaloneBackslashT } from './utils/markdown/plugins/math'
 
 export {
   AdmonitionNode,
@@ -115,11 +120,15 @@ const componentMap: Record<string, Component> = {
 }
 
 export const VueRendererMarkdown: Plugin = {
-  install(app: App, options?: { getLanguageIcon?: LanguageIconResolver }) {
+  install(app: App, options?: { getLanguageIcon?: LanguageIconResolver, mathOptions?: any }) {
     Object.entries(componentMap).forEach(([name, component]) => {
       app.component(name, component)
     })
     if (options?.getLanguageIcon)
       setLanguageIconResolver(options.getLanguageIcon)
+    // optional global math options
+    // avoid importing inside module scope to keep SSR safe
+    if (options?.mathOptions)
+      setDefaultMathOptions(options.mathOptions)
   },
 }

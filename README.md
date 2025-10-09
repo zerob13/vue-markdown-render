@@ -198,6 +198,69 @@ Notes:
 
 - CI: a small GitHub Actions workflow (`.github/workflows/ci.yml`) has been added to run typecheck and tests (including the SSR smoke test) on push and PR to `main`.
 
+## Math rendering options
+
+This library includes a lightweight math inline/block plugin that attempts to normalize common KaTeX/TeX commands and accidental control characters (for example when `"\b"` was interpreted as a backspace character by JS).
+
+You can customize the behavior via `getMarkdown`'s `mathOptions` parameter:
+
+```ts
+import { getMarkdown } from './src/utils/markdown/getMarkdown'
+
+const md = getMarkdown({
+  mathOptions: {
+    // override which words should be auto-prefixed with a backslash
+    commands: ['in', 'perp', 'alpha'],
+    // whether to escape standalone '!' (default: true)
+    escapeExclamation: true,
+  }
+})
+```
+
+There are also two exported helpers you can use directly:
+
+- `KATEX_COMMANDS` — default list of command words the plugin will auto-escape when missing a leading `\`.
+- `normalizeStandaloneBackslashT(s, opts?)` — the normalization helper used internally. You can call it yourself if you need to pre-process math content before handing it to KaTeX.
+
+Example:
+
+```ts
+import { KATEX_COMMANDS, normalizeStandaloneBackslashT } from 'vue-renderer-markdown'
+
+const raw = 'a\tb + infty'
+const normalized = normalizeStandaloneBackslashT(raw, { commands: KATEX_COMMANDS })
+// normalized is now safe to pass to KaTeX
+```
+
+### Plugin install example (global defaults)
+
+You can set global math options when installing the Vue plugin so all markdown instances created by the library inherit the same defaults.
+
+```ts
+import { createApp } from 'vue'
+import MarkdownRender, { VueRendererMarkdown } from 'vue-renderer-markdown'
+
+const app = createApp(App)
+
+// Set global math options during plugin install
+app.use(VueRendererMarkdown, {
+  mathOptions: {
+    commands: ['in', 'perp', 'alpha'],
+    escapeExclamation: false,
+  }
+})
+
+app.mount('#app')
+```
+
+Alternatively, you can programmatically set the global defaults by importing `setDefaultMathOptions`:
+
+```ts
+import { setDefaultMathOptions } from 'vue-renderer-markdown'
+
+setDefaultMathOptions({ commands: ['infty', 'perp'], escapeExclamation: true })
+```
+
 If you'd like, I can add a short Nuxt module wrapper or a dedicated example page for Nuxt to the `playground/` directory — say the word and I'll scaffold it.
 ## Quick Start
 

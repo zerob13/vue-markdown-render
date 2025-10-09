@@ -86,7 +86,7 @@ $$E=mc^2$$
     expect(mathBlocks.length).toBeGreaterThanOrEqual(3)
 
     // 验证第一个数学块是 E=mc^2
-  expect(mathBlocks[0].content.trim()).toBe('E=mc^2')
+    expect(mathBlocks[0].content.trim()).toBe('E=mc^2')
     expect(mathBlocks[0].markup).toBe('$$')
 
     // 验证第二个数学块包含付费转化率公式
@@ -136,7 +136,7 @@ $$E=mc^2$$
     expect(mathBlocks.length).toBe(3)
 
     // 验证第一个数学块是 E=mc^2
-  expect(mathBlocks[0].content.trim()).toBe('E=mc^2')
+    expect(mathBlocks[0].content.trim()).toBe('E=mc^2')
     expect(mathBlocks[0].markup).toBe('$$')
 
     // 验证第二个数学块包含付费转化率公式

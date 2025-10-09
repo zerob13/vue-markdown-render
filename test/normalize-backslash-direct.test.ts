@@ -7,6 +7,12 @@ describe('normalizeStandaloneBackslashT direct tests', () => {
     expect(out).toBe('A\\tB')
   })
 
+  it('normalizes a raw string to \\t', () => {
+    const out = normalizeStandaloneBackslashT('atb')
+
+    expect(out).toMatchInlineSnapshot(`"atb"`)
+  })
+
   it('escapes exclamation to \\!', () => {
     const out = normalizeStandaloneBackslashT('a!b')
     expect(out).toBe('a\\!b')
