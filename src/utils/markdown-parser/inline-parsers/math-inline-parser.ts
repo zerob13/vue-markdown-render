@@ -7,8 +7,8 @@ export function parseMathInlineToken(token: MarkdownToken): MathInlineNode {
     content: token.content || '',
     loading: !!token.loading,
     raw:
-      token.markup === '\\(\\)'
-        ? `\\(${token.content}\\)`
+      token.markup.replace(/\\/g, '') === '()'
+        ? `\(${token.content}\)`
         : `$$${token.content}$$`,
   }
 }

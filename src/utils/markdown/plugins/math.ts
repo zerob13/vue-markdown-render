@@ -64,6 +64,14 @@ export const KATEX_COMMANDS = [
   'prod',
   'int',
   'sqrt',
+  'fbox',
+  'boxed',
+  'color',
+  'rule',
+  'edef',
+  'fcolorbox',
+  'hline',
+  'hdashline',
   'cdot',
   'times',
   'pm',
@@ -96,13 +104,31 @@ export const ESCAPED_KATEX_COMMANDS = KATEX_COMMANDS
   .join('|')
 const CONTROL_CHARS_CLASS = '[\t\r\b\f\v]'
 
+// Hoisted map of control characters -> escaped letter (e.g. '\t' -> 't').
+// Kept at module scope to avoid recreating on every normalization call.
+const CONTROL_MAP: Record<string, string> = {
+  '\t': 't',
+  '\r': 'r',
+  '\b': 'b',
+  '\f': 'f',
+  '\v': 'v',
+}
+
 // Precompiled regexes for isMathLike to avoid reconstructing them per-call
+// and prebuilt default regexes for normalizeStandaloneBackslashT when the
+// default command set is used.
 const TEX_CMD_RE = /\\[a-z]+/i
 const PREFIX_CLASS = '(?:\\\\|\\u0008)'
 const TEX_CMD_WITH_BRACES_RE = new RegExp(`${PREFIX_CLASS}(?:${ESCAPED_TEX_BRACE_COMMANDS})\\s*\\{[^}]+\\}`, 'i')
 const TEX_SPECIFIC_RE = /\\(?:text|frac|left|right|times)/
 const SUPER_SUB_RE = /\^|_/
-const OPS_RE = /[=+\-*/^<>]|\\times|\\pm|\\cdot|\\le|\\ge|\\neq/
+// Match common math operator symbols or named commands.
+// Avoid treating the C/C++ increment operator ("++") as a math operator by
+// ensuring a lone '+' isn't matched when it's part of a '++' sequence.
+// Use a RegExp constructed from a string to avoid issues escaping '/' in a
+// regex literal on some platforms/linters.
+// eslint-disable-next-line prefer-regex-literals
+const OPS_RE = new RegExp('(?<!\\+)\\+(?!\\+)|[=\\-*/^<>]|\\\\times|\\\\pm|\\\\cdot|\\\\le|\\\\ge|\\\\neq')
 const FUNC_CALL_RE = /[A-Z]+\s*\([^)]+\)/i
 const WORDS_RE = /\b(?:sin|cos|tan|log|ln|exp|sqrt|frac|sum|lim|int|prod)\b/
 
@@ -142,54 +168,26 @@ export function isMathLike(s: string) {
 }
 
 export function normalizeStandaloneBackslashT(s: string, opts?: MathOptions) {
-  // Map of characters or words that may have lost a leading backslash when
-  // interpreted in JS string literals (for example "\b" -> backspace U+0008)
-  // Keys may use backslash escapes in the source; the actual string keys
-  // become the unescaped character/word (e.g. '\\t' -> '\t' -> tab char).
-  // Keys are the actual control characters as they appear in JS strings when
-  // an escape was interpreted (e.g. '\\t' -> actual tab char '\t').
-  const controlMap: Record<string, string> = {
-    '\t': 't',
-    '\r': 'r',
-    '\b': 'b',
-    '\f': 'f',
-    '\v': 'v',
-    // Note: deliberately omitting \n since real newlines are structural and
-    // shouldn't be collapsed into a two-character escape in most cases.
-  }
-
-  // use top-level KATEX_COMMANDS constant
-
-  // Build a regex that matches either a lone control character (tab, etc.)
-  // or one of the known command words that is NOT already prefixed by a
-  // backslash. We ensure the matched word isn't part of a larger word by
-  // using a word boundary where appropriate.
   const commands = opts?.commands ?? KATEX_COMMANDS
   const escapeExclamation = opts?.escapeExclamation ?? true
 
-  // Choose a prebuilt regex when using default command set for performance,
-  // otherwise build one from the provided commands. Use a negative
-  // lookbehind to ensure the matched command isn't already escaped (i.e.
-  // not preceded by a backslash) and not part of a larger word. We also
-  // match literal control characters (tab, backspace, etc.). This form
-  // avoids capturing the prefix (p1) which previously caused overlapping
-  // replacement issues.
-  const commandPattern = (opts?.commands == null)
-    ? `(?:${ESCAPED_KATEX_COMMANDS})`
-    : `(?:${commands.slice().sort((a, b) => b.length - a.length).map(c => c.replace(/[.*+?^${}()|[\\]\\"\]/g, '\\$&')).join('|')})`
+  const useDefault = opts?.commands == null
 
-  // Match either a control character or an unescaped command word.
-  const re = new RegExp(`${CONTROL_CHARS_CLASS}|(?<!\\\\|\\w)(${commandPattern})\\b`, 'g')
+  // Build or reuse regex: match control chars or unescaped command words.
+  let re: RegExp
+  if (useDefault) {
+    re = new RegExp(`${CONTROL_CHARS_CLASS}|(?<!\\\\|\\w)(${ESCAPED_KATEX_COMMANDS})\\b`, 'g')
+  }
+  else {
+    const commandPattern = `(?:${commands.slice().sort((a, b) => b.length - a.length).map(c => c.replace(/[.*+?^${}()|[\\]\\"\]/g, '\\$&')).join('|')})`
+    re = new RegExp(`${CONTROL_CHARS_CLASS}|(?<!\\\\|\\w)(${commandPattern})\\b`, 'g')
+  }
 
-  let out = s.replace(re, (m, cmd) => {
-    // If m is a literal control character (e.g. '\t' as actual tab), map it.
-    if (controlMap[m] !== undefined)
-      return `\\${controlMap[m]}`
-
-    // Otherwise cmd will be populated with the matched command word.
+  let out = s.replace(re, (m: string, cmd?: string) => {
+    if (CONTROL_MAP[m] !== undefined)
+      return `\\${CONTROL_MAP[m]}`
     if (cmd && commands.includes(cmd))
       return `\\${cmd}`
-
     return m
   })
 
@@ -204,14 +202,17 @@ export function normalizeStandaloneBackslashT(s: string, opts?: MathOptions) {
   // Use default escaped list when possible. Include TEX_BRACE_COMMANDS so
   // known brace-taking TeX commands (e.g. `text`, `boldsymbol`) are also
   // restored when their leading backslash was lost.
-  const braceEscaped = (opts?.commands == null)
+  const braceEscaped = useDefault
     ? [ESCAPED_TEX_BRACE_COMMANDS, ESCAPED_KATEX_COMMANDS].filter(Boolean).join('|')
     : [commands.map(c => c.replace(/[.*+?^${}()|[\\]\\\]/g, '\\$&')).join('|'), ESCAPED_TEX_BRACE_COMMANDS].filter(Boolean).join('|')
+  let result = out
   if (braceEscaped) {
     const braceCmdRe = new RegExp(`(^|[^\\\\])(${braceEscaped})\\s*\\{`, 'g')
-    out = out.replace(braceCmdRe, (_m, p1, p2) => `${p1}\\${p2}{`)
+    result = result.replace(braceCmdRe, (_m: string, p1: string, p2: string) => `${p1}\\${p2}{`)
   }
-  return out
+  result = result.replace(/span\{([^}]+)\}/, 'span\\{$1\\}')
+    .replace(/\\operatorname\{span\}\{((?:[^{}]|\{[^}]*\})+)\}/, '\\operatorname{span}\\{$1\\}')
+  return result
 }
 export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
   // Inline rule for \(...\) and $$...$$ and $...$
@@ -225,6 +226,7 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
       ['\(', '\)'],
     ]
     let searchPos = 0
+    let jump = true
     // use findMatchingClose from util
     for (const [open, close] of delimiters) {
       // We'll scan the entire inline source and tokenize all occurrences
@@ -282,10 +284,24 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
           continue
         }
         const content = src.slice(index + open.length, endIdx)
-
+        if (!isMathLike(content)) {
+          // push remaining text after last match
+          // not math-like; skip this match and continue scanning
+          const temp = searchPos
+          searchPos = endIdx + close.length
+          if (!src.includes(open, endIdx + close.length)) {
+            const text = src.slice(temp, searchPos)
+            if (!state.pending && state.pos + open.length < searchPos)
+              pushText(text)
+            if (jump)
+              return false
+          }
+          continue
+        }
         foundAny = true
 
         if (!silent) {
+          jump = false
           // push text before this math
           const before = src.slice(0, index)
           // If we already consumed some content, avoid duplicating the prefix
@@ -314,7 +330,8 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
           }
 
           // strong prefix handling (preserve previous behavior)
-          pushText(isStrongPrefix ? toPushBefore.replace(/^\*+/, '') : toPushBefore)
+          if (state.pending !== toPushBefore)
+            pushText(isStrongPrefix ? toPushBefore.replace(/^\*+/, '') : toPushBefore)
 
           const token = state.push('math_inline', 'math', 0)
           token.content = normalizeStandaloneBackslashT(content, mathOpts)
@@ -435,7 +452,7 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
         = openDelim === '$$' ? '$$' : openDelim === '[' ? '[]' : '\\[\\]'
       token.map = [startLine, startLine + 1]
       token.block = true
-
+      token.loading = false
       state.line = startLine + 1
       return true
     }

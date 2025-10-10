@@ -37,4 +37,9 @@ describe('normalizeStandaloneBackslashT direct tests', () => {
     const out = normalizeStandaloneBackslashT('a!b')
     expect(out).toBe('a\\!b')
   })
+
+  it('span to \\{\\}', () => {
+    const out = normalizeStandaloneBackslashT('operatorname{span}{\boldsymbol{alpha}}')
+    expect(out).toBe('\\operatorname{span}\\{\\boldsymbol{\\alpha}\\}')
+  })
 })

@@ -249,60 +249,6 @@ def echo(msg: Message):
     return {"reply": f"Echo: {msg.text}"}
 \`\`\`
 
-\`\`\`tsx:src/components/ChatWindow.tsx
-import React, { useEffect, useRef, useState } from 'react';
-
-type Message = { sender: 'me' | 'other'; text: string; time: string };
-
-export default function ChatWindow() {
-  const [messages, setMessages] = useState<Message[]>([
-    { sender: 'other', text: 'Hi there!', time: '10:00' },
-  ]);
-  const [input, setInput] = useState('');
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    el.scrollTop = el.scrollHeight;
-  }, [messages]);
-
-  const send = () => {
-    const text = input.trim();
-    if (!text) return;
-    const now = new Date();
-    const time = now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
-    setMessages((m) => [...m, { sender: 'me', text, time }]);
-    setInput('');
-    setTimeout(() => {
-      setMessages((m) => [...m, { sender: 'other', text: 'Auto-reply', time }]);
-    }, 800);
-  };
-
-  return (
-    <div className="chat-window">
-      <div className="messages" ref={containerRef}>
-        {messages.map((m, i) => (
-          <div key={i} className={'msg ' + m.sender}>
-            {m.text}
-            <span className="time">{m.time}</span>
-          </div>
-        ))}
-      </div>
-      <div className="input">
-        <input
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => e.key==='Enter' && send()}
-          placeholder="Type..."
-        />
-        <button onClick={send}>Send</button>
-      </div>
-    </div>
-  );
-}
-\`\`\`
-
 5. Create a native module example \\(C++\\):
 
 \`\`\`cpp:src/native/compute.cpp
@@ -375,13 +321,6 @@ import router from './router';
 
 createApp(App).use(router).mount('#app');
 \`\`\`
-
-To run the application:
-
-\`\`\`bash
-npm run electron:dev
-\`\`\`
-
 
 9. Mermaid graphic:
 
