@@ -222,7 +222,6 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
     const delimiters: [string, string][] = [
       ['$$', '$$'],
       ['\(', '\)'],
-      ['\\(', '\\)'],
     ]
     let searchPos = 0
     // use findMatchingClose from util
@@ -258,6 +257,7 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
         const index = src.indexOf(open, searchPos)
         if (index === -1)
           break
+
         // If the delimiter is immediately preceded by a ']' (possibly with
         // intervening spaces), it's likely part of a markdown link like
         // `[text](...)`, so we should not treat this '(' as the start of
@@ -319,7 +319,7 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
           const token = state.push('math_inline', 'math', 0)
           token.content = normalizeStandaloneBackslashT(content, mathOpts)
           token.markup = open === '$$' ? '$$' : open === '\\(' ? '\\(\\)' : open === '$' ? '$' : '()'
-
+          token.loading = false
           // we'll handle the trailing text after loop; but to preserve the
           // original behaviour when strong prefix was detected, mimic it here
           if (isStrongPrefix) {
@@ -369,9 +369,8 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
     silent: boolean,
   ) => {
     const delimiters: [string, string][] = [
-      ['\\[', '\\]'],
+      ['\[', '\]'],
       ['$$', '$$'],
-      ['[', ']'],
     ]
 
     const startPos = state.bMarks[startLine] + state.tShift[startLine]

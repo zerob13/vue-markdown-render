@@ -69,8 +69,10 @@ onMounted(() => {
 onBeforeUnmount(() => {
   // prevent any pending worker responses from touching the DOM
   isUnmounted = true
-  // increment id so any in-flight render is considered stale
-  currentRenderId++
+  if (currentAbortController) {
+    currentAbortController.abort()
+    currentAbortController = null
+  }
 })
 </script>
 

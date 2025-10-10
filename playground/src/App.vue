@@ -7,7 +7,7 @@ const content = ref<string>('')
 // To avoid flashing sequences like ":::" during streaming (which later
 // become an AdmonitionNode), we look ahead when encountering ":" and
 // defer appending consecutive colons until a non-colon character is seen.
-useInterval(10, {
+useInterval(16, {
   callback() {
     const cur = content.value.length
     if (cur >= streamContent.length)
