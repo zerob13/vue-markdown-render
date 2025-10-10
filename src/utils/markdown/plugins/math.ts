@@ -221,6 +221,7 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
     }
     const delimiters: [string, string][] = [
       ['$$', '$$'],
+      ['\\(', '\\)'],
       ['\(', '\)'],
     ]
     let searchPos = 0
@@ -280,7 +281,6 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
           searchPos = index + open.length
           continue
         }
-
         const content = src.slice(index + open.length, endIdx)
 
         foundAny = true
@@ -369,6 +369,7 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
     silent: boolean,
   ) => {
     const delimiters: [string, string][] = [
+      ['\\[', '\\]'],
       ['\[', '\]'],
       ['$$', '$$'],
     ]

@@ -158,7 +158,7 @@ importers:
         version: 11.1.12(vue@3.5.22(typescript@5.9.3))
       vue-renderer-markdown:
         specifier: latest
-        version: 0.0.55(@iconify/vue@5.0.0(vue@3.5.22(typescript@5.9.3)))(katex@0.16.23)(mermaid@11.12.0)(shiki@3.13.0)(vue-i18n@11.1.12(vue@3.5.22(typescript@5.9.3)))(vue-use-monaco@0.0.33(monaco-editor@0.52.2)(vue@3.5.22(typescript@5.9.3)))(vue@3.5.22(typescript@5.9.3))
+        version: 0.0.56-beta.2(@iconify/vue@5.0.0(vue@3.5.22(typescript@5.9.3)))(katex@0.16.23)(mermaid@11.12.0)(shiki@3.13.0)(vue-i18n@11.1.12(vue@3.5.22(typescript@5.9.3)))(vue-use-monaco@0.0.33(monaco-editor@0.52.2)(vue@3.5.22(typescript@5.9.3)))(vue@3.5.22(typescript@5.9.3))
       vue-router:
         specifier: ^4.5.1
         version: 4.5.1(vue@3.5.22(typescript@5.9.3))
@@ -3870,8 +3870,8 @@ packages:
     peerDependencies:
       vue: ^3.0.0
 
-  vue-renderer-markdown@0.0.55:
-    resolution: {integrity: sha512-ilZqhHldn8Df5VtpJF+aqHfI3u/u0e2SEtDAxTSc8vy0U1yhuXlOp0hvY9j8OCPjgdeWWOTfILkdSgbDN1JGYA==}
+  vue-renderer-markdown@0.0.56-beta.2:
+    resolution: {integrity: sha512-BtafqgKafl4lpNxgP05Udr1sYJP5dJODR71/Q7WGvTMqwWZKo9iGpGR6BKFnPlsCNCBRcXQn6VeUHHojlU/f9g==}
     peerDependencies:
       '@iconify/vue': '>=5.0.0'
       katex: '>=0.16.22'
@@ -8102,7 +8102,7 @@ snapshots:
       '@vue/devtools-api': 6.6.4
       vue: 3.5.22(typescript@5.9.3)
 
-  vue-renderer-markdown@0.0.55(@iconify/vue@5.0.0(vue@3.5.22(typescript@5.9.3)))(katex@0.16.23)(mermaid@11.12.0)(shiki@3.13.0)(vue-i18n@11.1.12(vue@3.5.22(typescript@5.9.3)))(vue-use-monaco@0.0.33(monaco-editor@0.52.2)(vue@3.5.22(typescript@5.9.3)))(vue@3.5.22(typescript@5.9.3)):
+  vue-renderer-markdown@0.0.56-beta.2(@iconify/vue@5.0.0(vue@3.5.22(typescript@5.9.3)))(katex@0.16.23)(mermaid@11.12.0)(shiki@3.13.0)(vue-i18n@11.1.12(vue@3.5.22(typescript@5.9.3)))(vue-use-monaco@0.0.33(monaco-editor@0.52.2)(vue@3.5.22(typescript@5.9.3)))(vue@3.5.22(typescript@5.9.3)):
     dependencies:
       '@floating-ui/dom': 1.7.4
       katex: 0.16.23
