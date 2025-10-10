@@ -131,6 +131,9 @@ const SUPER_SUB_RE = /\^|_/
 const OPS_RE = new RegExp('(?<!\\+)\\+(?!\\+)|[=\\-*/^<>]|\\\\times|\\\\pm|\\\\cdot|\\\\le|\\\\ge|\\\\neq')
 const FUNC_CALL_RE = /[A-Z]+\s*\([^)]+\)/i
 const WORDS_RE = /\b(?:sin|cos|tan|log|ln|exp|sqrt|frac|sum|lim|int|prod)\b/
+// Heuristic to detect common date/time patterns like 2025/9/30 21:37:24 and
+// avoid classifying them as math merely because they contain '/' or ':'
+const DATE_TIME_RE = /\b\d{4}\/\d{1,2}\/\d{1,2}(?:[ T]\d{1,2}:\d{2}(?::\d{2})?)?\b/
 
 export function isMathLike(s: string) {
   if (!s)
@@ -146,6 +149,9 @@ export function isMathLike(s: string) {
   const stripped = norm.trim()
 
   // quick bailouts
+  // If the content looks like a timestamp or date, it's not math.
+  if (DATE_TIME_RE.test(stripped))
+    return false
   if (stripped.length > 2000)
     return true // very long blocks likely math
 
