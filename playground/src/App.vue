@@ -123,6 +123,12 @@ const showSettings = ref(false)
 const messagesContainer = ref<HTMLElement | null>(null)
 const autoScrollEnabled = ref(true) // Track if auto-scroll is enabled
 const lastScrollTop = ref(0) // Track last scroll position to detect scroll direction
+// Track the last user-driven scroll direction: 'none' (no user scroll yet), 'up', or 'down'
+const lastUserScrollDirection = ref<'none' | 'up' | 'down'>('none')
+// Timestamp of last user scroll event (ms)
+const lastUserScrollTime = ref(0)
+// Flag to ignore scroll events caused by our own programmatic scrolling
+const isProgrammaticScroll = ref(false)
 
 // Check if user is at the bottom of scroll area
 function isAtBottom(element: HTMLElement, threshold = 50): boolean {
@@ -134,19 +140,28 @@ function handleContainerScroll() {
   if (!messagesContainer.value)
     return
 
+  // Ignore scroll events initiated by our programmatic scrollTo calls
+  if (isProgrammaticScroll.value)
+    return
+
   const currentScrollTop = messagesContainer.value.scrollTop
 
-  // Detect scroll direction: if user scrolls up (scrollTop decreased), disable auto-scroll immediately
+  // Update timestamp and determine direction
+  lastUserScrollTime.value = Date.now()
   if (currentScrollTop < lastScrollTop.value) {
-    // User is scrolling up - disable auto-scroll
+    // User scrolled up
+    lastUserScrollDirection.value = 'up'
     autoScrollEnabled.value = false
   }
-  else if (isAtBottom(messagesContainer.value)) {
-    // User is scrolling down and near bottom - re-enable auto-scroll
-    autoScrollEnabled.value = true
+  else if (currentScrollTop > lastScrollTop.value) {
+    // User scrolled down
+    lastUserScrollDirection.value = 'down'
+    // If near bottom, re-enable auto-scroll
+    if (isAtBottom(messagesContainer.value))
+      autoScrollEnabled.value = true
   }
 
-  // Update last scroll position
+  // Update last scroll position for future comparisons
   lastScrollTop.value = currentScrollTop
 }
 
@@ -160,12 +175,16 @@ function handleWheel(e: WheelEvent) {
     if (!messagesContainer.value)
       return
 
-    // User scrolled up (want older content)
+    // Treat wheel as a user-driven scroll; record time and direction
+    lastUserScrollTime.value = Date.now()
     if (e.deltaY < 0) {
+      // Scrolling up
+      lastUserScrollDirection.value = 'up'
       autoScrollEnabled.value = false
     }
-    else {
-      // Scrolling down: if near bottom, re-enable
+    else if (e.deltaY > 0) {
+      // Scrolling down
+      lastUserScrollDirection.value = 'down'
       if (isAtBottom(messagesContainer.value))
         autoScrollEnabled.value = true
     }
@@ -189,10 +208,13 @@ function handleTouchMove(e: TouchEvent) {
   const currentY = e.touches[0].clientY
   const delta = currentY - touchStartY.value
   // Positive delta means finger moved down -> content scrolls up (towards top) -> user viewing earlier content
+  lastUserScrollTime.value = Date.now()
   if (delta > 0) {
+    lastUserScrollDirection.value = 'up'
     autoScrollEnabled.value = false
   }
-  else {
+  else if (delta < 0) {
+    lastUserScrollDirection.value = 'down'
     if (isAtBottom(messagesContainer.value))
       autoScrollEnabled.value = true
   }
@@ -206,10 +228,13 @@ function handlePointerDown(e: PointerEvent) {
     if (pointerStartY.value == null)
       return
     const delta = ev.clientY - pointerStartY.value
+    lastUserScrollTime.value = Date.now()
     if (delta > 0) {
+      lastUserScrollDirection.value = 'up'
       autoScrollEnabled.value = false
     }
-    else {
+    else if (delta < 0) {
+      lastUserScrollDirection.value = 'down'
       if (messagesContainer.value && isAtBottom(messagesContainer.value))
         autoScrollEnabled.value = true
     }
@@ -285,8 +310,20 @@ watch(content, () => {
 
       const el = messagesContainer.value
       const prevScrollHeight = el.scrollHeight
-      // Force immediate jump to bottom
-      el.scrollTo({ top: el.scrollHeight, behavior: 'auto' })
+      // Force immediate jump to bottom. Mark as programmatic so our scroll handlers ignore it.
+      try {
+        isProgrammaticScroll.value = true
+        el.scrollTo({ top: el.scrollHeight, behavior: 'auto' })
+      }
+      finally {
+        // Allow handlers to run again after a short tick so lastScrollTop can be updated correctly
+        // We clear the flag after next frame below (so handlers triggered this frame are ignored).
+      }
+
+      // Yield a frame to ensure the scroll event (if emitted) happens while isProgrammaticScroll is true
+      await new Promise(resolve => requestAnimationFrame(() => resolve(undefined)))
+      // Clear programmatic flag now so future user scrolls are handled
+      isProgrammaticScroll.value = false
 
       // If height didn't change much or we're at bottom, stop retrying
       if (Math.abs(el.scrollHeight - prevScrollHeight) < 2 || isAtBottom(el, 2))
