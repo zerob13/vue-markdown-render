@@ -62,7 +62,7 @@ e^x = 1 + x + \frac{x^2}{2!} + \frac{x^3}{3!} + \cdots + \frac{x^n}{n!} + \cdots
 
 - **正弦函数**：
 \[
-\\sin x = x - \frac{x^3}{3!} + \frac{x^5}{5!} - \frac{x^7}{7!} + \cdots + (-1)^n \frac{x^{2n+1}}{(2n+1)!} + \cdots
+\sin x = x - \frac{x^3}{3!} + \frac{x^5}{5!} - \frac{x^7}{7!} + \cdots + (-1)^n \frac{x^{2n+1}}{(2n+1)!} + \cdots
 \]
 
 - **余弦函数**：
@@ -228,7 +228,7 @@ app.on('activate', () => {
 }
 \`\`\`
 
-4. Create chat components (diversified languages):
+4. Create chat components \\(diversified languages\\):
 
 \`\`\`python:src/server/app.py
 from fastapi import FastAPI
@@ -303,7 +303,7 @@ export default function ChatWindow() {
 }
 \`\`\`
 
-5. Create a native module example (C++):
+5. Create a native module example \\(C++\\):
 
 \`\`\`cpp:src/native/compute.cpp
 #include <bits/stdc++.h>
@@ -412,6 +412,8 @@ graph TD
     Orphee_Lam_Tao -.->|追求| Lacus_Clyne
 \`\`\`
 
+---
+# 复杂数学公式
 
 ### 1. **理解 \(\boldsymbol{\alpha}^T \boldsymbol{\beta} = 0\) 的含义**
    - \(\boldsymbol{\alpha}\) 和 \(\boldsymbol{\beta}\) 是三维列向量，因此 \(\boldsymbol{\alpha}^T \boldsymbol{\beta}\) 表示它们的点积（内积）。
@@ -426,7 +428,7 @@ graph TD
 
 ### 3. **\(\boldsymbol{\alpha}^T \boldsymbol{\beta} = 0\) 与正交补空间的联系**
    - 当 \(\boldsymbol{\alpha}^T \boldsymbol{\beta} = 0\) 时，这意味着：
-     - \(\boldsymbol{\beta}\) 属于 \(\operatorname{span}\\{\boldsymbol{\alpha}\\}\) 的正交补空间，即 \(\boldsymbol{\beta} \in (\operatorname{span}\{\boldsymbol{\alpha}\})^\perp\)。
+     - \(\boldsymbol{\beta}\) 属于 \(\operatorname{span}\{\boldsymbol{\alpha}\}\) 的正交补空间，即 \(\boldsymbol{\beta} \in (\operatorname{span}\{\boldsymbol{\alpha}\})^\perp\)。
      - 同样，\(\boldsymbol{\alpha}\) 也属于 \(\operatorname{span}\{\boldsymbol{\beta}\}\) 的正交补空间，即 \(\boldsymbol{\alpha} \in (\operatorname{span}\{\boldsymbol{\beta}\})^\perp\)。
    - 换句话说，\(\boldsymbol{\beta}\) 与 \(\boldsymbol{\alpha}\) 张成的直线正交，因此 \(\boldsymbol{\beta}\) 位于该直线的垂直平面（即正交补空间）上。反之亦然。
 
