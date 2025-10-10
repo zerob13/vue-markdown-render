@@ -41,7 +41,8 @@
       "require": "./dist/index.cjs"
     },
     "./index.css": "./dist/index.css",
-    "./tailwind": "./dist/tailwind.ts"
+    "./tailwind": "./dist/tailwind.ts",
+    "./themes/geist-light.css": "./dist/themes/geist-light.css"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -62,7 +63,8 @@
     "play": "pnpm run -C playground dev",
     "play:build": "pnpm run -C playground build",
     "preview": "pnpm run -C playground preview",
-    "build": "vite build --mode npm && pnpm run build:dts",
+    "build": "vite build --mode npm && pnpm run build:dts && pnpm run copy:themes",
+    "copy:themes": "node ./scripts/copy-themes.cjs",
     "build:dts": "rollup -c ./scripts/rollup.dts.config.mjs && node ./scripts/clean-dts.cjs",
     "build:demo": "vite build",
     "build:view": "vite preview",

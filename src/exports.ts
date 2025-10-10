@@ -43,6 +43,7 @@ export { setDefaultMathOptions } from './utils/markdown/config'
 export type { MathOptions } from './utils/markdown/config'
 export { KATEX_COMMANDS } from './utils/markdown/plugins/math'
 export { normalizeStandaloneBackslashT } from './utils/markdown/plugins/math'
+export { applyGeistLightTheme, geistLightThemeClass } from './themes/geistLight'
 
 export {
   AdmonitionNode,

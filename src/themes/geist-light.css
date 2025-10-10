@@ -1,0 +1,386 @@
+/* Geist Light theme for vue-markdown-render.
+   Scope by wrapping MarkdownRender with `.vmr-theme-geist-light`. */
+.vmr-theme-geist-light {
+  --vmr-gl-font-sans: 'Geist', 'Inter', 'SF Pro Display', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --vmr-gl-font-mono: 'Geist Mono', 'Source Code Pro', 'JetBrains Mono', SFMono-Regular, 'Segoe UI Mono', ui-monospace, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  --vmr-gl-text: #252525;
+  --vmr-gl-text-muted: rgba(37, 37, 37, 0.65);
+  --vmr-gl-text-subtle: rgba(37, 37, 37, 0.5);
+  --vmr-gl-border: rgba(0, 0, 0, 0.05);
+  --vmr-gl-border-strong: rgba(37, 37, 37, 0.2);
+  --vmr-gl-surface: #ffffff;
+  --vmr-gl-surface-alt: rgba(0, 0, 0, 0.025);
+  --vmr-gl-inline-bg: rgba(37, 37, 37, 0.05);
+  --vmr-gl-inline-color: #252525;
+  --vmr-gl-inline-radius: 6px;
+  --vmr-gl-content-width: 672px;
+  --vmr-gl-radius-sm: 4px;
+  --vmr-gl-radius-md: 8px;
+  --vmr-gl-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  --vmr-gl-link: #155eef;
+  --vmr-gl-link-hover: #0b3fcf;
+  --vmr-gl-code-line-numbers: #99a1af;
+  --vmr-gl-code-text: #4b5563;
+}
+
+.vmr-theme-geist-light .markdown-renderer {
+  color: var(--vmr-gl-text);
+  font-family: var(--vmr-gl-font-sans);
+  line-height: 1.5;
+  display: flex;
+  justify-content: center;
+  padding: 24px 0 48px;
+  background-color: var(--vmr-gl-surface);
+}
+
+.vmr-theme-geist-light .markdown-renderer > div {
+  width: min(var(--vmr-gl-content-width), 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.vmr-theme-geist-light .markdown-renderer > div > * {
+  width: 100%;
+  margin: 0 auto;
+}
+
+.vmr-theme-geist-light .paragraph-node {
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--vmr-gl-text);
+  margin: 8px 0;
+}
+
+.vmr-theme-geist-light .heading-node {
+  color: var(--vmr-gl-text);
+  font-family: var(--vmr-gl-font-sans);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 8px 0;
+}
+
+.vmr-theme-geist-light .heading-1 {
+  font-size: 36px;
+  line-height: 40px;
+  margin-top: 32px;
+  margin-bottom: 16px;
+}
+
+.vmr-theme-geist-light .heading-2 {
+  font-size: 30px;
+  line-height: 36px;
+  margin-top: 28px;
+  margin-bottom: 12px;
+}
+
+.vmr-theme-geist-light .heading-3 {
+  font-size: 24px;
+  line-height: 32px;
+  margin-top: 24px;
+  margin-bottom: 10px;
+}
+
+.vmr-theme-geist-light .heading-4 {
+  font-size: 20px;
+  line-height: 28px;
+  margin-top: 20px;
+  margin-bottom: 8px;
+}
+
+.vmr-theme-geist-light .heading-5 {
+  font-size: 18px;
+  line-height: 28px;
+  margin-top: 16px;
+  margin-bottom: 6px;
+}
+
+.vmr-theme-geist-light .heading-6 {
+  font-size: 16px;
+  line-height: 24px;
+  margin-top: 16px;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.vmr-theme-geist-light .blockquote {
+  margin: 16px 0;
+  padding: 16px 24px;
+  border-left: 4px solid var(--vmr-gl-border-strong);
+  background-color: rgba(37, 37, 37, 0.02);
+  color: var(--vmr-gl-text-subtle);
+  font-style: normal;
+  font-weight: 300;
+  border-radius: var(--vmr-gl-radius-md);
+}
+
+.vmr-theme-geist-light .hr-node {
+  border: 0;
+  border-top: 1px solid var(--vmr-gl-border);
+  margin: 24px auto;
+  width: min(var(--vmr-gl-content-width), 100%);
+}
+
+.vmr-theme-geist-light .definition-list {
+  margin: 8px 0;
+}
+
+.vmr-theme-geist-light .definition-term {
+  font-weight: 600;
+  color: var(--vmr-gl-text);
+  margin-top: 12px;
+}
+
+.vmr-theme-geist-light .definition-desc {
+  margin: 4px 0 4px 20px;
+  color: var(--vmr-gl-text-muted);
+}
+
+.vmr-theme-geist-light .list-node {
+  margin: 16px 0;
+  padding-left: 28px;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--vmr-gl-text);
+}
+
+.vmr-theme-geist-light .list-item {
+  margin: 6px 0;
+  padding-left: 4px;
+}
+
+.vmr-theme-geist-light ol > .list-item::marker {
+  color: var(--vmr-gl-text-muted);
+  font-weight: 500;
+}
+
+.vmr-theme-geist-light ul > .list-item::marker {
+  color: var(--vmr-gl-text-muted);
+}
+
+.vmr-theme-geist-light .checkbox-input {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid var(--vmr-gl-border);
+  background-color: var(--vmr-gl-inline-bg);
+}
+
+.vmr-theme-geist-light .link-node {
+  color: var(--vmr-gl-link);
+  font-weight: 500;
+}
+
+.vmr-theme-geist-light .link-node:hover {
+  color: var(--vmr-gl-link-hover);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.vmr-theme-geist-light code {
+  background-color: var(--vmr-gl-inline-bg);
+  color: var(--vmr-gl-inline-color);
+  border-radius: var(--vmr-gl-inline-radius);
+  padding: 4px 8px;
+  font-size: 12px;
+  line-height: 16px;
+  font-family: var(--vmr-gl-font-mono);
+}
+
+.vmr-theme-geist-light .highlighted-text,
+.vmr-theme-geist-light mark {
+  background: rgba(255, 229, 165, 0.8);
+  padding: 0 2px;
+}
+
+.vmr-theme-geist-light figure {
+  margin: 32px auto;
+  text-align: center;
+}
+
+.vmr-theme-geist-light figure img,
+.vmr-theme-geist-light figure .placeholder-layer {
+  border-radius: var(--vmr-gl-radius-md);
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+}
+
+.vmr-theme-geist-light figure img {
+  max-width: min(420px, 100%);
+  width: 100%;
+  display: block;
+}
+
+.vmr-theme-geist-light figcaption {
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--vmr-gl-text-subtle);
+  font-style: italic;
+}
+
+.vmr-theme-geist-light .table-node {
+  margin: 24px 0;
+  border: 1px solid var(--vmr-gl-border);
+  border-radius: var(--vmr-gl-radius-md);
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  background: var(--vmr-gl-surface);
+  font-size: 14px;
+}
+
+.vmr-theme-geist-light .table-node thead {
+  background: rgba(0, 0, 0, 0.02);
+  color: var(--vmr-gl-text);
+}
+
+.vmr-theme-geist-light .table-node th,
+.vmr-theme-geist-light .table-node td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--vmr-gl-border);
+}
+
+.vmr-theme-geist-light .table-node tr:last-child td {
+  border-bottom: none;
+}
+
+.vmr-theme-geist-light .footnote,
+.vmr-theme-geist-light .footnote-reference {
+  color: var(--vmr-gl-text-muted);
+}
+
+.vmr-theme-geist-light .code-block-container {
+  width: 100%;
+  max-width: var(--vmr-gl-content-width);
+  background: var(--vmr-gl-surface-alt);
+  border: 1px solid var(--vmr-gl-border);
+  border-radius: var(--vmr-gl-radius-md);
+  box-shadow: var(--vmr-gl-shadow);
+  overflow: hidden;
+  margin: 24px auto;
+}
+
+.vmr-theme-geist-light .code-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  min-height: 36px;
+  background: var(--vmr-gl-surface);
+  border-bottom: 1px solid var(--vmr-gl-border);
+}
+
+.vmr-theme-geist-light .code-block-header .icon-slot {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.vmr-theme-geist-light .code-block-header .font-mono {
+  font-family: var(--vmr-gl-font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--vmr-gl-text);
+}
+
+.vmr-theme-geist-light .code-action-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--vmr-gl-radius-sm);
+  border: 1px solid transparent;
+  color: var(--vmr-gl-text-muted);
+  background: transparent;
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.vmr-theme-geist-light .code-action-btn:hover,
+.vmr-theme-geist-light .code-action-btn:focus-visible {
+  background-color: rgba(37, 37, 37, 0.08);
+  border-color: rgba(37, 37, 37, 0.12);
+  color: var(--vmr-gl-text);
+  outline: none;
+}
+
+.vmr-theme-geist-light .code-editor-container {
+  background: #ffffff;
+  padding: 0;
+}
+
+.vmr-theme-geist-light .code-editor-container .view-lines {
+  font-family: var(--vmr-gl-font-mono) !important;
+  font-size: 14px !important;
+  line-height: 20px !important;
+  color: var(--vmr-gl-code-text) !important;
+}
+
+.vmr-theme-geist-light .code-editor-container .margin,
+.vmr-theme-geist-light .code-editor-container .line-numbers {
+  background: var(--vmr-gl-surface-alt);
+  color: var(--vmr-gl-code-line-numbers) !important;
+}
+
+.vmr-theme-geist-light .code-editor-container .scrollbar {
+  background: transparent;
+}
+
+.vmr-theme-geist-light pre {
+  margin: 0;
+  padding: 24px 16px;
+  font-family: var(--vmr-gl-font-mono);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--vmr-gl-code-text);
+  background: #ffffff;
+}
+
+.vmr-theme-geist-light pre code {
+  padding: 0;
+  background: none;
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.vmr-theme-geist-light .footnote-list {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--vmr-gl-border);
+  color: var(--vmr-gl-text-muted);
+  font-size: 14px;
+}
+
+.vmr-theme-geist-light .tooltip-content {
+  background: var(--vmr-gl-surface);
+  color: var(--vmr-gl-text);
+  border: 1px solid var(--vmr-gl-border);
+  border-radius: var(--vmr-gl-radius-sm);
+  box-shadow: var(--vmr-gl-shadow);
+}
+
+@media (max-width: 768px) {
+  .vmr-theme-geist-light .markdown-renderer {
+    padding: 16px 14px 32px;
+  }
+
+  .vmr-theme-geist-light .markdown-renderer > div {
+    width: 100%;
+  }
+
+  .vmr-theme-geist-light .heading-1 {
+    font-size: 30px;
+    line-height: 36px;
+  }
+
+  .vmr-theme-geist-light .heading-2 {
+    font-size: 26px;
+    line-height: 32px;
+  }
+
+  .vmr-theme-geist-light .list-node {
+    padding-left: 22px;
+  }
+}

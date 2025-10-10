@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 import MarkdownRender from '../../src/components/NodeRenderer'
+import '../../src/themes/geist-light.css'
 import { streamContent } from './const/markdown'
 // 每隔 10 毫秒输出一部分内容
 const content = ref<string>('')
@@ -107,6 +108,7 @@ const themes = [
   'vitesse-light',
 ]
 const selectedTheme = ref('vitesse-dark')
+const useGeistLightTheme = ref(false)
 
 // 格式化主题名称显示
 function formatThemeName(themeName: string) {
@@ -420,6 +422,67 @@ watch(content, () => {
             </div>
           </div>
 
+          <!-- Geist Light layout toggle -->
+          <div class="flex items-center justify-between">
+            <div class="flex flex-col">
+              <label class="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                Geist Layout
+              </label>
+              <span class="text-[11px] text-gray-500 dark:text-gray-500">
+                Apply the new light markdown chrome
+              </span>
+            </div>
+            <button
+              class="
+                relative w-12 h-6 rounded-full
+                focus:outline-none focus:ring-2 focus:ring-blue-500/40
+                hover:shadow-lg active:scale-95
+                transition-all duration-200 ease-out
+              "
+              :style="{
+                backgroundColor: useGeistLightTheme ? '#0ea5e9' : '#e5e7eb',
+                transition: 'background-color 0.35s ease-out, box-shadow 0.2s ease, transform 0.1s ease',
+              }"
+              @click.stop="useGeistLightTheme = !useGeistLightTheme"
+            >
+              <div
+                class="
+                  absolute top-0.5 w-5 h-5 bg-white rounded-full
+                  flex items-center justify-center
+                  shadow-md hover:shadow-lg
+                "
+                :style="{
+                  left: useGeistLightTheme ? '26px' : '2px',
+                  transform: `scale(${useGeistLightTheme ? 1.02 : 1})`,
+                  transition: 'left 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.2s ease-out, box-shadow 0.2s ease',
+                }"
+              >
+                <Transition
+                  enter-active-class="transition-all duration-300 ease-out"
+                  leave-active-class="transition-all duration-200 ease-in"
+                  enter-from-class="opacity-0 scale-0 rotate-90"
+                  enter-to-class="opacity-100 scale-100 rotate-0"
+                  leave-from-class="opacity-100 scale-100 rotate-0"
+                  leave-to-class="opacity-0 scale-0 rotate-90"
+                  mode="out-in"
+                >
+                  <Icon
+                    v-if="useGeistLightTheme"
+                    key="geist-on"
+                    icon="carbon:magic-wand"
+                    class="w-3 h-3 text-sky-600 drop-shadow-sm"
+                  />
+                  <Icon
+                    v-else
+                    key="geist-off"
+                    icon="carbon:brush-freehand"
+                    class="w-3 h-3 text-gray-400 drop-shadow-sm"
+                  />
+                </Transition>
+              </div>
+            </button>
+          </div>
+
           <!-- 分割线 -->
           <div class="border-t border-gray-200 dark:border-gray-700" />
 
@@ -525,14 +588,15 @@ watch(content, () => {
 
       <!-- Messages area with scroll -->
       <main ref="messagesContainer" class="chatbot-messages flex-1 overflow-y-auto mr-[1px] mb-4" @scroll="handleContainerScroll">
-        <MarkdownRender
-          :content="content"
-          :code-block-dark-theme="selectedTheme || undefined"
-          :code-block-light-theme="selectedTheme || undefined"
-          :themes="themes"
-          :is-dark="isDark"
-          class="p-6"
-        />
+        <div :class="['p-6', { 'vmr-theme-geist-light': useGeistLightTheme }]">
+          <MarkdownRender
+            :content="content"
+            :code-block-dark-theme="selectedTheme || undefined"
+            :code-block-light-theme="selectedTheme || undefined"
+            :themes="themes"
+            :is-dark="isDark"
+          />
+        </div>
       </main>
     </div>
   </div>

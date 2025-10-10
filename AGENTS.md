@@ -1,43 +1,21 @@
 # Repository Guidelines
 
+Use this guide to keep the Vue Markdown Renderer consistent, testable, and easy to review.
+
 ## Project Structure & Module Organization
-- `src/` – library source
-  - `components/*/` (PascalCase dirs, `*.vue` + `index.ts` exports)
-  - `utils/` (parsers, helpers), `types/`, `composables/`
-  - Entry: `exports.ts`, styles: `index.css`
-- `test/` – Vitest specs (e.g., `index.test.ts`, `plugins/*.test.ts`)
-- `playground/` – local demo app used during development
-- `scripts/` – maintenance utilities (e.g., peer-deps check)
-- Config: `vite.config.ts`, `tailwind.config.js`, `eslint.config.mjs`, `.editorconfig`
+The library source lives under `src/`. Add components in PascalCase folders such as `src/components/CodeBlockNode/CodeBlockNode.vue` with an accompanying `index.ts`. Shared helpers belong in `src/utils/`, `src/types/`, or `src/composables/`, while `src/exports.ts` exposes public entry points and `src/index.css` holds shared styles. Tests reside in `test/` (for example `test/index.test.ts` or `test/plugins/parser.test.ts`). Use `playground/` for the demo Vite app, maintain scripts in `scripts/`, and store Vite, Tailwind, ESLint, and EditorConfig settings at the repo root.
 
 ## Build, Test, and Development Commands
-- `pnpm dev` – run playground locally (Vite dev server)
-- `pnpm play` / `pnpm preview` – alias dev / preview demo build
-- `pnpm build` – build library (Vite) + CSS (`build-css.ts`)
-- `pnpm build:demo` / `pnpm build:view` – build/preview the demo site
-- `pnpm test` / `pnpm test:ui` – run tests (CLI/UI)
-- `pnpm typecheck` – TypeScript check
-- `pnpm lint` / `pnpm lint:fix` – ESLint validate/fix
-- `pnpm run check:peer-deps` – verify required peers are installed
+Use `pnpm dev` (alias `pnpm play`) to run the playground on Vite’s dev server and `pnpm preview` to inspect a production build. Execute `pnpm build` to compile the library bundle and generate CSS; reach for `pnpm build:demo` and `pnpm build:view` when validating the demo site. Keep quality high with `pnpm lint`, `pnpm lint:fix`, and `pnpm typecheck`. Run unit suites through `pnpm test` or the UI runner `pnpm test:ui`, regenerate snapshots via `pnpm test:update`, and audit peer packages with `pnpm run check:peer-deps`.
 
 ## Coding Style & Naming Conventions
-- Follow TypeScript-first, Vue 3 SFCs.
-- Components: PascalCase dir and SFC names (`CodeBlockNode/CodeBlockNode.vue`).
-- Utils/functions: camelCase; files in `utils/` are kebab/camel case as existing.
-- Indentation 2 spaces, LF endings, UTF‑8 (see `.editorconfig`).
-- Linting via `@antfu/eslint-config`; run `pnpm lint` before commits.
+Follow TypeScript-first, Vue 3 Single File Components. Enforce 2-space indentation, LF endings, and UTF-8 per `.editorconfig`. Name directories and components in PascalCase, prefix composables with `use`, and export helpers in camelCase. Mirror existing naming schemes in `src/utils/`. Honor `@antfu/eslint-config` and run `pnpm lint` before every push.
 
 ## Testing Guidelines
-- Framework: Vitest. Place specs under `test/` with `*.test.ts`.
-- Prefer small, focused tests for parsers and node components.
-- Run `pnpm test` locally; update snapshots when needed with `pnpm test:update`.
+Vitest powers the suite. Scope specs narrowly per component, parser, or composable, placing them under `test/` with a `.test.ts` suffix. Cover new utilities with fast unit tests, add interaction or snapshot checks for visual nodes, and run `pnpm test` locally before every PR. Update snapshots with `pnpm test:update` when rendered output changes.
 
 ## Commit & Pull Request Guidelines
-- Commit style: Conventional Commits (`feat:`, `fix:`, `perf:`, `chore:` …).
-- Link issues using GitHub keywords (`close: #123`).
-- Before PR: run `pnpm lint`, `pnpm typecheck`, `pnpm test`, and verify `pnpm dev` in playground.
-- PRs should include: clear description, rationale, screenshots/GIFs for UI-visible changes, and notes on API/prop changes (update README if needed).
+Write Conventional Commit messages (`feat:`, `fix:`, `perf:`, `chore:`) and reference issues with GitHub keywords (`closes #123`). Before raising a PR, ensure `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm dev` all pass. PR descriptions should explain the problem, summarize the solution, include UI screenshots or GIFs when relevant, and highlight API or prop changes. Update README or docs when behavior shifts.
 
 ## Security & Configuration Tips
-- Keep `peerDependencies` accurate; avoid bundling heavy peers—declare as peers when appropriate.
-- If integrating Monaco/Tailwind changes, ensure related Vite/Tailwind configs remain consistent and demo still builds.
+Keep `peerDependencies` current to avoid bundling peers inadvertently. When touching Markdown tooling, Monaco integration, or Tailwind layers, verify config files and ensure `pnpm build` and `pnpm build:demo` remain green. Favor dev-only packages for build tooling to keep the runtime lean.
