@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import katex from 'katex'
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { renderKaTeXInWorker } from '../../workers/katexWorkerClient'
+import { renderKaTeXInWorker, setKaTeXCache } from '../../workers/katexWorkerClient'
 
 const props = defineProps<{
   node: {
@@ -44,8 +45,25 @@ function renderMath() {
         return
       if (!mathElement.value)
         return
-      if (!hasRenderedOnce || !props.node.loading)
-        mathElement.value.textContent = props.node.raw
+      // Try synchronous render as a fallback
+      try {
+        const html = katex.renderToString(props.node.content, {
+          throwOnError: true,
+          displayMode: false,
+        })
+        mathElement.value.innerHTML = html
+        hasRenderedOnce = true
+        try {
+          setKaTeXCache(props.node.content, false, html)
+        }
+        catch {
+          // ignore cache set errors
+        }
+      }
+      catch {
+        if (!hasRenderedOnce || !props.node.loading)
+          mathElement.value.textContent = props.node.raw
+      }
     })
 }
 

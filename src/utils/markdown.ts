@@ -8,7 +8,7 @@ import markdownItSub from 'markdown-it-sub'
 import markdownItSup from 'markdown-it-sup'
 import * as markdownItCheckbox from 'markdown-it-task-checkbox'
 import { useSafeI18n } from '../composables/useSafeI18n'
-import { renderKaTeXInWorker } from '../workers/katexWorkerClient'
+import { renderKaTeXInWorker, setKaTeXCache } from '../workers/katexWorkerClient'
 
 import {
   parseInlineTokens,
@@ -210,10 +210,17 @@ export async function renderMarkdownAsync(md: MarkdownIt, content: string) {
       }
       catch {
         try {
-          return katex.renderToString(latex, {
+          const data = katex.renderToString(latex, {
             throwOnError: true,
             displayMode: false,
           })
+          try {
+            setKaTeXCache(latex, false, data)
+          }
+          catch {
+            // ignore cache set errors
+          }
+          return data
         }
         catch {
           return null

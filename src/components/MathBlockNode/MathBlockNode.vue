@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import katex from 'katex'
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { renderKaTeXInWorker } from '../../workers/katexWorkerClient'
+import { renderKaTeXInWorker, setKaTeXCache } from '../../workers/katexWorkerClient'
 
 const props = defineProps<{
   node: {
@@ -49,9 +50,27 @@ function renderMath() {
         return
       if (!mathBlockElement.value)
         return
-      // show raw fallback when we never successfully rendered before or when loading flag is false
-      if (!hasRenderedOnce || !props.node.loading) {
-        mathBlockElement.value.textContent = props.node.raw
+      // Try a synchronous KaTeX render on the main thread as a fallback
+      try {
+        const html = katex.renderToString(props.node.content, {
+          throwOnError: true,
+          displayMode: true,
+        })
+        mathBlockElement.value.innerHTML = html
+        hasRenderedOnce = true
+        // populate worker client cache so future calls hit cache
+        try {
+          setKaTeXCache(props.node.content, true, html)
+        }
+        catch {
+          // ignore cache set errors
+        }
+      }
+      catch {
+        // show raw fallback when we never successfully rendered before or when loading flag is false
+        if (!hasRenderedOnce || !props.node.loading) {
+          mathBlockElement.value.textContent = props.node.raw
+        }
       }
     })
 }
