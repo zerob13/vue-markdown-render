@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import katex from 'katex'
 import { computed, onBeforeUnmount, onMounted, ref, useAttrs, watch } from 'vue'
 import { renderKaTeXInWorker } from '../../workers/katexWorkerClient'
 
@@ -55,11 +56,28 @@ function renderMath() {
       mathElement.value.innerHTML = html
       hasRenderedOnce = true
     })
-    .catch(() => {
+    .catch((err: any) => {
       if (isUnmounted || renderId !== currentRenderId)
         return
       if (!mathElement.value)
         return
+
+      // Only attempt synchronous KaTeX fallback when the worker failed to initialize.
+      // If the worker returned a render error (syntax), leave the loading state as-is
+      // and don't try to synchronously render here to avoid surfacing KaTeX errors.
+      if (err?.code === 'WORKER_INIT_ERROR' || err?.fallbackToRenderer) {
+        try {
+          const html = katex.renderToString(props.node.content, { throwOnError: true, displayMode: false })
+          renderingLoading.value = false
+          mathElement.value.innerHTML = html
+          hasRenderedOnce = true
+          return
+        }
+        catch {
+          // fall through to existing loading/raw behaviour
+        }
+      }
+
       if (!hasRenderedOnce || !props.node.loading) {
         renderingLoading.value = true
         // mathElement.value.textContent = props.node.raw
@@ -112,12 +130,15 @@ const attrs = useAttrs()
 </script>
 
 <template>
-  <!-- <span v-if="renderingLoading"
-      :style="cssVars"
-  >Loading...</span> -->
   <span v-show="renderingLoading" class="math-loading inline-flex items-baseline gap-1.5" :aria-hidden="!node.loading ? 'true' : 'false'" v-bind="attrs" :style="cssVars">
     <span class="math-text-wrapper relative inline-flex">
-      <span class="leading-[normal] math-text">Loading...</span>
+      <span class="leading-[normal] math-text">
+        <!-- Allow consumers to override the loading content via a named slot `loading`,
+             or via the default slot. Fallback to the original text when no slot is provided. -->
+        <slot name="loading">
+          <slot>Loading...</slot>
+        </slot>
+      </span>
       <span class="underline-anim" aria-hidden="true" />
     </span>
   </span>
