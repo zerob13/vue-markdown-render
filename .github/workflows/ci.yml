@@ -9,10 +9,17 @@ on:
 jobs:
   test:
     name: Typecheck & Tests
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node: [18, 20]
+        os: [ubuntu-latest]
+        node_version: [18.18.2, lts/*]
+        include:
+          - os: macos-latest
+            node_version: lts/*
+          - os: windows-latest
+            node_version: lts/*
+      fail-fast: false
     env:
       CI: true
     steps:
@@ -22,23 +29,23 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node }}
+          node-version: ${{ matrix.node_version }}
           cache: pnpm
 
       - name: Enable corepack (provides pnpm)
         run: corepack enable
 
-      - name: Prepare pnpm
-        run: corepack prepare pnpm@10.18.1 --activate
+      - name: Setup
+        run: npm i -g @antfu/ni
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Install
+        run: nci
 
       - name: Typecheck
-        run: pnpm run typecheck
+        run: nr typecheck
 
       - name: Run tests
-        run: pnpm test -- --run
+        run: nr test -- --run
 
       - name: Run SSR check
-        run: pnpm run check:ssr
+        run: nr check:ssr
