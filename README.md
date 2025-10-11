@@ -25,7 +25,7 @@ These features make the library especially suited for real-time, AI-driven, and 
 
 ## 🚀 Live Demo
 
-[Demo site](https://vue-markdown-renderer.netlify.app/) — try large Markdown files and progressive diagrams to feel the difference.
+[Demo site](https://vue-markdown-renderer.simonhe.me/) — try large Markdown files and progressive diagrams to feel the difference.
 
 ## Features
 
