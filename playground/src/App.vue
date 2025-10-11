@@ -4,6 +4,20 @@ import MarkdownRender from '../../src/components/NodeRenderer'
 import { streamContent } from './const/markdown'
 // 每隔 10 毫秒输出一部分内容
 const content = ref<string>('')
+
+const VIEWPORT_VH_VAR = '--app-viewport-vh'
+
+const viewportCleanupFns: Array<() => void> = []
+
+function updateViewportHeight() {
+  if (typeof window === 'undefined')
+    return
+
+  const viewport = window.visualViewport
+  const height = viewport?.height ?? window.innerHeight
+  const unit = height / 100
+  document.documentElement.style.setProperty(VIEWPORT_VH_VAR, `${unit}px`)
+}
 // To avoid flashing sequences like ":::" during streaming (which later
 // become an AdmonitionNode), we look ahead when encountering ":" and
 // defer appending consecutive colons until a non-colon character is seen.
@@ -264,6 +278,23 @@ function handleKeyDown(e: KeyboardEvent) {
 }
 
 onMounted(() => {
+  updateViewportHeight()
+
+  if (typeof window !== 'undefined') {
+    const resizeHandler = () => updateViewportHeight()
+    window.addEventListener('resize', resizeHandler)
+    window.addEventListener('orientationchange', resizeHandler)
+    viewportCleanupFns.push(() => window.removeEventListener('resize', resizeHandler))
+    viewportCleanupFns.push(() => window.removeEventListener('orientationchange', resizeHandler))
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', resizeHandler)
+      window.visualViewport.addEventListener('scroll', resizeHandler)
+      viewportCleanupFns.push(() => window.visualViewport?.removeEventListener('resize', resizeHandler))
+      viewportCleanupFns.push(() => window.visualViewport?.removeEventListener('scroll', resizeHandler))
+    }
+  }
+
   // Initialize lastScrollTop and attach extra listeners
   if (messagesContainer.value) {
     lastScrollTop.value = messagesContainer.value.scrollTop
@@ -284,6 +315,9 @@ onUnmounted(() => {
     messagesContainer.value.removeEventListener('pointerdown', handlePointerDown)
     document.removeEventListener('keydown', handleKeyDown)
   }
+
+  viewportCleanupFns.forEach(fn => fn())
+  viewportCleanupFns.length = 0
 })
 
 watch(content, () => {
@@ -340,7 +374,7 @@ watch(content, () => {
 </script>
 
 <template>
-  <div class="h-screen flex items-center justify-center p-4 app-container bg-gray-50 dark:bg-gray-900">
+  <div class="flex items-center justify-center p-4 app-container bg-gray-50 dark:bg-gray-900">
     <!-- 设置按钮和面板 -->
     <div class="fixed top-4 right-4 z-10">
       <!-- 设置按钮 -->
@@ -485,7 +519,7 @@ watch(content, () => {
     </div>
 
     <!-- Chatbot-style container -->
-    <div class="chatbot-container max-w-5xl w-full h-[85vh] bg-white dark:bg-gray-800 rounded-2xl shadow-2xl dark:shadow-gray-900/50 flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
+    <div class="chatbot-container max-w-5xl w-full bg-white dark:bg-gray-800 rounded-2xl shadow-2xl dark:shadow-gray-900/50 flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
       <!-- Header -->
       <div class="chatbot-header px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-800">
         <div class="flex items-center justify-between gap-3">
@@ -539,12 +573,21 @@ watch(content, () => {
 </template>
 
 <style scoped>
+:global(:root) {
+  --app-viewport-vh: 1vh;
+}
+
 .app-container {
   transition: background-color 0.3s ease;
+  min-height: calc(var(--app-viewport-vh, 1vh) * 100);
+  overflow: hidden;
 }
 
 .chatbot-container {
   transition: all 0.3s ease;
+  overscroll-behavior: contain;
+  height: calc(var(--app-viewport-vh, 1vh) * 100 - 2rem);
+  max-height: calc(var(--app-viewport-vh, 1vh) * 100 - 2rem);
 }
 
 .github-star-btn:active {
@@ -553,6 +596,7 @@ watch(content, () => {
 
 .chatbot-messages {
   scroll-behavior: smooth;
+  overscroll-behavior: contain;
 }
 
 .chatbot-messages::-webkit-scrollbar {
