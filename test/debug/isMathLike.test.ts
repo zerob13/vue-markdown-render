@@ -9,4 +9,6 @@ it('recognizes \"\\boldsymbol{...}\" as math-like', () => {
   expect(isMathLike('\\(W^\perp\\)')).toBe(true)
   expect(isMathLike('\\(2025/9/30 21:37:24\\)')).toBe(false)
   expect(isMathLike('operatorname{')).toBe(true)
+  expect(isMathLike('served from /vue-markdown-icon.svg')).toBe(false)
+  expect(isMathLike('served from vue-markdown-icon.1')).toBe(false)
 })

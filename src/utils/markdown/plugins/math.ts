@@ -160,6 +160,10 @@ export function isMathLike(s: string) {
   if (stripped.length > 2000)
     return true // very long blocks likely math
 
+  if (/[./]\s*\D|\D\s*[./]/.test(s)) {
+    return false
+  }
+
   // TeX commands e.g. \frac, \alpha
   const texCmd = TEX_CMD_RE.test(norm)
   const texCmdWithBraces = TEX_CMD_WITH_BRACES_RE.test(norm)
@@ -232,6 +236,9 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
     if (state.src.includes('\n')) {
       return false
     }
+    if (/^\*[^*]+/.test(state.src)) {
+      return false
+    }
     const delimiters: [string, string][] = [
       ['$$', '$$'],
       ['\\(', '\\)'],
@@ -245,16 +252,24 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
       const src = state.src
       let foundAny = false
       const pushText = (text: string) => {
+        // sanitize unexpected values
+        if (text === 'undefined' || text == null) {
+          text = ''
+        }
         if (!text)
           return
-        const strongMatch = text.match(/^(\*+)([^*]+)\*+/)
+        const strongMatch = text.match(/^(\*+)([^*]+)(\**)/)
         if (strongMatch) {
           const strongToken = state.push('strong_open', '', 0)
           strongToken.markup = strongMatch[1]
           const strongTextToken = state.push('text', '', 0)
-          strongTextToken.content = strongMatch[2]
+          // guard against unexpected undefined values
+          strongTextToken.content = strongMatch[2] == null ? '' : String(strongMatch[2])
           const strongCloseToken = state.push('strong_close', '', 0)
           strongCloseToken.markup = strongMatch[1]
+          state.pos = state.src.length
+          if (!strongMatch[3])
+            return
           text = text.slice(strongMatch[0].length)
           if (text) {
             const t = state.push('text', '', 0)
@@ -314,7 +329,7 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
             // break
           }
           else {
-            pushText(src.slice(preSearchPos, searchPos))
+            pushText(src.slice(preSearchPos))
           }
           break
         }
@@ -378,7 +393,9 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
             const textToken = state.push('strong_open', '', 0)
             textToken.markup = src.slice(0, index + 2)
             const textContentToken = state.push('text', '', 0)
-            textContentToken.content = src.slice(endIdx + close.length).replace(/\*+$/, '')
+            // sanitize slice result
+            const raw = src.slice(endIdx + close.length)
+            textContentToken.content = (raw == null ? '' : String(raw)).replace(/\*+$/, '')
             state.push('strong_close', '', 0)
             // since we've pushed the remainder as part of strong, we're done
             state.pos = src.length

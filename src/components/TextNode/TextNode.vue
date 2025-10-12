@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const props = defineProps<{
+defineProps<{
   node: {
     type: 'text'
     content: string
@@ -14,7 +14,7 @@ defineEmits(['copy'])
   <span
     class="whitespace-pre-wrap break-words text-node"
   >
-    {{ props.node.content }}
+    {{ node.content }}
   </span>
 </template>
 

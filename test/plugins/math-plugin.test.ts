@@ -20,7 +20,7 @@ describe('math plugin (inline & block)', () => {
     const content = `前文\n$$\nE=mc^2\n$$\n后文`
     const tokens = md.parse(content, {})
     const blocks = tokens.filter((t: any) => t.type === 'math_block')
-    expect(blocks.length).toBeGreaterThanOrEqual(1)
+    expect(blocks.length).toBe(1)
     expect(blocks[0].content).toContain('E=mc^2')
   })
 
@@ -37,19 +37,4 @@ describe('math plugin (inline & block)', () => {
     // Expect none (we may get tokens as text)
     expect(inline.length).toBeLessThanOrEqual(1)
   })
-
-  // it('parses multiple inline \(...\) maths in one line', () => {
-  //   const md = getMarkdown('t')
-  //   const content = '可以看作 \\(\\boldsymbol{\\beta}\\) 与 \\(W\\) 正交的一个特例（当 \\(W\\) 只由 \\(\\boldsymbol{\\alpha}\\) 张成时）。'
-  //   const tokens = md.parse(content, {})
-
-  //   const inline = tokens
-  //     .flatMap((t: any) => (t.children ? t.children : []))
-  //     .filter(
-  //       (c: any) => c && (c.type === 'vmr_math_inline' || c.type === 'math_inline'),
-  //     )
-
-  //   // Expect at least 3 inline maths in the sentence (\boldsymbol{\beta}, W, \alpha)
-  //   expect(inline.length).toBeGreaterThanOrEqual(3)
-  // })
 })

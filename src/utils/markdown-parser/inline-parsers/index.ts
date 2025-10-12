@@ -33,6 +33,53 @@ export function parseInlineTokens(tokens: MarkdownToken[]): ParsedNode[] {
     switch (token.type) {
       case 'text': {
         const content = token.content || ''
+        if (content === '[') {
+          i++
+          break
+        }
+        if (/^\*[^*]+/.test(content)) {
+          // 处理成 em parseEmphasisToken
+          currentTextNode = null // Reset current text node
+          // 将 text 包装成 emphasis token 进行处理
+          const { node } = parseEmphasisToken([
+            {
+              type: 'em_open',
+              tag: 'em',
+              attrs: null,
+              map: null,
+              children: null,
+              content: '',
+              markup: '*',
+              info: '',
+              meta: null,
+            },
+            {
+              type: 'text',
+              tag: '',
+              attrs: null,
+              map: null,
+              children: null,
+              content: content.replace(/^\*|\*$/g, ''),
+              markup: '',
+              info: '',
+              meta: null,
+            },
+            {
+              type: 'em_close',
+              tag: 'em',
+              attrs: null,
+              map: null,
+              children: null,
+              content: '',
+              markup: '*',
+              info: '',
+              meta: null,
+            },
+          ], 0)
+          result.push(node)
+          i++
+          break
+        }
         const imageStart = content.indexOf('![')
         if (imageStart !== -1) {
           const textNodeContent = content.slice(0, imageStart)
