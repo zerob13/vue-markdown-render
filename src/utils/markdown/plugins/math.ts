@@ -277,6 +277,9 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
           }
           return
         }
+        // if(state.pending === text)
+        if (state.pending)
+          return
         const t = state.push('text', '', 0)
         t.content = text
       }
