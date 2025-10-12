@@ -37,7 +37,26 @@ export function parseInlineTokens(tokens: MarkdownToken[]): ParsedNode[] {
           i++
           break
         }
-        if (/^\*[^*]+/.test(content)) {
+        if (/\*[^*]+/.test(content)) {
+          const index = content.indexOf('*') || 0
+          const _text = content.slice(0, index)
+          if (_text) {
+            if (currentTextNode) {
+              // Merge with the previous text node
+              currentTextNode.content += _text
+              currentTextNode.raw += _text
+            }
+            else {
+              // Start a new text node
+              currentTextNode = {
+                type: 'text',
+                content: _text || '',
+                raw: token.content || '',
+              }
+              result.push(currentTextNode)
+            }
+          }
+          const emphasisContent = content.slice(index)
           // 处理成 em parseEmphasisToken
           currentTextNode = null // Reset current text node
           // 将 text 包装成 emphasis token 进行处理
@@ -59,7 +78,7 @@ export function parseInlineTokens(tokens: MarkdownToken[]): ParsedNode[] {
               attrs: null,
               map: null,
               children: null,
-              content: content.replace(/^\*|\*$/g, ''),
+              content: emphasisContent.replace(/\*/g, ''),
               markup: '',
               info: '',
               meta: null,
@@ -123,11 +142,12 @@ export function parseInlineTokens(tokens: MarkdownToken[]): ParsedNode[] {
 
         if (currentTextNode) {
           // Merge with the previous text node
-          currentTextNode.content += textNode.content
+          currentTextNode.content += textNode.content.replace(/\*$/g, '')
           currentTextNode.raw += textNode.raw
         }
         else {
           // Start a new text node
+          textNode.content = textNode.content.replace(/\*+$/, '')
           currentTextNode = textNode
           result.push(currentTextNode)
         }
