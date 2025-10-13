@@ -22,7 +22,13 @@ export function parseMarkdownToStructure(
   md: MarkdownIt,
 ): ParsedNode[] {
   // Ensure markdown is a string — guard against null/undefined inputs from callers
-  const safeMarkdown = (markdown ?? '').toString().replace(/([^\\])\right/g, '$1\\right')
+  let safeMarkdown = (markdown ?? '').toString().replace(/([^\\])\right/g, '$1\\right')
+  if (safeMarkdown.endsWith('- *')) {
+    // 放置markdown 解析 - * 会被处理成多个 ul >li 嵌套列表
+    safeMarkdown = safeMarkdown.replace(/- \*$/, '- \\*')
+  }
+
+  safeMarkdown = safeMarkdown.replace(/\[([^\]]*)$/, '\\[$1')
 
   // Get tokens from markdown-it
   const tokens = md.parse(safeMarkdown, {}) as MarkdownToken[]

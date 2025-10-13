@@ -32,7 +32,7 @@ export function parseDefinitionList(
           const contentToken = tokens[k + 1]
           definitionNodes.push({
             type: 'paragraph',
-            children: parseInlineTokens(contentToken.children || []),
+            children: parseInlineTokens(contentToken.children || [], contentToken.content || ''),
             raw: contentToken.content || '',
           })
           k += 3 // Skip paragraph_open, inline, paragraph_close

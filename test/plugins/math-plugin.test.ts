@@ -8,6 +8,7 @@ describe('math plugin (inline & block)', () => {
     const html = md.render(content)
 
     // Should render math inline - either our inline wrapper or MathJax output or raw content
+    console.log({ html })
     const ok
       = html.includes('vmr-math-inline')
         || html.includes('MathJax')
@@ -36,5 +37,33 @@ describe('math plugin (inline & block)', () => {
       )
     // Expect none (we may get tokens as text)
     expect(inline.length).toBeLessThanOrEqual(1)
+  })
+
+  it('parses inline math in content', () => {
+    const md = getMarkdown('t')
+    const content = '- **二项式展开**（\(\(m\) 为实数）：'
+    const tokens = md.parse(content, {})
+    const inline = tokens.filter(token => token.type === 'inline')[0]
+    expect(inline.content).toBe('**二项式展开**（((m) 为实数）：')
+    expect(inline.children.slice(-1)[0].content).toMatchInlineSnapshot(`"（((m) 为实数）："`)
+  })
+
+  it('parses list_item', () => {
+    const md = getMarkdown('t')
+    const content = '- \\*'
+    const tokens = md.parse(content, {})
+    console.log({ tokens })
+    const types = tokens.map(t => t.type)
+    expect(types).toMatchInlineSnapshot(`
+      [
+        "bullet_list_open",
+        "list_item_open",
+        "paragraph_open",
+        "inline",
+        "paragraph_close",
+        "list_item_close",
+        "bullet_list_close",
+      ]
+    `)
   })
 })

@@ -28,27 +28,5 @@ export function getMarkdown(opts: GetMarkdownOptions = {}) {
     applyContainers(md)
   applyRenderRules(md)
 
-  // Sanitize any inline child tokens created by plugins that accidentally
-  // insert the string 'undefined' as content. This is defensive and keeps
-  // downstream parsers stable when a plugin mis-assigns token.content.
-  md.core.ruler.after('inline', 'sanitize_undefined_text', (state: any) => {
-    if (!state || !Array.isArray(state.tokens))
-      return
-    for (const token of state.tokens) {
-      if (token && token.type === 'inline' && Array.isArray(token.children)) {
-        const filtered: any[] = []
-        for (const c of token.children) {
-          if (!c)
-            continue
-          if (c.type === 'text' && (c.content === 'undefined' || c.content == null)) {
-            continue
-          }
-          filtered.push(c)
-        }
-        token.children = filtered
-      }
-    }
-  })
-
   return md
 }

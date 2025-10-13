@@ -4,6 +4,7 @@ import { parseInlineTokens } from '../index'
 export function parseStrongToken(
   tokens: MarkdownToken[],
   startIndex: number,
+  raw?: string,
 ): {
   node: StrongNode
   nextIndex: number
@@ -21,7 +22,7 @@ export function parseStrongToken(
   }
 
   // Parse inner tokens to handle nested elements
-  children.push(...parseInlineTokens(innerTokens))
+  children.push(...parseInlineTokens(innerTokens, raw))
 
   const node: StrongNode = {
     type: 'strong',

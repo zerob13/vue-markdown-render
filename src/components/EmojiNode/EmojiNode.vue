@@ -2,14 +2,15 @@
 defineProps<{
   node: {
     type: 'emoji'
-    emoji: string
+    name: string
+    markup: string
     raw: string
   }
 }>()
 </script>
 
 <template>
-  <span class="emoji-node">{{ node.emoji }}</span>
+  <span class="emoji-node">{{ node.name }}</span>
 </template>
 
 <style scoped>

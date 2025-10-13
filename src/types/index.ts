@@ -194,6 +194,7 @@ export interface CheckboxInputNode extends BaseNode {
 export interface EmojiNode extends BaseNode {
   type: 'emoji'
   name: string
+  markup: string
 }
 
 export interface HardBreakNode extends BaseNode {

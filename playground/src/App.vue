@@ -26,29 +26,7 @@ useInterval(16, {
     const cur = content.value.length
     if (cur >= streamContent.length)
       return
-
     const nextChar = streamContent.charAt(cur)
-
-    // If the next char is a colon, scan ahead for the first non-colon.
-    // If the scan reaches the end of the source, do not append yet —
-    // wait for more characters to arrive. Otherwise append the whole
-    // run of colons plus the following non-colon in one go.
-    if (nextChar === ':') {
-      let j = cur
-      while (j < streamContent.length && streamContent.charAt(j) === ':') {
-        j++
-      }
-
-      // Still only colons available (no following non-colon yet): defer.
-      if (j === streamContent.length) {
-        return
-      }
-
-      // Append the run of colons and the following non-colon together.
-      content.value += streamContent.slice(cur, j + 1)
-      return
-    }
-
     // Normal single-character append for non-colon characters.
     content.value += nextChar
   },
@@ -529,7 +507,7 @@ watch(content, () => {
             </div>
             <div>
               <h1 class="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                Vue Markdown Renderer
+                vue-renderer-markdown
               </h1>
               <p class="text-xs text-gray-500 dark:text-gray-400">
                 Streaming markdown demo

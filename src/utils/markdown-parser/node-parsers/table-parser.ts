@@ -43,7 +43,7 @@ export function parseTable(
           cells.push({
             type: 'table_cell',
             header: isHeaderCell || isHeader,
-            children: parseInlineTokens(contentToken.children || []),
+            children: parseInlineTokens(contentToken.children || [], content),
             raw: content,
           })
 

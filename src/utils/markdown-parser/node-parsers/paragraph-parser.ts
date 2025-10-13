@@ -10,7 +10,7 @@ export function parseParagraph(
 
   return {
     type: 'paragraph',
-    children: parseInlineTokens(paragraphContentToken.children || []),
+    children: parseInlineTokens(paragraphContentToken.children || [], paragraphContent),
     raw: paragraphContent,
   }
 }

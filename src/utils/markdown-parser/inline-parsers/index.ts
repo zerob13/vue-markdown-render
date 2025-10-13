@@ -19,7 +19,7 @@ import { parseSuperscriptToken } from './superscript-parser'
 import { parseTextToken } from './text-parser'
 
 // Process inline tokens (for text inside paragraphs, headings, etc.)
-export function parseInlineTokens(tokens: MarkdownToken[]): ParsedNode[] {
+export function parseInlineTokens(tokens: MarkdownToken[], raw?: string): ParsedNode[] {
   if (!tokens || tokens.length === 0)
     return []
 
@@ -27,6 +27,7 @@ export function parseInlineTokens(tokens: MarkdownToken[]): ParsedNode[] {
   let currentTextNode: TextNode | null = null
 
   let i = 0
+  tokens = fixedTokens(tokens)
 
   while (i < tokens.length) {
     const token = tokens[i]
@@ -37,7 +38,134 @@ export function parseInlineTokens(tokens: MarkdownToken[]): ParsedNode[] {
           i++
           break
         }
-        if (/\*[^*]+/.test(content)) {
+        if (/[^~]*~+[^~]+/.test(content)) {
+          // 处理成 parseStrikethroughToken
+          const index = content.indexOf('~') || 0
+          const _text = content.slice(0, index)
+          if (_text) {
+            if (currentTextNode) {
+              // Merge with the previous text node
+              currentTextNode.content += _text
+              currentTextNode.raw += _text
+            }
+            else {
+              // Start a new text node
+              currentTextNode = {
+                type: 'text',
+                content: _text || '',
+                raw: token.content || '',
+              }
+              result.push(currentTextNode)
+            }
+          }
+          const strikethroughContent = content.slice(index)
+          // 处理成 strikethrough parseStrikethroughToken
+          currentTextNode = null // Reset current text node
+          // 如果 * 是一个用 parseStrikethroughToken， 否则应该用 parseStrongToken
+          // 将 text 包装成 strikethrough token 进行处理
+          const { node } = parseStrikethroughToken([
+            {
+              type: 's_open',
+              tag: 's',
+              attrs: null,
+              map: null,
+              children: null,
+              content: '',
+              markup: '*',
+              info: '',
+              meta: null,
+            },
+            {
+              type: 'text',
+              tag: '',
+              attrs: null,
+              map: null,
+              children: null,
+              content: strikethroughContent.replace(/~/g, ''),
+              markup: '',
+              info: '',
+              meta: null,
+            },
+            {
+              type: 's_close',
+              tag: 's',
+              attrs: null,
+              map: null,
+              children: null,
+              content: '',
+              markup: '*',
+              info: '',
+              meta: null,
+            },
+          ], 0)
+          result.push(node)
+          i++
+          break
+        }
+        if (/[^*]*\*\*[^*]+/.test(content)) {
+          const index = content.indexOf('*') || 0
+          const _text = content.slice(0, index)
+          if (_text) {
+            if (currentTextNode) {
+              // Merge with the previous text node
+              currentTextNode.content += _text
+              currentTextNode.raw += _text
+            }
+            else {
+              // Start a new text node
+              currentTextNode = {
+                type: 'text',
+                content: _text || '',
+                raw: token.content || '',
+              }
+              result.push(currentTextNode)
+            }
+          }
+          const strongContent = content.slice(index)
+          // 处理成 em parseEmphasisToken
+          currentTextNode = null // Reset current text node
+          // 如果 * 是一个用 parseEmphasisToken， 否则应该用 parseStrongToken
+          // 将 text 包装成 emphasis token 进行处理
+          const { node } = parseStrongToken([
+            {
+              type: 'strong_open',
+              tag: 'strong',
+              attrs: null,
+              map: null,
+              children: null,
+              content: '',
+              markup: '*',
+              info: '',
+              meta: null,
+            },
+            {
+              type: 'text',
+              tag: '',
+              attrs: null,
+              map: null,
+              children: null,
+              content: strongContent.replace(/\*/g, ''),
+              markup: '',
+              info: '',
+              meta: null,
+            },
+            {
+              type: 'strong_close',
+              tag: 'strong',
+              attrs: null,
+              map: null,
+              children: null,
+              content: '',
+              markup: '*',
+              info: '',
+              meta: null,
+            },
+          ], 0, raw)
+          result.push(node)
+          i++
+          break
+        }
+        else if (/[^*]*\*[^*]+/.test(content)) {
           const index = content.indexOf('*') || 0
           const _text = content.slice(0, index)
           if (_text) {
@@ -59,6 +187,7 @@ export function parseInlineTokens(tokens: MarkdownToken[]): ParsedNode[] {
           const emphasisContent = content.slice(index)
           // 处理成 em parseEmphasisToken
           currentTextNode = null // Reset current text node
+          // 如果 * 是一个用 parseEmphasisToken， 否则应该用 parseStrongToken
           // 将 text 包装成 emphasis token 进行处理
           const { node } = parseEmphasisToken([
             {
@@ -119,7 +248,11 @@ export function parseInlineTokens(tokens: MarkdownToken[]): ParsedNode[] {
           break
         }
         const linkStart = content.indexOf('[')
+        if (token.content.endsWith('undefined') && !raw.endsWith('undefined')) {
+          token.content = token.content.slice(0, -9)
+        }
         const textNode = parseTextToken(token)
+
         if (linkStart !== -1) {
           const textNodeContent = content.slice(0, linkStart)
           const linkEnd = content.indexOf('](', linkStart)
@@ -139,15 +272,14 @@ export function parseInlineTokens(tokens: MarkdownToken[]): ParsedNode[] {
             break
           }
         }
-
         if (currentTextNode) {
           // Merge with the previous text node
-          currentTextNode.content += textNode.content.replace(/\*$/g, '')
+          currentTextNode.content += textNode.content.replace(/(\*+|\()$/, '')
           currentTextNode.raw += textNode.raw
         }
         else {
           // Start a new text node
-          textNode.content = textNode.content.replace(/\*+$/, '')
+          textNode.content = textNode.content.replace(/(\*+|\()$/, '')
           currentTextNode = textNode
           result.push(currentTextNode)
         }
@@ -192,7 +324,7 @@ export function parseInlineTokens(tokens: MarkdownToken[]): ParsedNode[] {
 
       case 'strong_open': {
         currentTextNode = null // Reset current text node
-        const { node, nextIndex } = parseStrongToken(tokens, i)
+        const { node, nextIndex } = parseStrongToken(tokens, i, token.content)
         result.push(node)
         i = nextIndex
         break
@@ -355,4 +487,59 @@ export function parseInlineTokens(tokens: MarkdownToken[]): ParsedNode[] {
   }
 
   return result
+}
+
+export function fixedTokens(tokens: MarkdownToken[]): MarkdownToken[] {
+  const fixedTokens = tokens
+  if (tokens.length < 3)
+    return fixedTokens
+  for (let i = 0; i < tokens.length - 2; i++) {
+    const token = tokens[i]
+    const nextToken = tokens[i + 1]
+    if (token.type === 'text' && token.content.endsWith('*') && nextToken.type === 'em_open') {
+      // 解析有问题，要合并 emphasis 和 前面的 * 为 strong
+      const _nextToken = tokens[i + 2]
+      const count = _nextToken?.type === 'text' ? 3 : 2
+      const insert = [
+        {
+          type: 'strong_open',
+          tag: 'strong',
+          attrs: null,
+          map: null,
+          children: null,
+          content: '',
+          markup: '**',
+          info: '',
+          meta: null,
+        },
+        {
+          type: 'text',
+          content: _nextToken?.type === 'text' ? _nextToken.content : '',
+        },
+        {
+          type: 'strong_close',
+          tag: 'strong',
+          attrs: null,
+          map: null,
+          children: null,
+          content: '',
+          markup: '**',
+          info: '',
+          meta: null,
+        },
+      ] as any
+      const beforeText = token.content.slice(0, -1)
+      if (beforeText) {
+        insert.unshift({
+          type: 'text',
+          content: beforeText,
+          raw: beforeText,
+        })
+      }
+      fixedTokens.splice(i, count, ...insert)
+      return fixedTokens
+    }
+  }
+
+  return fixedTokens
 }
