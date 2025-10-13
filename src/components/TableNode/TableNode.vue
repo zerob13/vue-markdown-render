@@ -31,6 +31,7 @@ interface TableNode {
 // 接收props
 const { node } = defineProps<{
   node: TableNode
+  indexKey: string | number
 }>()
 
 // 定义事件
@@ -64,6 +65,7 @@ const colWidths = computed(() => {
         >
           <NodeRenderer
             :nodes="cell.children"
+            :index-key="`table-th-${indexKey}`"
             @copy="$emit('copy', $event)"
           />
         </th>
@@ -89,6 +91,7 @@ const colWidths = computed(() => {
         >
           <NodeRenderer
             :nodes="cell.children"
+            :index-key="`table-td-${indexKey}`"
             @copy="$emit('copy', $event)"
           />
         </td>

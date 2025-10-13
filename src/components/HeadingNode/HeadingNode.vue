@@ -34,6 +34,7 @@ const props = defineProps<{
     raw: string
   }
   customId?: string
+  indexKey?: number | string
 }>()
 
 const nodeComponents = {
@@ -70,9 +71,10 @@ const nodeComponents = {
     <component
       :is="nodeComponents[child.type]"
       v-for="(child, index) in node.children"
-      :key="index"
+      :key="`${indexKey || 'heading'}-${index}`"
       :custom-id="props.customId"
       :node="child"
+      :index-key="`${indexKey || 'heading'}-${index}`"
     />
   </component>
 </template>

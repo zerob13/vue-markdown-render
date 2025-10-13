@@ -59,6 +59,7 @@ const props = defineProps<
     themes?: MonacoTheme[]
     isDark?: boolean
     customId?: string
+    indexKey?: number | string
   }
   | {
     content?: undefined
@@ -77,6 +78,7 @@ const props = defineProps<
     themes?: MonacoTheme[]
     isDark?: boolean
     customId?: string
+    indexKey?: number | string
   }
 >()
 
@@ -194,6 +196,7 @@ function getBindingsFor(node: BaseNode) {
             :is="getNodeComponent(node)"
             :node="node"
             :loading="node.loading"
+            :index-key="`${indexKey || 'markdown-renderer'}-${index}`"
             v-bind="getBindingsFor(node)"
             :custom-id="props.customId"
             :is-dark="props.isDark"
@@ -210,6 +213,7 @@ function getBindingsFor(node: BaseNode) {
           v-else
           :node="node"
           :loading="node.loading"
+          :index-key="`${indexKey || 'markdown-renderer'}-${index}`"
           v-bind="getBindingsFor(node)"
           :custom-id="props.customId"
           :is-dark="props.isDark"

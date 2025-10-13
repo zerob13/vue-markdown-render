@@ -18,6 +18,7 @@ interface BlockquoteNode {
 
 defineProps<{
   node: BlockquoteNode
+  indexKey: string | number
 }>()
 
 // typed emit for better DX and type-safety when forwarding copy events
@@ -28,7 +29,7 @@ defineEmits<{
 
 <template>
   <blockquote class="blockquote" dir="auto" :cite="node.cite">
-    <NodeRenderer :nodes="node.children || []" @copy="$emit('copy', $event)" />
+    <NodeRenderer :index-key="`blockquote-${indexKey}`" :nodes="node.children || []" @copy="$emit('copy', $event)" />
   </blockquote>
 </template>
 

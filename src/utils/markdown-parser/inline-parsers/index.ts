@@ -410,12 +410,24 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string): Parsed
         i++
         break
 
-      case 'emoji':
+      case 'emoji': {
         currentTextNode = null // Reset current text node
-        result.push(parseEmojiToken(token))
+
+        const preToken = tokens[i - 1]
+        if (preToken?.type === 'text' && /\|:-+/.test(preToken.content)) {
+          // 处理表格中的 emoji，跳过
+          result.push({
+            type: 'text',
+            content: '',
+            raw: '',
+          })
+        }
+        else {
+          result.push(parseEmojiToken(token))
+        }
         i++
         break
-
+      }
       case 'checkbox':
         currentTextNode = null // Reset current text node
         result.push(parseCheckboxToken(token))

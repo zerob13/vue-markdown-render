@@ -17,6 +17,7 @@ interface ListItem {
 
 defineProps<{
   item: ListItem
+  indexKey?: number | string
 }>()
 
 defineEmits<{
@@ -26,7 +27,7 @@ defineEmits<{
 
 <template>
   <li class="list-item pl-1.5 my-2" dir="auto">
-    <NodeRenderer :nodes="item.children" @copy="$emit('copy', $event)" />
+    <NodeRenderer :index-key="`list-item-${indexKey}`" :nodes="item.children" @copy="$emit('copy', $event)" />
   </li>
 </template>
 

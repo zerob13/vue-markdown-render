@@ -27,6 +27,7 @@ const props = defineProps<{
     raw: string
   }
   customId?: string
+  indexKey?: number | string
 }>()
 
 // Available node components for child rendering
@@ -54,7 +55,8 @@ const nodeComponents = {
     <component
       :is="nodeComponents[child.type]"
       v-for="(child, index) in node.children"
-      :key="index"
+      :key="`${indexKey || 'strong'}-${index}`"
+      :index-key="`${indexKey || 'strong'}-${index}`"
       :node="child"
       :custom-id="props.customId"
     />

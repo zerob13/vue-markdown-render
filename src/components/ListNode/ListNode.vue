@@ -23,6 +23,8 @@ const { node } = defineProps<{
     items: ListItem[]
     raw: string
   }
+  customId?: string
+  indexKey?: number | string
 }>()
 
 defineEmits(['copy'])
@@ -36,8 +38,10 @@ defineEmits(['copy'])
   >
     <ListItemNode
       v-for="(item, index) in node.items"
-      :key="index"
+      :key="`${indexKey || 'list'}-${index}`"
       :item="item"
+      :custom-id="customId"
+      :index-key="`${indexKey || 'list'}-${index}`"
       :value="node.ordered ? (node.start ?? 1) + index : undefined"
       @copy="$emit('copy', $event)"
     />

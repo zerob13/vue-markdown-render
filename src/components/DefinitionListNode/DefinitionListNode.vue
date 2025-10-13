@@ -19,6 +19,7 @@ interface DefinitionListNode {
 // 接收props
 defineProps<{
   node: DefinitionListNode
+  indexKey: string | number
 }>()
 
 // 定义事件
@@ -29,10 +30,10 @@ defineEmits(['copy'])
   <dl class="definition-list">
     <template v-for="(item, index) in node.items" :key="index">
       <dt class="definition-term">
-        <NodeRenderer :nodes="item.term" @copy="$emit('copy', $event)" />
+        <NodeRenderer :index-key="`definition-term-${indexKey}-${index}`" :nodes="item.term" @copy="$emit('copy', $event)" />
       </dt>
       <dd class="definition-desc">
-        <NodeRenderer :nodes="item.definition" @copy="$emit('copy', $event)" />
+        <NodeRenderer :index-key="`definition-desc-${indexKey}-${index}`" :nodes="item.definition" @copy="$emit('copy', $event)" />
       </dd>
     </template>
   </dl>

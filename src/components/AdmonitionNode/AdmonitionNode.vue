@@ -18,7 +18,7 @@ interface AdmonitionNode {
 }
 
 // 接收 props（并在 script 中使用）
-const props = defineProps<{ node: AdmonitionNode }>()
+const props = defineProps<{ node: AdmonitionNode, indexKey: number | string }>()
 // 定义事件
 const emit = defineEmits(['copy'])
 
@@ -80,7 +80,7 @@ const headerId = `admonition-${Math.random().toString(36).slice(2, 9)}`
       class="admonition-content"
       :aria-labelledby="headerId"
     >
-      <NodeRenderer :nodes="props.node.children" @copy="emit('copy', $event)" />
+      <NodeRenderer :index-key="`admonition-${indexKey}`" :nodes="props.node.children" @copy="emit('copy', $event)" />
     </div>
   </div>
 </template>
