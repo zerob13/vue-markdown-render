@@ -179,6 +179,9 @@ export function isMathLike(s: string) {
   const funcCall = FUNC_CALL_RE.test(norm)
   // common math words
   const words = WORDS_RE.test(norm)
+  // 纯单个英文字命，也渲染成数学公式
+  // e.g. (w) (x) (y) (z)
+  // const pureWord = /^\([a-zA-Z]\)$/i.test(stripped)
 
   return texCmd || texCmdWithBraces || texBraceStart || texSpecific || superSub || ops || funcCall || words
 }
@@ -245,21 +248,31 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
       ['\(', '\)'],
     ]
     let searchPos = 0
-    let jump = true
     let preMathPos = 0
     // use findMatchingClose from util
     for (const [open, close] of delimiters) {
       // We'll scan the entire inline source and tokenize all occurrences
       const src = state.src
       let foundAny = false
-      const pushText = (text: string, force = false) => {
-        if (!force && (state.pending || (state.pos + close.length >= state.posMax))) {
-          return
-        }
+      const pushText = (text: string) => {
         // sanitize unexpected values
         if (text === 'undefined' || text == null) {
           text = ''
         }
+        if (text === '\\') {
+          state.pos = state.pos + text.length
+          searchPos = state.pos
+          return
+        }
+        if (text === '\\)' || text === '\\(') {
+          const t = state.push('text_special', '', 0)
+          t.content = text === '\\)' ? ')' : '('
+          t.markup = text
+          state.pos = state.pos + text.length
+          searchPos = state.pos
+          return
+        }
+
         if (!text)
           return
         const strongMatch = text.match(/^(\*+)([^*]+)(\**)/)
@@ -313,21 +326,18 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
         // endIndex 需要找到与 open 对应的 close
         // 不能简单地用 indexOf 找到第一个 close — 需要处理嵌套与转义字符
         const endIdx = findMatchingClose(src, index + open.length, open, close)
-
         if (endIdx === -1) {
-          // loading 状态的 math，没有找到匹配的结尾
-          const preSearchPos = searchPos
           // no matching close for this opener; skip forward
-          searchPos = index + open.length
-          const content = src.slice(searchPos)
+          const content = src.slice(index + open.length)
           if (isMathLike(content)) {
+            searchPos = index + open.length
             foundAny = true
             if (!silent) {
               state.pending = ''
               if (preMathPos)
-                pushText(src.slice(preMathPos, searchPos), true)
+                pushText(src.slice(preMathPos, searchPos))
               else
-                pushText(src.slice(0, searchPos), true)
+                pushText(src.slice(0, searchPos))
               const token = state.push('math_inline', 'math', 0)
               token.content = normalizeStandaloneBackslashT(content, mathOpts)
               token.markup = open === '$$' ? '$$' : open === '\\(' ? '\\(\\)' : open === '$' ? '$' : '()'
@@ -337,10 +347,6 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
             }
             searchPos = src.length
             preMathPos = searchPos
-            // break
-          }
-          else {
-            pushText(src.slice(preSearchPos))
           }
           break
         }
@@ -348,21 +354,15 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
         if (!isMathLike(content)) {
           // push remaining text after last match
           // not math-like; skip this match and continue scanning
-          const temp = searchPos
           searchPos = endIdx + close.length
-          if (!src.includes(open, endIdx + close.length)) {
-            const text = src.slice(temp, searchPos)
-            if (!state.pending && state.pos + open.length < searchPos)
-              pushText(text)
-            if (jump)
-              return false
-          }
+          const text = src.slice(state.pos, searchPos)
+          if (!state.pending)
+            pushText(text)
           continue
         }
         foundAny = true
 
         if (!silent) {
-          jump = false
           // push text before this math
           const before = src.slice(0, index)
           // If we already consumed some content, avoid duplicating the prefix
@@ -393,7 +393,7 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
           // strong prefix handling (preserve previous behavior)
           if (state.pending !== toPushBefore) {
             state.pending = ''
-            pushText(isStrongPrefix ? toPushBefore.replace(/^\*+/, '') : toPushBefore, true)
+            pushText(isStrongPrefix ? toPushBefore.replace(/^\*+/, '') : toPushBefore)
           }
           const token = state.push('math_inline', 'math', 0)
           token.content = normalizeStandaloneBackslashT(content, mathOpts)
@@ -426,7 +426,7 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
         if (!silent) {
           // push remaining text after last match
           if (searchPos < src.length)
-            pushText(src.slice(searchPos), true)
+            pushText(src.slice(searchPos))
           // consume the full inline source
           state.pos = src.length
         }

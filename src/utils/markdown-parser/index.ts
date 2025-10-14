@@ -28,8 +28,6 @@ export function parseMarkdownToStructure(
     safeMarkdown = safeMarkdown.replace(/- \*$/, '- \\*')
   }
 
-  safeMarkdown = safeMarkdown.replace(/\[([^\]]*)$/, '\\[$1')
-
   // Get tokens from markdown-it
   const tokens = md.parse(safeMarkdown, {}) as MarkdownToken[]
   // Defensive: ensure tokens is an array

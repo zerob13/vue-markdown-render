@@ -292,13 +292,13 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string): Parsed
         const maybeMath = preToken?.tag === 'br' && tokens[i - 2]?.content === '['
         if (currentTextNode) {
           // Merge with the previous text node
-          currentTextNode.content += textNode.content.replace(/(\*+|\()$/, '')
+          currentTextNode.content += textNode.content.replace(/(\*+|\(|\\)$/, '')
           currentTextNode.raw += textNode.raw
           currentTextNode.center = maybeMath
         }
         else {
           // Start a new text node
-          textNode.content = textNode.content.replace(/(\*+|\()$/, '')
+          textNode.content = textNode.content.replace(/(\*+|\(|\\)$/, '')
           currentTextNode = textNode
           currentTextNode.center = maybeMath
           result.push(currentTextNode)
@@ -480,24 +480,6 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string): Parsed
 
       case 'math_inline': {
         currentTextNode = null // Reset current text node
-        // inline math 可能前面 text 包含了属于 math 的部分，需要移除
-        const pre = result.length > 0 ? result[result.length - 1] : null
-        if (pre?.type === 'text' && pre.content) {
-          // pre.content 中可能是 (xxx 部分 或者 [xxx 部分，或者其他
-          const lastOpenParen = Math.max(pre.content.lastIndexOf('('), pre.content.lastIndexOf('['), pre.content.lastIndexOf('{'))
-          if (lastOpenParen !== -1) {
-            // Only trim trailing opening parens that directly precede the math
-            // opener. Avoid removing internal parentheses in the prior text.
-            const fixedText = pre.content.slice(0, lastOpenParen).replace(/\(+$/g, '')
-            if (fixedText) {
-              pre.content = fixedText
-              pre.raw = fixedText
-            }
-            else {
-              result.pop()
-            }
-          }
-        }
         result.push(parseMathInlineToken(token))
         i++
         break
