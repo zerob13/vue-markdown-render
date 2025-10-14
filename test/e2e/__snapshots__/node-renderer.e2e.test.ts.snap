@@ -1,0 +1,522 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`MarkdownRender node e2e coverage > renders admonition node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <div data-v-c8910e11="" data-v-8dfe8a80="" class="admonition admonition-stable" is-dark="false">
+        <div data-v-c8910e11="" id="admonition-stable" class="admonition-stable"><span data-v-c8910e11="" class="admonition-stable">⚠️</span><span data-v-c8910e11="" class="admonition-stable">Warning</span><!-- 可选的折叠控制（放在 header 末端） -->
+          <!--v-if-->
+        </div>
+        <div data-v-c8910e11="" id="admonition-stable-content" class="admonition-stable" aria-labelledby="admonition-stable">
+          <div data-v-8dfe8a80="" data-v-c8910e11="" class="markdown-renderer">
+            <div data-v-8dfe8a80="">
+              <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+              <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+                <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="admonition-stable-renderer-0-0-0">Admonition content</span></p>
+              </transition-stub>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition-stub>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders blockquote node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <blockquote data-v-8ae59609="" data-v-8dfe8a80="" class="blockquote" dir="auto" is-dark="false">
+        <div data-v-8dfe8a80="" data-v-8ae59609="" class="markdown-renderer">
+          <div data-v-8dfe8a80="">
+            <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+            <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+              <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="blockquote-markdown-renderer-0-0-0">Blockquote rendered content.</span></p>
+            </transition-stub>
+          </div>
+        </div>
+      </blockquote>
+    </transition-stub>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders checkbox nodes 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <ul data-v-b195669a="" data-v-8dfe8a80="" class="list-node list-disc" is-dark="false">
+        <li data-v-d94d2511="" data-v-b195669a="" class="list-item pl-1.5 my-2" dir="auto">
+          <div data-v-8dfe8a80="" data-v-d94d2511="" class="markdown-renderer">
+            <div data-v-8dfe8a80="">
+              <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+              <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+                <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-31e4c290="" data-v-93ee5c2d="" class="checkbox-node" index-key="list-item-markdown-renderer-0-0-0-0"><input data-v-31e4c290="" type="checkbox" checked="" disabled="" class="checkbox-input"></span><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="list-item-markdown-renderer-0-0-0-1"> Completed task</span></p>
+              </transition-stub>
+            </div>
+          </div>
+        </li>
+        <li data-v-d94d2511="" data-v-b195669a="" class="list-item pl-1.5 my-2" dir="auto">
+          <div data-v-8dfe8a80="" data-v-d94d2511="" class="markdown-renderer">
+            <div data-v-8dfe8a80="">
+              <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+              <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+                <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-31e4c290="" data-v-93ee5c2d="" class="checkbox-node" index-key="list-item-markdown-renderer-0-1-0-0"><input data-v-31e4c290="" type="checkbox" disabled="" class="checkbox-input"></span><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="list-item-markdown-renderer-0-1-0-1"> Pending task</span></p>
+              </transition-stub>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </transition-stub>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders code block node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals --><pre data-v-8dfe8a80="" class="language-ts" loading="false" index-key="markdown-renderer-0" is-dark="false"><code>export const sum = (a: number, b: number) =&gt; a + b
+</code></pre>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders definition list node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <dl data-v-084c0831="" data-v-8dfe8a80="" class="definition-list" is-dark="false">
+        <dt data-v-084c0831="" class="definition-term">
+          <div data-v-8dfe8a80="" data-v-084c0831="" class="markdown-renderer">
+            <div data-v-8dfe8a80="">
+              <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+              <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true"><span data-v-a84b8095="" data-v-8dfe8a80="" class="whitespace-pre-wrap break-words text-node" index-key="definition-term-markdown-renderer-0-0-0" is-dark="false">Term</span></transition-stub>
+            </div>
+          </div>
+        </dt>
+        <dd data-v-084c0831="" class="definition-desc">
+          <div data-v-8dfe8a80="" data-v-084c0831="" class="markdown-renderer">
+            <div data-v-8dfe8a80="">
+              <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+              <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+                <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="definition-desc-markdown-renderer-0-0-0-0">Definition details</span></p>
+              </transition-stub>
+            </div>
+          </div>
+        </dd>
+      </dl>
+    </transition-stub>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders emoji node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-0">Smile with </span><span data-v-b001e831="" data-v-93ee5c2d="" class="emoji-node" index-key="markdown-renderer-0-1">😄</span><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-2"> emoji.</span></p>
+    </transition-stub>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders emphasis node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-0">This is </span><em data-v-ca49685e="" data-v-93ee5c2d="" class="emphasis-node"><span data-v-a84b8095="" data-v-ca49685e="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-1-0">italic text</span></em><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-2">.</span></p>
+    </transition-stub>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders footnote nodes 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-0">A footnote reference</span>
+        <!----><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-2">.</span>
+      </p>
+    </transition-stub><!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <div data-v-8dfe8a80="" id="footnote-1" class="flex mt-2 mb-2 text-sm leading-relaxed border-t border-[#eaecef] pt-2" is-dark="false"><span class="font-semibold mr-2 text-[#0366d6]">[1]</span>
+        <div class="flex-1">
+          <div data-v-8dfe8a80="" class="markdown-renderer">
+            <div data-v-8dfe8a80="">
+              <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+              <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+                <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="footnote-markdown-renderer-1-0-0">Footnote explanation</span></p>
+              </transition-stub>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition-stub>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders footnote reference node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true"><sup data-v-ba0412bc="" data-v-8dfe8a80="" class="footnote-reference" index-key="markdown-renderer-0" is-dark="false"><span data-v-ba0412bc="" href="#footnote-1" title="查看脚注 1" class="footnote-link cursor-pointer">[1]</span></sup></transition-stub>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders hardbreak node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-0">Line one</span><br data-v-2587360c="" data-v-93ee5c2d="" class="hard-break" index-key="markdown-renderer-0-1"><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-2">Line two</span></p>
+    </transition-stub>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders heading node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <h1 data-v-9f883140="" data-v-8dfe8a80="" class="heading-node heading-1" dir="auto" is-dark="false"><span data-v-a84b8095="" data-v-9f883140="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-0">Heading Node Title</span></h1>
+    </transition-stub>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders highlight node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-0">Use </span><mark data-v-9bc40b1b="" data-v-93ee5c2d="" class="highlight-node"><span data-v-a84b8095="" data-v-9bc40b1b="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-1-0">highlighted text</span></mark><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-2"> for emphasis.</span></p>
+    </transition-stub>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders image node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false">
+      <figure data-v-4ff2ac62="" data-v-93ee5c2d="" class="text-center my-8" index-key="markdown-renderer-0-0">
+        <div data-v-4ff2ac62="" class="relative inline-block">
+          <!-- 包裹条件渲染元素，启用 out-in 模式以在替换时做平滑过渡 -->
+          <transition-stub data-v-4ff2ac62="" name="img-switch" mode="out-in" appear="false" persisted="false" css="true"><img data-v-4ff2ac62="" src="https://example.com/vue.png" alt="Vue Logo" title="Vue Logo" class="max-w-96 h-auto rounded-lg transition-opacity duration-200 ease-in-out opacity-0" loading="lazy" decoding="async"></transition-stub>
+        </div>
+        <!--v-if-->
+      </figure>
+      </p>
+    </transition-stub>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders inline code node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-0">Here is </span><code data-v-93ee5c2d="" class="inline-block px-1 py-0.5 rounded text-xs font-mono bg-secondary before:content-[''] after:content-['']" index-key="markdown-renderer-0-1">const answer = 42</code><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-2"> inline.</span></p>
+    </transition-stub>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders insert node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-0">Here comes </span><ins data-v-1e673445="" data-v-93ee5c2d="" class="insert-node"><span data-v-a84b8095="" data-v-1e673445="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-1-0">inserted text</span></ins><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-2"> in the paragraph.</span></p>
+    </transition-stub>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders link node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-0">Visit </span><a data-v-994bfd08="" data-v-93ee5c2d="" class="link-node" href="https://vuejs.org" title="" aria-hidden="false" target="_blank" rel="noopener noreferrer" index-key="markdown-renderer-0-1" style="--link-color: #0366d6; --underline-height: 2px; --underline-bottom: -3px; --underline-opacity: 0.9; --underline-duration: 0.8s; --underline-timing: linear; --underline-iteration: infinite;">Vue</a><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-2"> now.</span></p>
+    </transition-stub>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders math block node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <div data-v-8dfe8a80="" class="math-block text-center overflow-x-auto" loading="false" index-key="markdown-renderer-0" is-dark="false"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msup><mi>a</mi><mn>2</mn></msup><mo>+</mo><msup><mi>b</mi><mn>2</mn></msup><mo>=</mo><msup><mi>c</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">
+a^2 + b^2 = c^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9474em;vertical-align:-0.0833em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8641em;"></span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8641em;"></span><span class="mord"><span class="mord mathnormal">c</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span></span></div>
+    </transition-stub>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders math inline node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-0">Einstein wrote $E=mc^2$.</span></p>
+    </transition-stub>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders mermaid block node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <div data-v-a77e0552="" data-v-8dfe8a80="" class="my-4 rounded-lg border border-gray-200 dark:border-gray-700/30 overflow-hidden shadow-sm bg-white dark:bg-gray-900" index-key="markdown-renderer-0">
+      <!-- 重新设计的头部区域 -->
+      <div data-v-a77e0552="" class="mermaid-block-header flex justify-between items-center px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700/30">
+        <!-- 左侧语言标签 -->
+        <div data-v-a77e0552="" class="flex items-center space-x-2"><img data-v-a77e0552="" src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2016%2016'%20width='16'%20height='16'%3e%3cpath%20fill='none'%20stroke='%23ca9ee6'%20stroke-linecap='round'%20stroke-linejoin='round'%20d='M1.5%202.5c0%206%202.25%205.75%204%207%20.83.67%201.17%202%201%204h3c-.17-2%20.17-3.33%201-4%201.75-1.25%204-1%204-7C12%202.5%2010%203%208%207%206%203%204%202.5%201.5%202.5'%20/%3e%3c/svg%3e" class="w-4 h-4 my-0" alt="Mermaid"><span data-v-a77e0552="" class="text-sm font-medium text-gray-600 dark:text-gray-400 font-mono">Mermaid</span></div><!-- 中间切换按钮 -->
+        <div data-v-a77e0552="" class="flex items-center space-x-1 bg-gray-100 dark:bg-gray-700 rounded-md p-0.5"><button data-v-a77e0552="" class="px-2.5 py-1 text-xs rounded transition-colors bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 shadow-sm">
+            <div data-v-a77e0552="" class="flex items-center space-x-1"><span data-v-a77e0552="" class="icon-stub w-3 h-3" data-icon="lucide:eye"></span><span data-v-a77e0552="">Preview</span></div>
+          </button><button data-v-a77e0552="" class="px-2.5 py-1 text-xs rounded transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+            <div data-v-a77e0552="" class="flex items-center space-x-1"><span data-v-a77e0552="" class="icon-stub w-3 h-3" data-icon="lucide:code"></span><span data-v-a77e0552="">Source</span></div>
+          </button></div><!-- 右侧操作按钮 -->
+        <div data-v-a77e0552="" class="flex items-center space-x-1"><button data-v-a77e0552="" class="mermaid-action-btn p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" aria-pressed="false"><span data-v-a77e0552="" class="icon-stub w-3 h-3" data-icon="lucide:chevron-right" style="rotate: 90deg;"></span></button><button data-v-a77e0552="" class="mermaid-action-btn p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"><span data-v-a77e0552="" class="icon-stub w-3 h-3" data-icon="lucide:copy"></span></button><button data-v-a77e0552="" class="mermaid-action-btn p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"><span data-v-a77e0552="" class="icon-stub w-3 h-3" data-icon="lucide:download"></span></button><button data-v-a77e0552="" class="mermaid-action-btn p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"><span data-v-a77e0552="" class="icon-stub w-3 h-3" data-icon="lucide:maximize-2"></span></button></div>
+      </div><!-- 内容区域（带高度过渡的容器） -->
+      <div data-v-a77e0552="">
+        <div data-v-a77e0552="" class="relative">
+          <!-- ...existing preview content... -->
+          <div data-v-a77e0552="" class="absolute top-2 right-2 z-10 rounded-lg">
+            <div data-v-a77e0552="" class="flex items-center gap-2 backdrop-blur rounded-lg"><button data-v-a77e0552="" class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"><span data-v-a77e0552="" class="icon-stub w-3 h-3" data-icon="lucide:zoom-in"></span></button><button data-v-a77e0552="" class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"><span data-v-a77e0552="" class="icon-stub w-3 h-3" data-icon="lucide:zoom-out"></span></button><button data-v-a77e0552="" class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">100% </button></div>
+          </div>
+          <div data-v-a77e0552="" class="min-h-[360px] bg-gray-50 dark:bg-gray-900 relative transition-all duration-100 overflow-hidden block" style="height: 360px;">
+            <div data-v-a77e0552="" data-mermaid-wrapper="" class="absolute inset-0 cursor-grab" style="transform: translate(0px, 0px) scale(1);">
+              <div data-v-a77e0552="" class="_mermaid w-full text-center flex items-center justify-center min-h-full"></div>
+            </div>
+          </div><!-- Modal pseudo-fullscreen overlay (teleported to body) -->
+          <!--teleport start-->
+          <!--teleport end-->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders ordered list node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <ol data-v-b195669a="" data-v-8dfe8a80="" class="list-node list-decimal" is-dark="false">
+        <li data-v-d94d2511="" data-v-b195669a="" class="list-item pl-1.5 my-2" dir="auto" value="1">
+          <div data-v-8dfe8a80="" data-v-d94d2511="" class="markdown-renderer">
+            <div data-v-8dfe8a80="">
+              <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+              <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+                <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="list-item-markdown-renderer-0-0-0-0">First entry</span></p>
+              </transition-stub>
+            </div>
+          </div>
+        </li>
+        <li data-v-d94d2511="" data-v-b195669a="" class="list-item pl-1.5 my-2" dir="auto" value="2">
+          <div data-v-8dfe8a80="" data-v-d94d2511="" class="markdown-renderer">
+            <div data-v-8dfe8a80="">
+              <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+              <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+                <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="list-item-markdown-renderer-0-1-0-0">Second entry</span></p>
+              </transition-stub>
+            </div>
+          </div>
+        </li>
+      </ol>
+    </transition-stub>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders paragraph and text node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-0">Simple paragraph content rendered as plain text.</span></p>
+    </transition-stub>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders reference node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-0">Cite research </span><span data-v-93ee5c2d="" class="reference-node cursor-pointer bg-accent text-xs rounded-md px-1.5 mx-0.5 hover:bg-secondary" role="button" tabindex="0" index-key="markdown-renderer-0-1">1</span><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-2"> for details.</span></p>
+    </transition-stub>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders strikethrough node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-0">This is </span><del data-v-d7c2e36d="" data-v-93ee5c2d="" class="strikethrough-node"><span data-v-a84b8095="" data-v-d7c2e36d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-1-0">deleted text</span></del><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-2">.</span></p>
+    </transition-stub>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders strong node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-0">This is </span><strong data-v-b1e65240="" data-v-93ee5c2d="" class="strong-node"><span data-v-a84b8095="" data-v-b1e65240="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-1-0">bold text</span></strong><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-2">.</span></p>
+    </transition-stub>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders subscript node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-0">Chemical formula H</span><sub data-v-40ad1ac6="" data-v-93ee5c2d="" class="subscript-node"><span data-v-a84b8095="" data-v-40ad1ac6="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-1-0">2</span></sub><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-2">O is familiar.</span></p>
+    </transition-stub>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders superscript node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-0">Math uses x</span><sup data-v-9c4a3c09="" data-v-93ee5c2d="" class="superscript-node"><span data-v-a84b8095="" data-v-9c4a3c09="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-1-0">2</span></sup><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-2"> frequently.</span></p>
+    </transition-stub>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders table node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <table data-v-8fb37ab3="" data-v-8dfe8a80="" class="table-node table-fixed text-left my-8 text-sm w-full" is-dark="false">
+        <colgroup data-v-8fb37ab3="">
+          <col data-v-8fb37ab3="" style="width: 50%;">
+          <col data-v-8fb37ab3="" style="width: 50%;">
+        </colgroup>
+        <thead data-v-8fb37ab3="" class="border-[var(--table-border,#cbd5e1)]">
+          <tr data-v-8fb37ab3="" class="border-b">
+            <th data-v-8fb37ab3="" dir="auto" class="text-left font-semibold dark:text-white truncate p-[calc(4/7*1em)] !pl-0">
+              <div data-v-8dfe8a80="" data-v-8fb37ab3="" class="markdown-renderer">
+                <div data-v-8dfe8a80="">
+                  <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+                  <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true"><span data-v-a84b8095="" data-v-8dfe8a80="" class="whitespace-pre-wrap break-words text-node" index-key="table-th-markdown-renderer-0-0" is-dark="false">Name</span></transition-stub>
+                </div>
+              </div>
+            </th>
+            <th data-v-8fb37ab3="" dir="auto" class="text-left font-semibold dark:text-white truncate p-[calc(4/7*1em)]">
+              <div data-v-8dfe8a80="" data-v-8fb37ab3="" class="markdown-renderer">
+                <div data-v-8dfe8a80="">
+                  <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+                  <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true"><span data-v-a84b8095="" data-v-8dfe8a80="" class="whitespace-pre-wrap break-words text-node" index-key="table-th-markdown-renderer-0-0" is-dark="false">Role</span></transition-stub>
+                </div>
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tbody data-v-8fb37ab3="">
+          <tr data-v-8fb37ab3="" class="border-[var(--table-border,#cbd5e1)]">
+            <td data-v-8fb37ab3="" class="text-left truncate p-[calc(4/7*1em)] !pl-0" dir="auto">
+              <div data-v-8dfe8a80="" data-v-8fb37ab3="" class="markdown-renderer">
+                <div data-v-8dfe8a80="">
+                  <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+                  <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true"><span data-v-a84b8095="" data-v-8dfe8a80="" class="whitespace-pre-wrap break-words text-node" index-key="table-td-markdown-renderer-0-0" is-dark="false">Alice</span></transition-stub>
+                </div>
+              </div>
+            </td>
+            <td data-v-8fb37ab3="" class="text-left truncate p-[calc(4/7*1em)]" dir="auto">
+              <div data-v-8dfe8a80="" data-v-8fb37ab3="" class="markdown-renderer">
+                <div data-v-8dfe8a80="">
+                  <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+                  <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true"><span data-v-a84b8095="" data-v-8dfe8a80="" class="whitespace-pre-wrap break-words text-node" index-key="table-td-markdown-renderer-0-0" is-dark="false">Developer</span></transition-stub>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </transition-stub>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders thematic break node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-0-0">First section.</span></p>
+    </transition-stub><!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <hr data-v-18e4f209="" data-v-8dfe8a80="" class="hr-node" node="[object Object]" index-key="markdown-renderer-1" is-dark="false">
+    </transition-stub><!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="markdown-renderer-2-0">Second section.</span></p>
+    </transition-stub>
+  </div>
+</div>"
+`;
+
+exports[`MarkdownRender node e2e coverage > renders unordered list node 1`] = `
+"<div data-v-8dfe8a80="" class="markdown-renderer">
+  <div data-v-8dfe8a80="">
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+      <ul data-v-b195669a="" data-v-8dfe8a80="" class="list-node list-disc" is-dark="false">
+        <li data-v-d94d2511="" data-v-b195669a="" class="list-item pl-1.5 my-2" dir="auto">
+          <div data-v-8dfe8a80="" data-v-d94d2511="" class="markdown-renderer">
+            <div data-v-8dfe8a80="">
+              <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+              <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+                <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="list-item-markdown-renderer-0-0-0-0">Item one</span></p>
+              </transition-stub>
+            </div>
+          </div>
+        </li>
+        <li data-v-d94d2511="" data-v-b195669a="" class="list-item pl-1.5 my-2" dir="auto">
+          <div data-v-8dfe8a80="" data-v-d94d2511="" class="markdown-renderer">
+            <div data-v-8dfe8a80="">
+              <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+              <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
+                <p data-v-93ee5c2d="" data-v-8dfe8a80="" dir="auto" class="paragraph-node" is-dark="false"><span data-v-a84b8095="" data-v-93ee5c2d="" class="whitespace-pre-wrap break-words text-node" index-key="list-item-markdown-renderer-0-1-0-0">Item two</span></p>
+              </transition-stub>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </transition-stub>
+  </div>
+</div>"
+`;
