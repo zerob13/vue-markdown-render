@@ -118,6 +118,9 @@ function isAtBottom(element: HTMLElement, threshold = 50): boolean {
 const bottomSentinel = ref<HTMLElement | null>(null)
 let bottomObserver: IntersectionObserver | null = null
 
+// ResizeObserver to detect content height changes (for async rendering like code highlighting, mermaid, etc.)
+let contentResizeObserver: ResizeObserver | null = null
+
 function setupBottomObserver() {
   if (!messagesContainer.value)
     return
@@ -173,6 +176,85 @@ function teardownBottomObserver() {
   }
 }
 
+// Setup ResizeObserver to detect content height changes
+function setupContentResizeObserver() {
+  if (!messagesContainer.value)
+    return
+
+  // Disconnect existing observer if any
+  if (contentResizeObserver) {
+    contentResizeObserver.disconnect()
+    contentResizeObserver = null
+  }
+
+  // Track the last known scroll height to detect when content grows
+  let lastContentHeight = messagesContainer.value.scrollHeight
+  let scrollTimeoutId: number | null = null
+
+  contentResizeObserver = new ResizeObserver(() => {
+    if (!messagesContainer.value || !autoScrollEnabled.value)
+      return
+
+    const currentHeight = messagesContainer.value.scrollHeight
+    const container = messagesContainer.value
+    
+    // Only react to height increases (new content rendered)
+    if (currentHeight > lastContentHeight) {
+      // Check if user was at bottom before the height change
+      const wasAtBottom = isAtBottom(container, 100)
+      
+      if (wasAtBottom) {
+        // Clear any pending scroll timeout
+        if (scrollTimeoutId !== null) {
+          clearTimeout(scrollTimeoutId)
+        }
+
+        // Scroll to new bottom immediately without smooth behavior to avoid race conditions
+        const scrollToBottom = () => {
+          if (!messagesContainer.value)
+            return
+          
+          try {
+            isProgrammaticScroll.value = true
+            const targetScroll = messagesContainer.value.scrollHeight
+            messagesContainer.value.scrollTo({ top: targetScroll, behavior: 'auto' })
+            
+            // Wait for scroll to complete, then update lastScrollTop
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                if (messagesContainer.value) {
+                  lastScrollTop.value = messagesContainer.value.scrollTop
+                }
+                isProgrammaticScroll.value = false
+              })
+            })
+          }
+          catch {
+            isProgrammaticScroll.value = false
+          }
+        }
+
+        // Use a small timeout to batch multiple rapid resize events
+        scrollTimeoutId = window.setTimeout(() => {
+          scrollToBottom()
+          scrollTimeoutId = null
+        }, 50)
+      }
+    }
+    lastContentHeight = currentHeight
+  })
+
+  // Observe the entire messages container for size changes
+  contentResizeObserver.observe(messagesContainer.value)
+}
+
+function teardownContentResizeObserver() {
+  if (contentResizeObserver) {
+    contentResizeObserver.disconnect()
+    contentResizeObserver = null
+  }
+}
+
 // Handle scroll event to manage auto-scroll behavior
 function handleContainerScroll() {
   if (!messagesContainer.value)
@@ -183,6 +265,18 @@ function handleContainerScroll() {
     return
 
   const currentScrollTop = messagesContainer.value.scrollTop
+
+  // If scrollTop hasn't changed but we're being called, it might be due to content height changes.
+  // In this case, check if we're still at bottom and don't treat it as user scroll.
+  if (currentScrollTop === lastScrollTop.value) {
+    // Content height changed but scroll position stayed the same
+    // Don't update user scroll direction or disable auto-scroll
+    // Just check if we're still at bottom
+    if (isAtBottom(messagesContainer.value)) {
+      autoScrollEnabled.value = true
+    }
+    return
+  }
 
   // Update timestamp and determine direction
   lastUserScrollTime.value = Date.now()
@@ -313,6 +407,8 @@ onMounted(() => {
     document.addEventListener('keydown', handleKeyDown)
     // Setup IntersectionObserver sentinel after mount
     setupBottomObserver()
+    // Setup ResizeObserver to detect content height changes
+    setupContentResizeObserver()
   }
 })
 
@@ -324,6 +420,7 @@ onUnmounted(() => {
     messagesContainer.value.removeEventListener('pointerdown', handlePointerDown)
     document.removeEventListener('keydown', handleKeyDown)
     teardownBottomObserver()
+    teardownContentResizeObserver()
   }
 })
 
