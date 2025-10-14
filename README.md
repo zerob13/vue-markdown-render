@@ -584,6 +584,49 @@ Example: customize loading and error slots
 
 Tip: to avoid layout shift when switching from placeholder to the image, keep the placeholder's width/height similar to the final image (or use `aspect-ratio` / min-height). This lets the image fade/transform without triggering layout reflow.
 
+### TableNode loading slot
+
+`TableNode` ships with a lightweight shimmer skeleton + spinner overlay that activates while `node.loading` is `true`. You can replace the overlay content without losing the skeleton effect by providing the named `loading` slot.
+
+- Slot name: `loading`
+- Slot props: `{ isLoading: boolean }`
+
+If you omit the slot the default spinner remains. The shimmer stays active either way because it is driven by the table cell CSS, so your custom slot can focus on messaging or branding.
+
+Example: custom loading slot
+
+```vue
+<TableNode :node="node" index-key="demo">
+  <template #loading="{ isLoading }">
+    <div class="flex items-center gap-2 text-slate-500">
+      <svg
+        class="animate-spin h-5 w-5 text-slate-400"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <circle
+          class="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          stroke-width="4"
+          fill="none"
+        />
+        <path
+          class="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+        />
+      </svg>
+      <span>
+        {{ isLoading ? 'Fetching table rows…' : 'Loaded' }}
+      </span>
+    </div>
+  </template>
+</TableNode>
+```
+
 ### LinkNode: underline animation & color customization
 
 `LinkNode` (the internal node used to render anchors) now supports runtime customization of underline animation and color via props — no need to override global CSS. Defaults preserve the previous appearance.

@@ -87,6 +87,7 @@ export function parseTable(
     type: 'table',
     header: headerRow,
     rows,
+    loading: tokens[index].loading || false,
     raw: [headerRow, ...rows].map(row => row.raw).join('\n'),
   }
 

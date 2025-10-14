@@ -1,6 +1,6 @@
 import type MarkdownIt from 'markdown-it'
 import type { MarkdownToken, ParsedNode } from '../../types'
-import { parseInlineTokens } from './inline-parsers'
+import { fixTableTokens, parseInlineTokens } from './inline-parsers'
 import { parseFenceToken } from './inline-parsers/fence-parser'
 import { parseAdmonition } from './node-parsers/admonition-parser'
 import { parseBlockquote } from './node-parsers/blockquote-parser'
@@ -47,7 +47,7 @@ export function processTokens(tokens: MarkdownToken[]): ParsedNode[] {
 
   const result: ParsedNode[] = []
   let i = 0
-
+  tokens = fixTableTokens(tokens)
   while (i < tokens.length) {
     const token = tokens[i]
     switch (token.type) {

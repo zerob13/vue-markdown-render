@@ -26,10 +26,11 @@ interface TableNode {
   header: TableRowNode
   rows: TableRowNode[]
   raw: string
+  loading: boolean
 }
 
 // 接收props
-const { node } = defineProps<{
+const props = defineProps<{
   node: TableNode
   indexKey: string | number
 }>()
@@ -38,7 +39,7 @@ const { node } = defineProps<{
 defineEmits(['copy'])
 
 // 计算列宽，平均分配。如果需要更复杂的策略，可以在此扩展
-const colCount = computed(() => node?.header?.cells?.length ?? 0)
+const colCount = computed(() => props.node?.header?.cells?.length ?? 0)
 const colWidths = computed(() => {
   const n = colCount.value || 1
   const base = Math.floor(100 / n)
@@ -47,61 +48,176 @@ const colWidths = computed(() => {
     i === n - 1 ? `${100 - base * (n - 1)}%` : `${base}%`,
   )
 })
+
+const isLoading = computed(() => props.node.loading ?? false)
+const bodyRows = computed(() => props.node.rows ?? [])
 </script>
 
 <template>
-  <table class="table-node table-fixed text-left my-8 text-sm w-full">
-    <colgroup>
-      <col v-for="(w, i) in colWidths" :key="`col-${i}`" :style="{ width: w }">
-    </colgroup>
-    <thead class="border-[var(--table-border,#cbd5e1)]">
-      <tr class="border-b">
-        <th
-          v-for="(cell, index) in node.header.cells"
-          :key="`header-${index}`"
-          dir="auto"
-          class="text-left font-semibold  dark:text-white truncate p-[calc(4/7*1em)]"
-          :class="[index === 0 ? '!pl-0' : '']"
+  <div class="table-node-wrapper">
+    <table
+      class="table-node table-fixed text-left my-8 text-sm w-full"
+      :class="{ 'table-node--loading': isLoading }"
+      :aria-busy="isLoading"
+    >
+      <colgroup>
+        <col v-for="(w, i) in colWidths" :key="`col-${i}`" :style="{ width: w }">
+      </colgroup>
+      <thead class="border-[var(--table-border,#cbd5e1)]">
+        <tr class="border-b">
+          <th
+            v-for="(cell, index) in node.header.cells"
+            :key="`header-${index}`"
+            dir="auto"
+            class="text-left font-semibold  dark:text-white truncate p-[calc(4/7*1em)]"
+            :class="[index === 0 ? '!pl-0' : '']"
+          >
+            <NodeRenderer
+              :nodes="cell.children"
+              :index-key="`table-th-${indexKey}`"
+              @copy="$emit('copy', $event)"
+            />
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="(row, rowIndex) in bodyRows"
+          :key="`row-${rowIndex}`"
+          class="border-[var(--table-border,#cbd5e1)]"
+          :class="[
+            rowIndex < bodyRows.length - 1
+              ? 'border-b'
+              : '',
+          ]"
         >
-          <NodeRenderer
-            :nodes="cell.children"
-            :index-key="`table-th-${indexKey}`"
-            @copy="$emit('copy', $event)"
-          />
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr
-        v-for="(row, rowIndex) in node.rows"
-        :key="`row-${rowIndex}`"
-        class="border-[var(--table-border,#cbd5e1)]"
-        :class="[
-          rowIndex < node.rows.length - 1
-            ? 'border-b'
-            : '',
-        ]"
+          <td
+            v-for="(cell, cellIndex) in row.cells"
+            :key="`cell-${rowIndex}-${cellIndex}`"
+            class="text-left truncate p-[calc(4/7*1em)]"
+            :class="[cellIndex === 0 ? '!pl-0' : '']"
+            dir="auto"
+          >
+            <NodeRenderer
+              :nodes="cell.children"
+              :index-key="`table-td-${indexKey}`"
+              @copy="$emit('copy', $event)"
+            />
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <transition name="table-node-fade">
+      <div
+        v-if="isLoading"
+        class="table-node__loading"
+        role="status"
+        aria-live="polite"
       >
-        <td
-          v-for="(cell, cellIndex) in row.cells"
-          :key="`cell-${rowIndex}-${cellIndex}`"
-          class="text-left truncate p-[calc(4/7*1em)]"
-          :class="[cellIndex === 0 ? '!pl-0' : '']"
-          dir="auto"
-        >
-          <NodeRenderer
-            :nodes="cell.children"
-            :index-key="`table-td-${indexKey}`"
-            @copy="$emit('copy', $event)"
-          />
-        </td>
-      </tr>
-    </tbody>
-  </table>
+        <slot name="loading" :is-loading="isLoading">
+          <span class="table-node__spinner" aria-hidden="true" />
+          <span class="sr-only">Loading</span>
+        </slot>
+      </div>
+    </transition>
+  </div>
 </template>
 
 <style scoped>
-.hr + .table-node{
+.table-node-wrapper {
+  position: relative;
+}
+
+.table-node--loading tbody td {
+  position: relative;
+  overflow: hidden;
+}
+
+.table-node--loading tbody td > * {
+  visibility: hidden;
+}
+
+.table-node--loading tbody td::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 0.25rem;
+  background: linear-gradient(
+    90deg,
+    rgba(148, 163, 184, 0.16) 25%,
+    rgba(148, 163, 184, 0.28) 50%,
+    rgba(148, 163, 184, 0.16) 75%
+  );
+  background-size: 200% 100%;
+  animation: table-node-shimmer 1.2s linear infinite;
+  will-change: background-position;
+}
+
+.table-node__loading {
+  position: relative;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  background: rgba(15, 23, 42, 0.05);
+}
+
+.table-node__spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  border: 2px solid rgba(94, 104, 121, 0.25);
+  border-top-color: rgba(94, 104, 121, 0.8);
+  animation: table-node-spin 0.8s linear infinite;
+  will-change: transform;
+}
+
+.table-node-fade-enter-active,
+.table-node-fade-leave-active {
+  transition: opacity 0.18s ease;
+}
+
+.table-node-fade-enter-from,
+.table-node-fade-leave-to {
+  opacity: 0;
+}
+
+@keyframes table-node-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@keyframes table-node-shimmer {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 0%;
+  }
+  100% {
+    background-position: 200% 0%;
+  }
+}
+
+.hr + .table-node-wrapper {
   margin-top: 0;
+}
+
+.hr + .table-node-wrapper .table-node {
+  margin-top: 0;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 </style>
