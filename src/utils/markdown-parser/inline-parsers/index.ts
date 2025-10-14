@@ -34,6 +34,22 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string): Parsed
     switch (token.type) {
       case 'text': {
         const content = token.content || ''
+        if (content === '`') {
+          i++
+          break
+        }
+        if (/`[^`]*/.test(content)) {
+          // 包含了 `， 需要特殊处理 code
+          currentTextNode = null // Reset current text node
+
+          result.push({
+            type: 'inline_code',
+            code: content.replace(/`/g, ''),
+            raw: content || '',
+          })
+          i++
+          break
+        }
         if (content === '[') {
           i++
           break
