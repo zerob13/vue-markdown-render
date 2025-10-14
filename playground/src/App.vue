@@ -5,19 +5,6 @@ import { streamContent } from './const/markdown'
 // 每隔 10 毫秒输出一部分内容
 const content = ref<string>('')
 
-const VIEWPORT_VH_VAR = '--app-viewport-vh'
-
-const viewportCleanupFns: Array<() => void> = []
-
-function updateViewportHeight() {
-  if (typeof window === 'undefined')
-    return
-
-  const viewport = window.visualViewport
-  const height = viewport?.height ?? window.innerHeight
-  const unit = height / 100
-  document.documentElement.style.setProperty(VIEWPORT_VH_VAR, `${unit}px`)
-}
 // To avoid flashing sequences like ":::" during streaming (which later
 // become an AdmonitionNode), we look ahead when encountering ":" and
 // defer appending consecutive colons until a non-colon character is seen.
@@ -315,23 +302,6 @@ function handleKeyDown(e: KeyboardEvent) {
 }
 
 onMounted(() => {
-  updateViewportHeight()
-
-  if (typeof window !== 'undefined') {
-    const resizeHandler = () => updateViewportHeight()
-    window.addEventListener('resize', resizeHandler)
-    window.addEventListener('orientationchange', resizeHandler)
-    viewportCleanupFns.push(() => window.removeEventListener('resize', resizeHandler))
-    viewportCleanupFns.push(() => window.removeEventListener('orientationchange', resizeHandler))
-
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', resizeHandler)
-      window.visualViewport.addEventListener('scroll', resizeHandler)
-      viewportCleanupFns.push(() => window.visualViewport?.removeEventListener('resize', resizeHandler))
-      viewportCleanupFns.push(() => window.visualViewport?.removeEventListener('scroll', resizeHandler))
-    }
-  }
-
   // Initialize lastScrollTop and attach extra listeners
   if (messagesContainer.value) {
     lastScrollTop.value = messagesContainer.value.scrollTop
@@ -355,9 +325,6 @@ onUnmounted(() => {
     document.removeEventListener('keydown', handleKeyDown)
     teardownBottomObserver()
   }
-
-  viewportCleanupFns.forEach(fn => fn())
-  viewportCleanupFns.length = 0
 })
 
 watch(content, () => {
