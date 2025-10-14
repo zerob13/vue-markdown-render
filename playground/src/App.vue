@@ -352,7 +352,7 @@ watch(content, () => {
 </script>
 
 <template>
-  <div class="flex items-center justify-center p-4 app-container bg-gray-50 dark:bg-gray-900">
+  <div class="flex items-center justify-center p-4 app-container h-full bg-gray-50 dark:bg-gray-900">
     <!-- 设置按钮和面板 -->
     <div class="fixed top-4 right-4 z-10">
       <!-- 设置按钮 -->
@@ -551,13 +551,8 @@ watch(content, () => {
 </template>
 
 <style scoped>
-:global(:root) {
-  --app-viewport-vh: 1vh;
-}
-
 .app-container {
   transition: background-color 0.3s ease;
-  min-height: calc(var(--app-viewport-vh, 1vh) * 100);
   overflow: hidden;
 }
 
