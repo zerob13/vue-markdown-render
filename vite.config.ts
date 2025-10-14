@@ -85,6 +85,11 @@ export default defineConfig(({ mode }) => {
     base,
     plugins,
     build,
+    test: {
+      environment: 'jsdom',
+      setupFiles: ['./test/setup/vitest.setup.ts'],
+      restoreMocks: true,
+    },
     worker: {
       // Ensure web workers are bundled as ESM; IIFE/UMD are invalid with code-splitting
       format: 'es',
