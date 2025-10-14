@@ -122,9 +122,68 @@ const lastUserScrollTime = ref(0)
 // Flag to ignore scroll events caused by our own programmatic scrolling
 const isProgrammaticScroll = ref(false)
 
-// Check if user is at the bottom of scroll area
+// Check if user is at the bottom of scroll area (fallback based on pixels)
 function isAtBottom(element: HTMLElement, threshold = 50): boolean {
   return element.scrollHeight - element.scrollTop - element.clientHeight <= threshold
+}
+
+// IntersectionObserver sentinel ref for robust bottom detection (better on mobile)
+const bottomSentinel = ref<HTMLElement | null>(null)
+let bottomObserver: IntersectionObserver | null = null
+
+function setupBottomObserver() {
+  if (!messagesContainer.value)
+    return
+
+  // If already observing, disconnect first
+  if (bottomObserver) {
+    bottomObserver.disconnect()
+    bottomObserver = null
+  }
+
+  // Create observer that watches a tiny sentinel element positioned after the content.
+  // When visible, we consider the user to be at (or very near) the bottom and can
+  // re-enable auto-scroll. This approach is more reliable on mobile where scroll
+  // metrics and visualViewport changes can be noisy.
+  // We use a slight negative bottom rootMargin so the sentinel becomes "intersecting"
+  // a little before the true bottom. This helps on mobile where layout/viewport
+  // adjustments (keyboard, visualViewport) can delay reaching the exact scroll bottom.
+  const BOTTOM_OBSERVER_ROOT_MARGIN = '0px 0px -120px 0px' // trigger ~120px before bottom
+
+  bottomObserver = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        // Re-enable auto-scroll only if the user hasn't recently scrolled up.
+        // This prevents interrupting an intentional user scroll away from bottom.
+        // If lastUserScrollDirection is 'up' and recent, don't re-enable immediately.
+        const recentUser = Date.now() - lastUserScrollTime.value < 1000
+        if (lastUserScrollDirection.value === 'up' && recentUser) {
+          // Keep auto-scroll disabled for now.
+          return
+        }
+
+        autoScrollEnabled.value = true
+      }
+    }
+  }, {
+    root: messagesContainer.value,
+    rootMargin: BOTTOM_OBSERVER_ROOT_MARGIN,
+    threshold: 0,
+  })
+
+  // Observe the sentinel if it exists. If sentinel isn't present yet, try again
+  // after a microtask (it will be present after nextTick when rendering).
+  nextTick(() => {
+    if (bottomSentinel.value)
+      bottomObserver?.observe(bottomSentinel.value)
+  })
+}
+
+function teardownBottomObserver() {
+  if (bottomObserver) {
+    bottomObserver.disconnect()
+    bottomObserver = null
+  }
 }
 
 // Handle scroll event to manage auto-scroll behavior
@@ -282,6 +341,8 @@ onMounted(() => {
     messagesContainer.value.addEventListener('pointerdown', handlePointerDown)
     // keydown could be on document
     document.addEventListener('keydown', handleKeyDown)
+    // Setup IntersectionObserver sentinel after mount
+    setupBottomObserver()
   }
 })
 
@@ -292,6 +353,7 @@ onUnmounted(() => {
     messagesContainer.value.removeEventListener('touchmove', handleTouchMove)
     messagesContainer.value.removeEventListener('pointerdown', handlePointerDown)
     document.removeEventListener('keydown', handleKeyDown)
+    teardownBottomObserver()
   }
 
   viewportCleanupFns.forEach(fn => fn())
@@ -545,6 +607,8 @@ watch(content, () => {
           :is-dark="isDark"
           class="p-6"
         />
+        <!-- Sentinel observed by IntersectionObserver to detect reaching bottom reliably on mobile -->
+        <div ref="bottomSentinel" aria-hidden="true" class="w-full h-1 pointer-events-none" />
       </main>
     </div>
   </div>
