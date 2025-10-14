@@ -1,7 +1,7 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { getMarkdown, parseMarkdownToStructure, renderMarkdown } from '../src/utils/markdown'
-import { readFileSync } from 'fs'
-import { resolve } from 'path'
 
 const md = getMarkdown('e2e')
 
@@ -38,24 +38,28 @@ describe('e2e markdown parsing (fixtures)', () => {
       // Create a stable, minimal serialization for snapshot
       // Helper to find first descendant text for a node
       const findFirstText = (node: any): string | undefined => {
-        if (!node) return undefined
+        if (!node)
+          return undefined
         if (node.type === 'text' && typeof node.content === 'string')
           return node.content.slice(0, 80)
         if (Array.isArray(node.children)) {
           for (const c of node.children) {
             const t = findFirstText(c)
-            if (t) return t
+            if (t)
+              return t
           }
         }
         return undefined
       }
 
       const pickMeta = (meta: any) => {
-        if (!meta || typeof meta !== 'object') return undefined
+        if (!meta || typeof meta !== 'object')
+          return undefined
         const keys = ['diff', 'language', 'closed', 'unclosed']
         const out: any = {}
         for (const k of keys) {
-          if (k in meta) out[k] = meta[k]
+          if (k in meta)
+            out[k] = meta[k]
         }
         return Object.keys(out).length ? out : undefined
       }
@@ -63,7 +67,8 @@ describe('e2e markdown parsing (fixtures)', () => {
       const minimal = nodes.map((n: any) => {
         const out: any = { type: n.type }
         out.firstText = findFirstText(n)
-        if (n.meta) out.meta = pickMeta(n.meta)
+        if (n.meta)
+          out.meta = pickMeta(n.meta)
 
         if (n.type === 'heading') {
           out.level = (n as any).level

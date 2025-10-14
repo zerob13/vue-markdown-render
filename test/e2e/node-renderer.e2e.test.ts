@@ -1,6 +1,6 @@
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import type { VueWrapper } from '@vue/test-utils'
 import { mount } from '@vue/test-utils'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 
 interface Scenario {
@@ -41,7 +41,7 @@ function sanitizeSnapshotHtml(html: string, name: string) {
   return html
 }
 
-describe('MarkdownRender node e2e coverage', () => {
+describe('markdownRender node e2e coverage', () => {
   beforeAll(async () => {
     vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000)
     MarkdownRender = (await import('../../src/components/NodeRenderer')).default
@@ -402,8 +402,9 @@ describe('MarkdownRender node e2e coverage', () => {
           for (const snippet of scenario.expectedText)
             expect(textContent).toContain(snippet)
         }
-        else if (typeof scenario.expectedText === 'string' && scenario.expectedText.length > 0)
+        else if (typeof scenario.expectedText === 'string' && scenario.expectedText.length > 0) {
           expect(textContent).toContain(scenario.expectedText)
+        }
 
         const snapshotHtml = sanitizeSnapshotHtml(wrapper.html(), scenario.name)
         expect(snapshotHtml).toMatchSnapshot()

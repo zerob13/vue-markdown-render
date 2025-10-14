@@ -2,7 +2,10 @@ import simon from '@antfu/eslint-config'
 
 export default simon(
   {
-    ignores: ['**/**/*.d.ts'],
+    ignores: [
+      '**/**/*.d.ts',
+      'test/fixtures/unclosed-fence.md',
+    ],
   },
   {
     rules: {

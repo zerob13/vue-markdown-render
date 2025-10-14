@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer'
 import { vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 
@@ -58,7 +59,7 @@ vi.mock('@iconify/vue', () => ({
     name: 'IconStub',
     props: { icon: { type: String, required: false } },
     setup(props, { slots }) {
-      return () => h('span', { class: 'icon-stub', 'data-icon': props.icon ?? '' }, slots.default?.())
+      return () => h('span', { 'class': 'icon-stub', 'data-icon': props.icon ?? '' }, slots.default?.())
     },
   }),
 }))
@@ -69,9 +70,10 @@ vi.mock('mermaid', () => ({
     render: async (_id: string, code: string) => `<svg data-testid="mermaid-svg">${code}</svg>`,
     parse: () => {},
   },
-}), { virtual: true })
+}))
 
 vi.mock('../../src/workers/katexWorkerClient', () => ({
+  // eslint-disable-next-line prefer-promise-reject-errors
   renderKaTeXInWorker: () => Promise.reject({ code: 'WORKER_INIT_ERROR', fallbackToRenderer: true }),
   setKaTeXWorkerDebug: () => {},
   setKaTeXCache: () => {},
