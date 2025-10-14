@@ -9,6 +9,7 @@ export interface BaseNode {
 export interface TextNode extends BaseNode {
   type: 'text'
   content: string
+  center?: boolean
 }
 
 export interface HeadingNode extends BaseNode {

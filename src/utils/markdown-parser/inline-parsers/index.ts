@@ -288,15 +288,19 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string): Parsed
             break
           }
         }
+        const preToken = tokens[i - 1]
+        const maybeMath = preToken?.tag === 'br' && tokens[i - 2]?.content === '['
         if (currentTextNode) {
           // Merge with the previous text node
           currentTextNode.content += textNode.content.replace(/(\*+|\()$/, '')
           currentTextNode.raw += textNode.raw
+          currentTextNode.center = maybeMath
         }
         else {
           // Start a new text node
           textNode.content = textNode.content.replace(/(\*+|\()$/, '')
           currentTextNode = textNode
+          currentTextNode.center = maybeMath
           result.push(currentTextNode)
         }
         i++

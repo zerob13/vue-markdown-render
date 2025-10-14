@@ -4,6 +4,7 @@ defineProps<{
     type: 'text'
     content: string
     raw: string
+    center?: boolean
   }
 }>()
 
@@ -12,6 +13,7 @@ defineEmits(['copy'])
 
 <template>
   <span
+    :class="[node.center ? '!inline-flex !justify-center w-full' : '']"
     class="whitespace-pre-wrap break-words text-node"
   >
     {{ node.content }}
