@@ -34,7 +34,7 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string): Parsed
     switch (token.type) {
       case 'text': {
         const content = token.content || ''
-        if (content === '`') {
+        if (content === '`' || content === '|') {
           i++
           break
         }
@@ -664,7 +664,17 @@ export function fixTableTokens(tokens: MarkdownToken[]): MarkdownToken[] {
   const token = tokens[i]
 
   if (token.type === 'inline') {
-    if (/^\|(?:[^|\n]+\|)+\n\|:?-/.test(token.content)) {
+    if (/^\|(?:[^|\n]+\|?)+/.test(token.content)) {
+      // 解析 table
+      const body = token.children[0].content.slice(1).split('|').map(i => i.trim()).filter(Boolean).flatMap(i => createTh(i))
+      const insert = [
+        ...createStart(),
+        ...body,
+        ...createEnd(),
+      ]
+      fixedTokens.splice(i - 1, 3, ...insert)
+    }
+    else if (/^\|(?:[^|\n]+\|)+\n\|:?-/.test(token.content)) {
       // 解析 table
       const body = token.children[0].content.slice(1, -1).split('|').map(i => i.trim()).flatMap(i => createTh(i))
       const insert = [
