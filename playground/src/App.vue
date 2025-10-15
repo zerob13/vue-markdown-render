@@ -108,7 +108,7 @@ const lastUserScrollDirection = ref<'none' | 'up' | 'down'>('none')
 const lastUserScrollTime = ref(0)
 // Flag to ignore scroll events caused by our own programmatic scrolling
 const isProgrammaticScroll = ref(false)
-
+let lastKnownScrollHeight = 0
 // Check if user is at the bottom of scroll area (fallback based on pixels)
 function isAtBottom(element: HTMLElement, threshold = 50): boolean {
   return element.scrollHeight - element.scrollTop - element.clientHeight <= threshold
@@ -120,6 +120,8 @@ let bottomObserver: IntersectionObserver | null = null
 
 // ResizeObserver to detect content height changes (for async rendering like code highlighting, mermaid, etc.)
 let contentResizeObserver: ResizeObserver | null = null
+// MutationObserver to detect DOM changes (like table loading -> content)
+let contentMutationObserver: MutationObserver | null = null
 
 function setupBottomObserver() {
   if (!messagesContainer.value)
@@ -176,6 +178,79 @@ function teardownBottomObserver() {
   }
 }
 
+// Unified function to perform auto-scroll to bottom
+let scrollCheckTimeoutId: number | null = null
+let lastScrollAttemptTime = 0
+function performAutoScrollIfNeeded() {
+  if (!messagesContainer.value || !autoScrollEnabled.value)
+    return
+
+  const container = messagesContainer.value
+  const shouldScroll = isAtBottom(container, 150)
+
+  console.log('[performAutoScrollIfNeeded]', {
+    autoScrollEnabled: autoScrollEnabled.value,
+    scrollHeight: container.scrollHeight,
+    scrollTop: container.scrollTop,
+    clientHeight: container.clientHeight,
+    distance: container.scrollHeight - container.scrollTop - container.clientHeight,
+    shouldScroll,
+    hasPendingTimeout: scrollCheckTimeoutId !== null,
+  })
+
+  if (shouldScroll) {
+    const now = Date.now()
+    const timeSinceLastScroll = now - lastScrollAttemptTime
+
+    // Immediate scroll if it's been more than 50ms since last scroll
+    // This ensures real-time scrolling while still batching rapid changes
+    if (timeSinceLastScroll > 50) {
+      executeScroll()
+      lastScrollAttemptTime = now
+    }
+
+    // Clear any pending timeout
+    if (scrollCheckTimeoutId !== null) {
+      clearTimeout(scrollCheckTimeoutId)
+    }
+
+    // Schedule a follow-up scroll to catch any content that renders after this call
+    scrollCheckTimeoutId = window.setTimeout(() => {
+      executeScroll()
+      scrollCheckTimeoutId = null
+      lastScrollAttemptTime = Date.now()
+    }, 50)
+  }
+}
+
+function executeScroll() {
+  if (!messagesContainer.value)
+    return
+
+  console.log('[Executing scroll] to', messagesContainer.value.scrollHeight)
+
+  try {
+    isProgrammaticScroll.value = true
+    const targetScroll = messagesContainer.value.scrollHeight
+    messagesContainer.value.scrollTo({ top: targetScroll, behavior: 'auto' })
+
+    // Wait for scroll to settle, then update lastScrollTop
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (messagesContainer.value) {
+          lastScrollTop.value = messagesContainer.value.scrollTop
+          lastKnownScrollHeight = messagesContainer.value.scrollHeight
+          console.log('[Scroll complete] lastScrollTop updated to', lastScrollTop.value)
+        }
+        isProgrammaticScroll.value = false
+      })
+    })
+  }
+  catch {
+    isProgrammaticScroll.value = false
+  }
+}
+
 // Setup ResizeObserver to detect content height changes
 function setupContentResizeObserver() {
   if (!messagesContainer.value)
@@ -189,57 +264,15 @@ function setupContentResizeObserver() {
 
   // Track the last known scroll height to detect when content grows
   let lastContentHeight = messagesContainer.value.scrollHeight
-  let scrollTimeoutId: number | null = null
 
   contentResizeObserver = new ResizeObserver(() => {
-    if (!messagesContainer.value || !autoScrollEnabled.value)
+    if (!messagesContainer.value)
       return
 
     const currentHeight = messagesContainer.value.scrollHeight
-    const container = messagesContainer.value
-    
     // Only react to height increases (new content rendered)
     if (currentHeight > lastContentHeight) {
-      // Check if user was at bottom before the height change
-      const wasAtBottom = isAtBottom(container, 100)
-      
-      if (wasAtBottom) {
-        // Clear any pending scroll timeout
-        if (scrollTimeoutId !== null) {
-          clearTimeout(scrollTimeoutId)
-        }
-
-        // Scroll to new bottom immediately without smooth behavior to avoid race conditions
-        const scrollToBottom = () => {
-          if (!messagesContainer.value)
-            return
-          
-          try {
-            isProgrammaticScroll.value = true
-            const targetScroll = messagesContainer.value.scrollHeight
-            messagesContainer.value.scrollTo({ top: targetScroll, behavior: 'auto' })
-            
-            // Wait for scroll to complete, then update lastScrollTop
-            requestAnimationFrame(() => {
-              requestAnimationFrame(() => {
-                if (messagesContainer.value) {
-                  lastScrollTop.value = messagesContainer.value.scrollTop
-                }
-                isProgrammaticScroll.value = false
-              })
-            })
-          }
-          catch {
-            isProgrammaticScroll.value = false
-          }
-        }
-
-        // Use a small timeout to batch multiple rapid resize events
-        scrollTimeoutId = window.setTimeout(() => {
-          scrollToBottom()
-          scrollTimeoutId = null
-        }, 50)
-      }
+      performAutoScrollIfNeeded()
     }
     lastContentHeight = currentHeight
   })
@@ -248,10 +281,71 @@ function setupContentResizeObserver() {
   contentResizeObserver.observe(messagesContainer.value)
 }
 
+// Setup MutationObserver to detect DOM changes (table content loading, etc.)
+function setupContentMutationObserver() {
+  if (!messagesContainer.value)
+    return
+
+  // Disconnect existing observer if any
+  if (contentMutationObserver) {
+    contentMutationObserver.disconnect()
+    contentMutationObserver = null
+  }
+
+  let mutationCount = 0
+
+  contentMutationObserver = new MutationObserver((mutations) => {
+    mutationCount++
+    // Check if any mutation affected the content
+    let shouldCheck = false
+    for (const mutation of mutations) {
+      // Check for childList changes (nodes added/removed)
+      if (mutation.type === 'childList' && (mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0)) {
+        shouldCheck = true
+        break
+      }
+      // Check for attribute changes that might affect layout (class, style)
+      if (mutation.type === 'attributes' && (mutation.attributeName === 'class' || mutation.attributeName === 'style')) {
+        shouldCheck = true
+        break
+      }
+    }
+
+    if (shouldCheck) {
+      // Use nextTick to ensure Vue has finished updating
+      nextTick(() => {
+        if (messagesContainer.value) {
+          console.log(`[MutationObserver #${mutationCount}] Detected change, scrollHeight: ${messagesContainer.value.scrollHeight}`)
+        }
+        performAutoScrollIfNeeded()
+      })
+    }
+  })
+
+  // Observe the messages container and its entire subtree
+  contentMutationObserver.observe(messagesContainer.value, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['class', 'style'],
+  })
+}
+
 function teardownContentResizeObserver() {
   if (contentResizeObserver) {
     contentResizeObserver.disconnect()
     contentResizeObserver = null
+  }
+}
+
+function teardownContentMutationObserver() {
+  if (contentMutationObserver) {
+    contentMutationObserver.disconnect()
+    contentMutationObserver = null
+  }
+  if (scrollCheckTimeoutId !== null) {
+    clearTimeout(scrollCheckTimeoutId)
+    scrollCheckTimeoutId = null
   }
 }
 
@@ -265,6 +359,7 @@ function handleContainerScroll() {
     return
 
   const currentScrollTop = messagesContainer.value.scrollTop
+  const currentScrollHeight = messagesContainer.value.scrollHeight
 
   // If scrollTop hasn't changed but we're being called, it might be due to content height changes.
   // In this case, check if we're still at bottom and don't treat it as user scroll.
@@ -275,13 +370,28 @@ function handleContainerScroll() {
     if (isAtBottom(messagesContainer.value)) {
       autoScrollEnabled.value = true
     }
+    lastKnownScrollHeight = currentScrollHeight
     return
+  }
+
+  // Check if scrollTop decreased due to content height shrinking (not user scroll)
+  // This happens when loading placeholders are replaced with smaller actual content
+  if (currentScrollTop < lastScrollTop.value && currentScrollHeight < lastKnownScrollHeight) {
+    // Content shrank, causing scrollTop to decrease passively
+    // Check if we're still at or near bottom - if so, don't disable auto-scroll
+    if (isAtBottom(messagesContainer.value, 50)) {
+      console.log('[handleContainerScroll] Content shrank, but still at bottom. Keeping auto-scroll enabled.')
+      lastScrollTop.value = currentScrollTop
+      lastKnownScrollHeight = currentScrollHeight
+      return
+    }
   }
 
   // Update timestamp and determine direction
   lastUserScrollTime.value = Date.now()
   if (currentScrollTop < lastScrollTop.value) {
     // User scrolled up
+    console.log('[handleContainerScroll] User scrolled up, disabling auto-scroll')
     lastUserScrollDirection.value = 'up'
     autoScrollEnabled.value = false
   }
@@ -295,6 +405,7 @@ function handleContainerScroll() {
 
   // Update last scroll position for future comparisons
   lastScrollTop.value = currentScrollTop
+  lastKnownScrollHeight = currentScrollHeight
 }
 
 // Track touch/pointer start positions to detect direction
@@ -399,6 +510,7 @@ onMounted(() => {
   // Initialize lastScrollTop and attach extra listeners
   if (messagesContainer.value) {
     lastScrollTop.value = messagesContainer.value.scrollTop
+    lastKnownScrollHeight = messagesContainer.value.scrollHeight
     messagesContainer.value.addEventListener('wheel', handleWheel, { passive: true })
     messagesContainer.value.addEventListener('touchstart', handleTouchStart, { passive: true })
     messagesContainer.value.addEventListener('touchmove', handleTouchMove, { passive: true })
@@ -409,6 +521,8 @@ onMounted(() => {
     setupBottomObserver()
     // Setup ResizeObserver to detect content height changes
     setupContentResizeObserver()
+    // Setup MutationObserver to detect DOM changes (table loading -> content)
+    setupContentMutationObserver()
   }
 })
 
@@ -421,6 +535,7 @@ onUnmounted(() => {
     document.removeEventListener('keydown', handleKeyDown)
     teardownBottomObserver()
     teardownContentResizeObserver()
+    teardownContentMutationObserver()
   }
 })
 
@@ -428,52 +543,18 @@ watch(content, () => {
   // Only auto-scroll if enabled (user hasn't scrolled away from bottom)
   if (!autoScrollEnabled.value)
     return
-  // Sometimes the rendered height isn't stable immediately (async rendering, images, third-party
-  // renderers like mermaid, or syntax highlighting). Retry a few times while yielding to the
-  // browser (nextTick + requestAnimationFrame) so we reliably end up at the bottom.
-  async function scrollToBottomWithRetries(maxAttempts = 6, delay = 20) {
-    if (!messagesContainer.value)
-      return
 
-    for (let i = 0; i < maxAttempts; i++) {
-      // Wait for Vue DOM updates
+  // Trigger the unified auto-scroll function immediately
+  performAutoScrollIfNeeded()
 
-      await nextTick()
-      // Wait for a frame so layout/paint settle
-
-      await new Promise(resolve => requestAnimationFrame(() => resolve(undefined)))
-
-      if (!messagesContainer.value)
-        return
-
-      const el = messagesContainer.value
-      const prevScrollHeight = el.scrollHeight
-      // Force immediate jump to bottom. Mark as programmatic so our scroll handlers ignore it.
-      try {
-        isProgrammaticScroll.value = true
-        el.scrollTo({ top: el.scrollHeight, behavior: 'auto' })
-      }
-      finally {
-        // Allow handlers to run again after a short tick so lastScrollTop can be updated correctly
-        // We clear the flag after next frame below (so handlers triggered this frame are ignored).
-      }
-
-      // Yield a frame to ensure the scroll event (if emitted) happens while isProgrammaticScroll is true
-      await new Promise(resolve => requestAnimationFrame(() => resolve(undefined)))
-      // Clear programmatic flag now so future user scrolls are handled
-      isProgrammaticScroll.value = false
-
-      // If height didn't change much or we're at bottom, stop retrying
-      if (Math.abs(el.scrollHeight - prevScrollHeight) < 2 || isAtBottom(el, 2))
-        return
-
-      // Small delay before next attempt
-
-      await new Promise(resolve => setTimeout(resolve, delay))
-    }
-  }
-
-  scrollToBottomWithRetries()
+  // Also schedule additional checks to handle async rendering
+  // (like code highlighting, mermaid, etc.)
+  const retryDelays = [100, 200, 400, 800]
+  retryDelays.forEach((delay) => {
+    setTimeout(() => {
+      performAutoScrollIfNeeded()
+    }, delay)
+  })
 })
 </script>
 

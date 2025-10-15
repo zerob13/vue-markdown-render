@@ -421,52 +421,57 @@ exports[`markdownRender node e2e coverage > renders table node 1`] = `
   <div data-v-8dfe8a80="">
     <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
     <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true">
-      <table data-v-8fb37ab3="" data-v-8dfe8a80="" class="table-node table-fixed text-left my-8 text-sm w-full" is-dark="false">
-        <colgroup data-v-8fb37ab3="">
-          <col data-v-8fb37ab3="" style="width: 50%;">
-          <col data-v-8fb37ab3="" style="width: 50%;">
-        </colgroup>
-        <thead data-v-8fb37ab3="" class="border-[var(--table-border,#cbd5e1)]">
-          <tr data-v-8fb37ab3="" class="border-b">
-            <th data-v-8fb37ab3="" dir="auto" class="text-left font-semibold dark:text-white truncate p-[calc(4/7*1em)] !pl-0">
-              <div data-v-8dfe8a80="" data-v-8fb37ab3="" class="markdown-renderer">
-                <div data-v-8dfe8a80="">
-                  <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
-                  <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true"><span data-v-a84b8095="" data-v-8dfe8a80="" class="whitespace-pre-wrap break-words text-node" index-key="table-th-markdown-renderer-0-0" is-dark="false">Name</span></transition-stub>
+      <div data-v-8fb37ab3="" data-v-8dfe8a80="" class="table-node-wrapper" loading="false" is-dark="false">
+        <table data-v-8fb37ab3="" class="table-node table-fixed text-left my-8 text-sm w-full" aria-busy="false">
+          <colgroup data-v-8fb37ab3="">
+            <col data-v-8fb37ab3="" style="width: 50%;">
+            <col data-v-8fb37ab3="" style="width: 50%;">
+          </colgroup>
+          <thead data-v-8fb37ab3="" class="border-[var(--table-border,#cbd5e1)]">
+            <tr data-v-8fb37ab3="" class="border-b">
+              <th data-v-8fb37ab3="" dir="auto" class="text-left font-semibold dark:text-white truncate p-[calc(4/7*1em)] !pl-0">
+                <div data-v-8dfe8a80="" data-v-8fb37ab3="" class="markdown-renderer">
+                  <div data-v-8dfe8a80="">
+                    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+                    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true"><span data-v-a84b8095="" data-v-8dfe8a80="" class="whitespace-pre-wrap break-words text-node" index-key="table-th-markdown-renderer-0-0" is-dark="false">Name</span></transition-stub>
+                  </div>
                 </div>
-              </div>
-            </th>
-            <th data-v-8fb37ab3="" dir="auto" class="text-left font-semibold dark:text-white truncate p-[calc(4/7*1em)]">
-              <div data-v-8dfe8a80="" data-v-8fb37ab3="" class="markdown-renderer">
-                <div data-v-8dfe8a80="">
-                  <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
-                  <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true"><span data-v-a84b8095="" data-v-8dfe8a80="" class="whitespace-pre-wrap break-words text-node" index-key="table-th-markdown-renderer-0-0" is-dark="false">Role</span></transition-stub>
+              </th>
+              <th data-v-8fb37ab3="" dir="auto" class="text-left font-semibold dark:text-white truncate p-[calc(4/7*1em)]">
+                <div data-v-8dfe8a80="" data-v-8fb37ab3="" class="markdown-renderer">
+                  <div data-v-8dfe8a80="">
+                    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+                    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true"><span data-v-a84b8095="" data-v-8dfe8a80="" class="whitespace-pre-wrap break-words text-node" index-key="table-th-markdown-renderer-0-0" is-dark="false">Role</span></transition-stub>
+                  </div>
                 </div>
-              </div>
-            </th>
-          </tr>
-        </thead>
-        <tbody data-v-8fb37ab3="">
-          <tr data-v-8fb37ab3="" class="border-[var(--table-border,#cbd5e1)]">
-            <td data-v-8fb37ab3="" class="text-left truncate p-[calc(4/7*1em)] !pl-0" dir="auto">
-              <div data-v-8dfe8a80="" data-v-8fb37ab3="" class="markdown-renderer">
-                <div data-v-8dfe8a80="">
-                  <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
-                  <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true"><span data-v-a84b8095="" data-v-8dfe8a80="" class="whitespace-pre-wrap break-words text-node" index-key="table-td-markdown-renderer-0-0" is-dark="false">Alice</span></transition-stub>
+              </th>
+            </tr>
+          </thead>
+          <tbody data-v-8fb37ab3="">
+            <tr data-v-8fb37ab3="" class="border-[var(--table-border,#cbd5e1)]">
+              <td data-v-8fb37ab3="" class="text-left truncate p-[calc(4/7*1em)] !pl-0" dir="auto">
+                <div data-v-8dfe8a80="" data-v-8fb37ab3="" class="markdown-renderer">
+                  <div data-v-8dfe8a80="">
+                    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+                    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true"><span data-v-a84b8095="" data-v-8dfe8a80="" class="whitespace-pre-wrap break-words text-node" index-key="table-td-markdown-renderer-0-0" is-dark="false">Alice</span></transition-stub>
+                  </div>
                 </div>
-              </div>
-            </td>
-            <td data-v-8fb37ab3="" class="text-left truncate p-[calc(4/7*1em)]" dir="auto">
-              <div data-v-8dfe8a80="" data-v-8fb37ab3="" class="markdown-renderer">
-                <div data-v-8dfe8a80="">
-                  <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
-                  <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true"><span data-v-a84b8095="" data-v-8dfe8a80="" class="whitespace-pre-wrap break-words text-node" index-key="table-td-markdown-renderer-0-0" is-dark="false">Developer</span></transition-stub>
+              </td>
+              <td data-v-8fb37ab3="" class="text-left truncate p-[calc(4/7*1em)]" dir="auto">
+                <div data-v-8dfe8a80="" data-v-8fb37ab3="" class="markdown-renderer">
+                  <div data-v-8dfe8a80="">
+                    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals -->
+                    <transition-stub data-v-8dfe8a80="" name="typewriter" appear="true" persisted="false" css="true"><span data-v-a84b8095="" data-v-8dfe8a80="" class="whitespace-pre-wrap break-words text-node" index-key="table-td-markdown-renderer-0-0" is-dark="false">Developer</span></transition-stub>
+                  </div>
                 </div>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <transition-stub data-v-8fb37ab3="" name="table-node-fade" appear="false" persisted="false" css="true">
+          <!--v-if-->
+        </transition-stub>
+      </div>
     </transition-stub>
   </div>
 </div>"
