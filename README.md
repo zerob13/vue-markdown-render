@@ -1194,7 +1194,9 @@ See the [Tailwind section](#tailwind-eg-shadcn--fix-style-ordering-issues) for m
    import MarkdownRender from 'vue-renderer-markdown'
 
    const mounted = ref(false)
-   onMounted(() => { mounted.value = true })
+   onMounted(() => {
+     mounted.value = true
+   })
    </script>
 
    <template>
