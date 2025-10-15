@@ -21,6 +21,14 @@ const defaultMap: Record<string, string> = {
   'image.loading': 'Loading image...',
 }
 
+/**
+ * Replace the entire default translation map.
+ * Consumers can call this to provide their own fallback translations (e.g. Chinese).
+ */
+export function setDefaultI18nMap(map: Record<keyof typeof defaultMap, string>) {
+  Object.assign(defaultMap, map)
+}
+
 export function useSafeI18n() {
   // Synchronous fallback in case `vue-i18n` is not installed.
   // We attempt a dynamic import at runtime for consumers that do have `vue-i18n`.

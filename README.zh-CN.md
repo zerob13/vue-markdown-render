@@ -317,6 +317,29 @@ pnpm add @iconify/vue
 - 对复杂 Mermaid 图表可提前在服务端校验或预渲染，再将结果作为缓存内容传给组件。
 - Math 渲染错误时，可通过 `setDefaultMathOptions` 调整需要自动补全反斜杠的指令集合，或预先在服务端缓存 KaTeX 输出。
 
+## 国际化 / 备用翻译
+
+如果你不想安装或使用 `vue-i18n`，本库内置了一个小型的同步备用翻译器，用于一些常见的 UI 文案（复制、预览、图片加载等）。你可以在应用启动时通过 `setDefaultI18nMap` 替换默认的英文翻译为你希望的语言：
+
+```ts
+import { setDefaultI18nMap } from 'vue-renderer-markdown'
+
+setDefaultI18nMap({
+  'common.copy': '复制',
+  'common.copySuccess': '已复制',
+  'common.decrease': '减少',
+  'common.reset': '重置',
+  'common.increase': '增加',
+  'common.expand': '展开',
+  'common.collapse': '折叠',
+  'common.preview': '预览',
+  'image.loadError': '图片加载失败',
+  'image.loading': '正在加载图片...',
+})
+```
+
+可选：如果你安装并配置了 `vue-i18n`，库会在运行时优先使用它提供的翻译。
+
 ## 相关链接
 
 - Streaming Playground：https://vue-markdown-renderer.simonhe.me/

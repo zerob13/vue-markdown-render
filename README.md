@@ -897,6 +897,28 @@ export default {
 }
 ```
 
+### Internationalization / Fallback translations
+
+If you don't want to install or use `vue-i18n`, the library ships with a small synchronous fallback translator used for common UI strings (copy, preview, image loading, etc.). You can replace the default English fallback map with your preferred language by calling `setDefaultI18nMap` at app startup:
+
+```ts
+import { setDefaultI18nMap } from 'vue-renderer-markdown'
+
+setDefaultI18nMap({
+  'common.copy': '复制',
+  'common.copySuccess': '已复制',
+  'common.decrease': '减少',
+  'common.reset': '重置',
+  'common.increase': '增加',
+  'common.expand': '展开',
+  'common.collapse': '折叠',
+  'common.preview': '预览',
+  'image.loadError': '图片加载失败',
+  'image.loading': '正在加载图片...',
+})
+```
+
+This is purely optional — if you do install `vue-i18n`, the library will prefer it at runtime and use the real translations provided by your i18n setup.
 ## Code block header customization
 
 The code block component now exposes a flexible header API so consumers can:

@@ -31,4 +31,21 @@ app.use(router)
 //   },
 // })
 
+// Optional: if you don't use `vue-i18n`, replace built-in fallback translations
+// at app startup by calling `setDefaultI18nMap`. Keep this commented in the
+// playground by default — uncomment to try it out.
+// import { setDefaultI18nMap } from '../../src/exports'
+// setDefaultI18nMap({
+//   'common.copy': '复制',
+//   'common.copySuccess': '已复制',
+//   'common.decrease': '减少',
+//   'common.reset': '重置',
+//   'common.increase': '增加',
+//   'common.expand': '展开',
+//   'common.collapse': '折叠',
+//   'common.preview': '预览',
+//   'image.loadError': '图片加载失败',
+//   'image.loading': '正在加载图片...',
+// })
+
 app.mount('#app')
