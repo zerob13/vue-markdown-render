@@ -60,7 +60,6 @@ export default defineConfig(({ mode }) => {
             'markdown-it-footnote',
             'markdown-it-ins',
             'markdown-it-mark',
-            'markdown-it-mathjax3',
             'markdown-it-sub',
             'markdown-it-sup',
             'markdown-it-task-checkbox',

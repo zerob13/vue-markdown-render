@@ -319,7 +319,8 @@ pnpm add @iconify/vue
 
 ## 相关链接
 
-- Demo: https://vue-markdown-renderer.simonhe.me/
+- Streaming Playground：https://vue-markdown-renderer.simonhe.me/
+- 传统渲染对比示例：https://vue-markdown-renderer.simonhe.me/markdown
 - 文档：[docs/](docs/)
 - Issue 反馈：https://github.com/Simon-He95/vue-markdown-render/issues
 

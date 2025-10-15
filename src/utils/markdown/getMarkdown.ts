@@ -12,7 +12,7 @@ export interface GetMarkdownOptions extends Record<string, any> {
   mathOptions?: { commands?: string[], escapeExclamation?: boolean }
 }
 
-export function getMarkdown(opts: GetMarkdownOptions = {}) {
+export function getMarkdown(opts: GetMarkdownOptions = {}): MarkdownIt {
   const md = new MarkdownIt({
     html: true,
     linkify: true,

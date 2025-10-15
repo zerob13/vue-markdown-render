@@ -12,8 +12,10 @@
   "dependencies": {
     "@iconify-json/carbon": "^1.2.13",
     "@iconify/vue": "^5.0.0",
+    "@tailwindcss/typography": "^0.5.19",
     "@vueuse/core": "^13.9.0",
     "@vueuse/head": "^0.7.13",
+    "katex": "^0.16.23",
     "monaco-editor": "^0.52.2",
     "vite": "^7.1.9",
     "vue": "^3.5.22",
