@@ -3,6 +3,39 @@
 > Fast, streaming-friendly Markdown rendering for Vue 3 — progressive Mermaid, streaming diff code blocks, and real-time previews optimized for large documents.
 
 [![NPM version](https://img.shields.io/npm/v/vue-renderer-markdown?color=a1b858&label=)](https://www.npmjs.com/package/vue-renderer-markdown)
+[![中文版](https://img.shields.io/badge/docs-中文文档-blue)](README.zh-CN.md)
+[![NPM downloads](https://img.shields.io/npm/dm/vue-renderer-markdown)](https://www.npmjs.com/package/vue-renderer-markdown)
+[![Bundle size](https://img.shields.io/bundlephobia/minzip/vue-renderer-markdown)](https://bundlephobia.com/package/vue-renderer-markdown)
+[![License](https://img.shields.io/npm/l/vue-renderer-markdown)](./LICENSE)
+
+## Table of Contents
+
+- [Why use it?](#why-use-it)
+- [Compared to traditional Markdown renderers](#compared-to-traditional-markdown-renderers)
+- [Live Demo](#-live-demo)
+- [Features](#features)
+- [Install](#install)
+  - [Peer Dependencies](#peer-dependencies)
+- [Server-Side Rendering (SSR)](#server-side-rendering-ssr)
+- [Math rendering options](#math-rendering-options)
+- [Quick Start](#quick-start)
+  - [Choose Your Code Block Style](#choose-your-code-block-style)
+- [TypeScript Usage](#typescript-usage)
+- [Why vue-renderer-markdown?](#why-vue-renderer-markdown)
+- [Usage](#usage)
+- [Performance Features](#performance-features)
+- [Performance Tips](#performance-tips)
+  - [Props](#props)
+- [New prop: `renderCodeBlocksAsPre`](#new-prop-rendercodeblocksaspre)
+- [Advanced customization](#advanced)
+- [Monaco Editor Integration](#monaco-editor-integration)
+- [Code block header customization](#code-block-header-customization)
+- [Mermaid: Progressive Rendering Example](#mermaid-progressive-rendering-example)
+- [Tailwind (e.g. shadcn) — fix style ordering issues](#tailwind-eg-shadcn--fix-style-ordering-issues)
+- [Troubleshooting](#troubleshooting)
+- [Thanks](#thanks)
+- [Star History](#star-history)
+- [License](#license)
 
 ## Why use it?
 
@@ -50,53 +83,66 @@ npm install vue-renderer-markdown
 yarn add vue-renderer-markdown
 ```
 
-### Install peer dependencies (important)
+### Peer Dependencies
 
-This package declares several peer dependencies. Some are required for core rendering and others are optional and enable extra features. Since the library now lazy-loads heavyweight optional peers at runtime, you can choose a minimal install for basic rendering or a full install to enable advanced features.
+This package requires **Vue 3** and includes **KaTeX** as a bundled dependency. Additional optional peer dependencies enable advanced features and are lazy-loaded at runtime when available.
 
-Minimal (core) peers — required for basic rendering:
+#### Required Peer Dependencies
 
-pnpm (recommended):
+**Vue 3** (required for all features):
 
 ```bash
+# pnpm (recommended)
 pnpm add vue
+
+# npm
+npm install vue
+
+# yarn
+yarn add vue
 ```
 
-Full install — enables diagrams, Monaco editor preview and icon UI (recommended if you want all features):
+#### Optional Peer Dependencies
+
+Install these to enable advanced features. The library will gracefully degrade if they are not available.
+
+**Full install** (recommended if you want all features):
 
 ```bash
-pnpm add vue @iconify/vue katex mermaid vue-use-monaco
+# pnpm
+pnpm add @iconify/vue mermaid vue-use-monaco shiki
+
+# npm
+npm install @iconify/vue mermaid vue-use-monaco shiki
+
+# yarn
+yarn add @iconify/vue mermaid vue-use-monaco shiki
 ```
 
-npm equivalent:
+**Individual optional features:**
 
-```bash
-npm install vue @iconify/vue katex mermaid vue-use-monaco
-```
+| Peer Dependency | Version | Enables | Fallback if missing |
+|----------------|---------|---------|---------------------|
+| `mermaid` | >=11 | Progressive Mermaid diagram rendering | Shows code block source |
+| `vue-use-monaco` | >=0.0.33 | Monaco Editor for interactive code editing | Plain text display |
+| `shiki` | ^3.13.0 | Syntax highlighting for `MarkdownCodeBlockNode` | Plain text display |
+| `@iconify/vue` | >=5.0.0 | Icons in UI (toolbar buttons) | Simple fallback elements |
+| `vue-i18n` | >=9 | Internationalization support | Built-in fallback translator |
 
-yarn equivalent:
+**Important Notes:**
 
-```bash
-yarn add vue @iconify/vue katex mermaid vue-use-monaco
-```
-
-Notes:
-
-- The exact peer version ranges are declared in this package's `package.json` — consult it if you need specific versions.
-- Optional peers and the features they enable:
-  - `mermaid` — enables Mermaid diagram rendering (progressive rendering is supported). If absent, code blocks tagged `mermaid` fall back to showing the source text without runtime errors.
-  - `vue-use-monaco` — enables Monaco Editor based previews/editing and advanced streaming updates for large code blocks. If absent, the component degrades to plain text rendering and no editor is created.
-  - `@iconify/vue` — enables iconography in the UI (toolbar buttons). If absent, simple fallback elements are shown in place of icons so the UI remains functional.
-- `vue-i18n` is optional: the library provides a synchronous fallback translator. If your app uses `vue-i18n`, the library will automatically wire into it at runtime when available.
-- If you're installing this library inside a monorepo or using pnpm workspaces, install peers at the workspace root so they are available to consuming packages.
+- ✅ **KaTeX is bundled** with this package and does not need to be installed separately
+- The exact peer version ranges are declared in this package's `package.json`
+- Optional peers are lazy-loaded at runtime, so you can start with minimal dependencies and add features later
+- For monorepos or pnpm workspaces, install peers at the workspace root to ensure they are available to consuming packages
 
 ## Server-Side Rendering (SSR)
 
-This library is designed to be safe to import in SSR builds, but several features depend on browser-only APIs (DOM, Clipboard, Web Workers, Monaco, Mermaid, KaTeX). To avoid runtime errors during server-side rendering, the library lazy-loads heavyweight peers and guards browser globals where possible. However, some advanced features (Monaco editor, Mermaid progressive rendering, Web Workers) are inherently client-side and must be used inside client-only blocks in SSR environments.
+This library is designed to be import-safe in SSR builds. Heavy dependencies (Monaco, Mermaid) are lazy-loaded at runtime and browser-only features are properly guarded. However, some advanced features (Monaco editor, progressive Mermaid rendering, Web Workers) require browser APIs and must be rendered client-side only.
 
-Recommended consumption patterns:
+### Quick Start: Nuxt 3
 
-- For Nuxt 3 (or other SSR frameworks): render the component client-side only. Example using Nuxt's <client-only> wrapper:
+Use Nuxt's `<client-only>` wrapper:
 
 ```vue
 <template>
@@ -106,9 +152,11 @@ Recommended consumption patterns:
 </template>
 ```
 
-For a fuller Nuxt 3 recipe and extra notes, see the docs: `docs/nuxt-ssr.md`.
+For detailed Nuxt 3 setup, see: [docs/nuxt-ssr.md](docs/nuxt-ssr.md)
 
-- For Vite + plain SSR (or when you control hydration): conditionally render on the client with a small wrapper component:
+### Vite SSR / Custom SSR
+
+Use a client-only wrapper with Vue lifecycle hooks:
 
 ```vue
 <script setup lang="ts">
@@ -126,77 +174,28 @@ onMounted(() => {
     <MarkdownRender :content="markdown" />
   </div>
   <div v-else>
-    <!-- SSR fallback: simple preformatted text to avoid heavy client peers -->
+    <!-- SSR fallback: lightweight preformatted text -->
     <pre>{{ markdown }}</pre>
   </div>
 </template>
 ```
 
-Notes and caveats:
+### SSR Testing
 
-- If you depend on Monaco, Mermaid, KaTeX or the optional icon pack at runtime, install those peers in your app and ensure they are available on the client. The library will attempt to lazy-load them only in the browser.
-- The library aims to avoid throwing on import during SSR. If you still see ReferenceErrors (e.g. `window is not defined`), please open an issue and include the stack trace — I'll prioritize a fix.
-- For server-rendered markup that needs diagrams or highlighted code server-side, consider generating static HTML on the server (e.g., pre-render Mermaid/KaTeX output) and pass it into the renderer as raw HTML or a safe, server-side AST.
+Run the SSR smoke test to verify import safety:
 
-If you'd like, I can add an explicit "SSR" recipe and a Nuxt module example to the repo — say the word and I'll add it.
+```bash
+pnpm run check:ssr
+```
 
-### SSR recipe (Nuxt 3 and Vite SSR)
+This test ensures the library can be imported in a Node environment without throwing errors.
 
-Below are concrete recipes to run this renderer safely in SSR environments. These cover common setups and show how to avoid importing client-only peers during server rendering.
+### Notes
 
-- Nuxt 3 (recommended for full-app SSR)
-
-  1. Install peers you need on the client (for example `mermaid`, `vue-use-monaco`) as normal dependencies in your Nuxt app.
-  2. Use Nuxt's `<client-only>` wrapper for pages or components that rely on client-only features like Monaco or progressive Mermaid:
-
-  ```vue
-  <template>
-    <client-only>
-      <MarkdownRender :content="markdown" />
-    </client-only>
-  </template>
-  ```
-
-  3. If you need server-rendered HTML for specific diagrams or math, pre-render those outputs on the server (for example using a small service or build step that runs KaTeX or Mermaid CLI) and pass the resulting HTML into your page as pre-rendered fragments.
-
-- Vite + custom SSR (manual hydrate)
-
-  If you run your own Vite SSR pipeline, prefer a client-only wrapper to delay browser-only initialization until hydration:
-
-  ```vue
-  <script setup lang="ts">
-  import { onMounted, ref } from 'vue'
-  import MarkdownRender from 'vue-renderer-markdown'
-
-  const mounted = ref(false)
-  onMounted(() => {
-    mounted.value = true
-  })
-  </script>
-
-  <template>
-    <div v-if="mounted">
-      <MarkdownRender :content="markdown" />
-    </div>
-    <div v-else>
-      <!-- Lightweight SSR fallback to avoid heavy peers on the server -->
-      <pre>{{ markdown }}</pre>
-    </div>
-  </template>
-  ```
-
-Notes:
-
-- The package aims to be import-safe during SSR: heavy peers are lazy-loaded in the browser and many DOM/Worker usages are guarded. However, some features (Monaco editor, Web Workers, progressive Mermaid rendering) are client-only by nature — they must be used inside client-only wrappers or deferred with lifecycle hooks.
-- To guard against regressions, this repo includes a small SSR smoke test you can run locally:
-
-  ```bash
-  pnpm run check:ssr
-  ```
-
-  This uses Vitest to import the library entry (`src/exports`) in a Node environment and will fail if the import throws during SSR.
-
-- CI: a small GitHub Actions workflow (`.github/workflows/ci.yml`) has been added to run typecheck and tests (including the SSR smoke test) on push and PR to `main`.
+- Optional peers (Mermaid, Monaco, icons) are lazy-loaded only in the browser
+- Math rendering (KaTeX) works during SSR as it's a bundled dependency
+- For pre-rendered diagrams/code, generate static HTML server-side and pass it as raw HTML or AST
+- If you encounter `window is not defined` errors, please [open an issue](https://github.com/Simon-He95/vue-markdown-render/issues) with the stack trace
 
 ## Math rendering options
 
@@ -261,54 +260,165 @@ import { setDefaultMathOptions } from 'vue-renderer-markdown'
 setDefaultMathOptions({ commands: ['infty', 'perp'], escapeExclamation: true })
 ```
 
-If you'd like, I can add a short Nuxt module wrapper or a dedicated example page for Nuxt to the `playground/` directory — say the word and I'll scaffold it.
 ## Quick Start
 
-### Choose Your Code Block Rendering Style
+### 1. Install
 
-The library offers two code block rendering approaches:
+```bash
+pnpm add vue-renderer-markdown vue
+# or
+npm install vue-renderer-markdown vue
+# or
+yarn add vue-renderer-markdown vue
+```
 
-**Option 1: Default Monaco Editor Integration (Full Features)**
+### 2. Basic Usage
+
 ```vue
 <script setup lang="ts">
 import MarkdownRender from 'vue-renderer-markdown'
+import 'vue-renderer-markdown/index.css'
 
 const content = `
-# Code Example
+# Hello World
+
+This is **bold** and this is *italic*.
+
+- List item 1
+- List item 2
+
 \`\`\`javascript
-console.log('Hello World!')
+console.log('Code block!')
 \`\`\`
 `
 </script>
 
 <template>
-  <!-- Uses CodeBlockNode by default - includes Monaco editor, copy buttons, etc. -->
   <MarkdownRender :content="content" />
 </template>
 ```
 
-**Option 2: Lightweight Markdown-Style Highlighting**
+### 3. Enable Optional Features
+
+**Mermaid Diagrams:**
+```bash
+pnpm add mermaid
+```
+
+**Monaco Editor (Interactive Code Editing):**
+```bash
+pnpm add vue-use-monaco
+# Also configure vite-plugin-monaco-editor-esm (see Monaco section)
+```
+
+**Syntax Highlighting (Lightweight Alternative to Monaco):**
+```bash
+pnpm add shiki
+```
+
+**Icons:**
+```bash
+pnpm add @iconify/vue
+```
+
+### Choose Your Code Block Style
+
+The library offers flexible code block rendering:
+
+| Mode | Component | Best for | Dependencies |
+|------|-----------|----------|---------------|
+| **Monaco Editor (default)** | `CodeBlockNode` | Rich editing, streaming diffs, toolbar actions | `vue-use-monaco`, `@iconify/vue` |
+| **Shiki Syntax Highlighting** | `MarkdownCodeBlockNode` | Lightweight read-only views, SSR friendly output | `shiki` |
+| **Plain Text** | `PreCodeNode` | Minimal dependencies, AI reasoning traces, logging output | _None_ |
+
+**Default: Monaco Editor Integration** (full-featured)
+- Interactive editing
+- Advanced features (copy, expand, preview)
+- Requires `vue-use-monaco` peer dependency
+
+**Alternative: Shiki Syntax Highlighting** (lightweight)
 ```vue
 <script setup lang="ts">
-import MarkdownRender, { MarkdownCodeBlockNode, setCustomComponents } from 'vue-renderer-markdown'
+import { MarkdownCodeBlockNode, setCustomComponents } from 'vue-renderer-markdown'
 
-// Override globally to use markdown-style rendering
+// Override globally to use lightweight rendering
 setCustomComponents({
   code_block: MarkdownCodeBlockNode,
 })
+</script>
+```
 
-const content = `
-# Code Example
-\`\`\`javascript
-console.log('Hello World!')
-\`\`\`
-`
+**Minimal: Plain Text** (no dependencies)
+```vue
+<MarkdownRender :content="content" :render-code-blocks-as-pre="true" />
+```
+
+That's it! See the sections below for advanced features and customization.
+
+## TypeScript Usage
+
+### Typed AST rendering
+
+```vue
+<script setup lang="ts">
+import type { BaseNode } from 'vue-renderer-markdown'
+import { ref, watchEffect } from 'vue'
+import MarkdownRender, { parseMarkdownToStructure } from 'vue-renderer-markdown'
+
+const content = ref<string>('# Hello \n\n```ts\nconsole.log(1)\n```')
+const nodes = ref<BaseNode[]>([])
+
+watchEffect(() => {
+  nodes.value = parseMarkdownToStructure(content.value)
+})
 </script>
 
 <template>
-  <!-- Now uses MarkdownCodeBlockNode - lightweight syntax highlighting only -->
-  <MarkdownRender :content="content" />
+  <MarkdownRender :nodes="nodes" />
 </template>
+```
+
+### Strongly typed custom components
+
+```vue
+<!-- components/CustomCodeBlock.vue -->
+<script setup lang="ts">
+import type { CodeBlockNode } from 'vue-renderer-markdown'
+
+const props = defineProps<{ node: CodeBlockNode }>()
+</script>
+
+<template>
+  <pre class="custom-code">
+    <code :data-lang="props.node.language">{{ props.node.code }}</code>
+  </pre>
+</template>
+```
+
+```ts
+// main.ts
+import { createApp } from 'vue'
+import { setCustomComponents, VueRendererMarkdown } from 'vue-renderer-markdown'
+import App from './App.vue'
+import CustomCodeBlock from './components/CustomCodeBlock.vue'
+
+const app = createApp(App)
+
+setCustomComponents('docs', {
+  code_block: CustomCodeBlock,
+})
+
+app.use(VueRendererMarkdown, {
+  mathOptions: {
+    commands: ['infty', 'perp', 'alpha'],
+    escapeExclamation: true,
+  },
+  getLanguageIcon(lang) {
+    return lang === 'shell' ? '<span>sh</span>' : undefined
+  },
+})
+
+app.mount('#app')
 ```
 
 ## Why vue-renderer-markdown?
@@ -389,6 +499,14 @@ The streaming-optimized engine delivers:
 - **Memory Optimized**: Intelligent cleanup prevents memory leaks during long streaming sessions
 - **Animation Frame Based**: Smooth animations
 - **Graceful Degradation**: Handles malformed or incomplete Markdown without breaking
+
+## Performance Tips
+
+- Stream long documents in chunks to avoid blocking the main thread; the renderer incrementally patches the DOM.
+- Prefer `MarkdownCodeBlockNode` or `render-code-blocks-as-pre` when you only need read-only output — this skips Monaco initialization.
+- Scope custom component overrides with `setCustomComponents(id, mapping)` so unused components can be garbage-collected.
+- Use the built-in `setDefaultMathOptions` helper once during app bootstrap to avoid repeatedly computing math config per render.
+- When Mermaid diagrams are heavy, pre-validate or pre-render them server-side and feed the resulting HTML as cached content.
 
 ### Props
 
@@ -952,6 +1070,208 @@ If your project uses a Tailwind component library like shadcn you may run into s
 ```
 
 Pick `components` (common) or `base` (when you want library styles to be more foundational) based on your desired override priority. After changing, run your dev/build command (e.g. `pnpm dev`) to verify the stylesheet ordering.
+
+## Troubleshooting
+
+### Monaco Editor workers not found
+
+**Symptom:** Console errors like `Could not load worker` or `Failed to load Monaco worker` in production builds.
+
+**Solution:** Configure `vite-plugin-monaco-editor-esm` in your `vite.config.ts`:
+
+```ts
+import path from 'node:path'
+import monacoEditorPlugin from 'vite-plugin-monaco-editor-esm'
+
+export default {
+  plugins: [
+    monacoEditorPlugin({
+      languageWorkers: ['editorWorkerService', 'typescript', 'css', 'html', 'json'],
+      customDistPath(root, buildOutDir, base) {
+        return path.resolve(buildOutDir, 'monacoeditorwork')
+      },
+    }),
+  ],
+}
+```
+
+See the [Monaco Editor Integration](#monaco-editor-integration) section for more details.
+
+### Mermaid diagrams not rendering
+
+**Symptom:** Code blocks with `mermaid` language show plain text instead of rendered diagrams.
+
+**Solutions:**
+
+1. Install the `mermaid` peer dependency:
+   ```bash
+   pnpm add mermaid
+   ```
+
+2. Ensure your code block syntax is valid Mermaid:
+   ````markdown
+   ```mermaid
+   graph TD
+     A[Start] --> B[End]
+   ```
+   ````
+
+3. Check browser console for Mermaid errors. The library shows the source text if Mermaid rendering fails.
+
+### Syntax highlighting not working with MarkdownCodeBlockNode
+
+**Symptom:** Code blocks show plain text without syntax highlighting when using `MarkdownCodeBlockNode`.
+
+**Solution:** Install the `shiki` peer dependency:
+
+```bash
+pnpm add shiki
+```
+
+### TypeScript errors about missing types
+
+**Symptom:** TypeScript errors like `Cannot find module 'vue-renderer-markdown'` or missing type definitions.
+
+**Solutions:**
+
+1. Import types from the correct path:
+   ```ts
+   import type { BaseNode, CodeBlockNode } from 'vue-renderer-markdown'
+   ```
+
+2. For specific type definitions:
+   ```ts
+   import type { MarkdownRenderProps } from 'vue-renderer-markdown/dist/types'
+   ```
+
+3. Ensure `moduleResolution` in `tsconfig.json` is set to `"bundler"` or `"node16"`:
+   ```json
+   {
+     "compilerOptions": {
+       "moduleResolution": "bundler"
+     }
+   }
+   ```
+
+### Tailwind CSS styles conflicting
+
+**Symptom:** Component styles are overridden by Tailwind utility classes or vice versa.
+
+**Solution:** Import library CSS into a Tailwind layer in your main stylesheet:
+
+```css
+/* main.css or index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  @import 'vue-renderer-markdown/index.css';
+}
+```
+
+See the [Tailwind section](#tailwind-eg-shadcn--fix-style-ordering-issues) for more details.
+
+### SSR: "window is not defined" errors
+
+**Symptom:** Errors like `ReferenceError: window is not defined` during server-side rendering.
+
+**Solutions:**
+
+1. **Nuxt 3**: Wrap component in `<client-only>`:
+   ```vue
+   <template>
+     <client-only>
+       <MarkdownRender :content="markdown" />
+     </client-only>
+   </template>
+   ```
+
+2. **Vite SSR**: Use a client-only wrapper with lifecycle hooks:
+   ```vue
+   <script setup lang="ts">
+   import { onMounted, ref } from 'vue'
+   import MarkdownRender from 'vue-renderer-markdown'
+
+   const mounted = ref(false)
+   onMounted(() => { mounted.value = true })
+   </script>
+
+   <template>
+     <div v-if="mounted">
+       <MarkdownRender :content="markdown" />
+     </div>
+   </template>
+   ```
+
+3. See the [SSR section](#server-side-rendering-ssr) for complete setup guides.
+
+### Icons not showing
+
+**Symptom:** Toolbar buttons show fallback elements instead of icons.
+
+**Solution:** Install the `@iconify/vue` peer dependency:
+
+```bash
+pnpm add @iconify/vue
+```
+
+Note: The library works without icons but provides a better UI experience when `@iconify/vue` is installed.
+
+### Performance issues with large documents
+
+**Symptoms:** Slow rendering, high memory usage, or UI lag with large Markdown files (>10k lines).
+
+**Solutions:**
+
+1. **Use streaming rendering** to update content incrementally instead of replacing the entire content at once.
+
+2. **Enable pre-rendering for code blocks** if you don't need Monaco editor:
+   ```vue
+   <MarkdownRender :content="markdown" :render-code-blocks-as-pre="true" />
+   ```
+
+3. **Limit Mermaid diagram complexity** or consider pre-rendering complex diagrams server-side.
+
+4. **Use `MarkdownCodeBlockNode`** instead of `CodeBlockNode` for lighter syntax highlighting:
+   ```ts
+   import { MarkdownCodeBlockNode, setCustomComponents } from 'vue-renderer-markdown'
+
+   setCustomComponents({
+     code_block: MarkdownCodeBlockNode
+   })
+   ```
+
+### Math formulas not rendering correctly
+
+**Symptom:** Math formulas show raw LaTeX or render incorrectly.
+
+**Solutions:**
+
+1. KaTeX is bundled with the library and should work automatically. Ensure you're using valid LaTeX syntax:
+   - Inline math: `$a^2 + b^2 = c^2$`
+   - Block math: `$$\int_0^\infty e^{-x^2} dx$$`
+
+2. For advanced customization, configure math options:
+   ```ts
+   import { setDefaultMathOptions } from 'vue-renderer-markdown'
+
+   setDefaultMathOptions({
+     commands: ['infty', 'perp', 'alpha'],
+     escapeExclamation: true
+   })
+   ```
+
+3. See the [Math rendering options](#math-rendering-options) section for detailed configuration.
+
+### Still having issues?
+
+- Check the [GitHub Issues](https://github.com/Simon-He95/vue-markdown-render/issues) to see if someone else has encountered the same problem
+- [Open a new issue](https://github.com/Simon-He95/vue-markdown-render/issues/new) with:
+  - Your environment (Node version, framework, bundler)
+  - Minimal reproduction code
+  - Console errors or screenshots
+  - Steps to reproduce the issue
 
 ## Thanks
 

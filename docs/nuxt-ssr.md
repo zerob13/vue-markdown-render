@@ -1,5 +1,7 @@
 # Nuxt 3 SSR usage (example)
 
+> 中文版请查看 [nuxt-ssr.zh-CN.md](./nuxt-ssr.zh-CN.md)。
+
 This short recipe shows a minimal, safe way to use `vue-renderer-markdown` in Nuxt 3 so that client-only features (Monaco, Mermaid, Web Workers) are only initialized in the browser.
 
 ## Install peers (client-side)

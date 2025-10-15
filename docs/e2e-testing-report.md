@@ -1,5 +1,7 @@
 # E2E Testing Report
 
+> 中文版请查看 [e2e-testing-report.zh-CN.md](./e2e-testing-report.zh-CN.md)。
+
 This document summarizes the end-to-end markdown parsing tests added to this repository.
 
 ## Purpose
@@ -72,8 +74,8 @@ pnpm lint
 4. Configure CI to run snapshots or a visual regression step if the renderer's HTML output becomes more important.
 
 If you want, I can:
-- Expand snapshots to be more detailed now; or
-- Add the edge-case fixtures and tests; or
-- Add a Playwright job in CI for DOM-heavy plugins.
+1. Expand snapshots to include richer metadata (children snippets, meta fields).
+2. Add the proposed edge-case fixtures and assertions.
+3. Draft a Playwright-based CI job for DOM-heavy plugins.
 
-Which would you like me to do next?
+Let me know which option you’d prefer next。
