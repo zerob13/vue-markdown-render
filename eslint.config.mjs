@@ -19,6 +19,7 @@ export default simon(
       'no-cond-assign': 'off',
       'no-eval': 'off',
       'antfu/no-import-dist': 'off',
+      'vue/require-toggle-inside-transition': 'off',
     },
     ignores: ['**/fixtures', 'test'],
   },

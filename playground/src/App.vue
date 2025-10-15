@@ -188,16 +188,6 @@ function performAutoScrollIfNeeded() {
   const container = messagesContainer.value
   const shouldScroll = isAtBottom(container, 150)
 
-  console.log('[performAutoScrollIfNeeded]', {
-    autoScrollEnabled: autoScrollEnabled.value,
-    scrollHeight: container.scrollHeight,
-    scrollTop: container.scrollTop,
-    clientHeight: container.clientHeight,
-    distance: container.scrollHeight - container.scrollTop - container.clientHeight,
-    shouldScroll,
-    hasPendingTimeout: scrollCheckTimeoutId !== null,
-  })
-
   if (shouldScroll) {
     const now = Date.now()
     const timeSinceLastScroll = now - lastScrollAttemptTime
@@ -227,8 +217,6 @@ function executeScroll() {
   if (!messagesContainer.value)
     return
 
-  console.log('[Executing scroll] to', messagesContainer.value.scrollHeight)
-
   try {
     isProgrammaticScroll.value = true
     const targetScroll = messagesContainer.value.scrollHeight
@@ -240,7 +228,6 @@ function executeScroll() {
         if (messagesContainer.value) {
           lastScrollTop.value = messagesContainer.value.scrollTop
           lastKnownScrollHeight = messagesContainer.value.scrollHeight
-          console.log('[Scroll complete] lastScrollTop updated to', lastScrollTop.value)
         }
         isProgrammaticScroll.value = false
       })
@@ -292,10 +279,7 @@ function setupContentMutationObserver() {
     contentMutationObserver = null
   }
 
-  let mutationCount = 0
-
   contentMutationObserver = new MutationObserver((mutations) => {
-    mutationCount++
     // Check if any mutation affected the content
     let shouldCheck = false
     for (const mutation of mutations) {
@@ -314,9 +298,6 @@ function setupContentMutationObserver() {
     if (shouldCheck) {
       // Use nextTick to ensure Vue has finished updating
       nextTick(() => {
-        if (messagesContainer.value) {
-          console.log(`[MutationObserver #${mutationCount}] Detected change, scrollHeight: ${messagesContainer.value.scrollHeight}`)
-        }
         performAutoScrollIfNeeded()
       })
     }
@@ -380,7 +361,6 @@ function handleContainerScroll() {
     // Content shrank, causing scrollTop to decrease passively
     // Check if we're still at or near bottom - if so, don't disable auto-scroll
     if (isAtBottom(messagesContainer.value, 50)) {
-      console.log('[handleContainerScroll] Content shrank, but still at bottom. Keeping auto-scroll enabled.')
       lastScrollTop.value = currentScrollTop
       lastKnownScrollHeight = currentScrollHeight
       return
@@ -391,7 +371,6 @@ function handleContainerScroll() {
   lastUserScrollTime.value = Date.now()
   if (currentScrollTop < lastScrollTop.value) {
     // User scrolled up
-    console.log('[handleContainerScroll] User scrolled up, disabling auto-scroll')
     lastUserScrollDirection.value = 'up'
     autoScrollEnabled.value = false
   }

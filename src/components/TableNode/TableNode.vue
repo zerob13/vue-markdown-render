@@ -115,7 +115,7 @@ const bodyRows = computed(() => props.node.rows ?? [])
         aria-live="polite"
       >
         <slot name="loading" :is-loading="isLoading">
-          <span class="table-node__spinner" aria-hidden="true" />
+          <span class="table-node__spinner animate-spin" aria-hidden="true" />
           <span class="sr-only">Loading</span>
         </slot>
       </div>
@@ -160,7 +160,6 @@ const bodyRows = computed(() => props.node.rows ?? [])
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  background: rgba(15, 23, 42, 0.05);
 }
 
 .table-node__spinner {
@@ -169,7 +168,6 @@ const bodyRows = computed(() => props.node.rows ?? [])
   border-radius: 9999px;
   border: 2px solid rgba(94, 104, 121, 0.25);
   border-top-color: rgba(94, 104, 121, 0.8);
-  animation: table-node-spin 0.8s linear infinite;
   will-change: transform;
 }
 
@@ -181,12 +179,6 @@ const bodyRows = computed(() => props.node.rows ?? [])
 .table-node-fade-enter-from,
 .table-node-fade-leave-to {
   opacity: 0;
-}
-
-@keyframes table-node-spin {
-  to {
-    transform: rotate(1turn);
-  }
 }
 
 @keyframes table-node-shimmer {

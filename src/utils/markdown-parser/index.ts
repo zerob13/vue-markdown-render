@@ -1,6 +1,7 @@
 import type MarkdownIt from 'markdown-it'
 import type { MarkdownToken, ParsedNode } from '../../types'
-import { fixTableTokens, parseInlineTokens } from './inline-parsers'
+import { fixTableTokens } from './fixTableTokens'
+import { parseInlineTokens } from './inline-parsers'
 import { parseFenceToken } from './inline-parsers/fence-parser'
 import { parseAdmonition } from './node-parsers/admonition-parser'
 import { parseBlockquote } from './node-parsers/blockquote-parser'
@@ -36,6 +37,7 @@ export function parseMarkdownToStructure(
 
   // Process the tokens into our structured format
   const result = processTokens(tokens)
+
   return result
 }
 
