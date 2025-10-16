@@ -10,21 +10,21 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@iconify-json/carbon": "^1.2.13",
+    "@iconify-json/carbon": "^1.2.14",
     "@iconify/vue": "^5.0.0",
     "@tailwindcss/typography": "^0.5.19",
     "@vueuse/core": "^13.9.0",
-    "katex": "^0.16.23",
+    "katex": "^0.16.25",
     "monaco-editor": "^0.52.2",
-    "vite": "^7.1.9",
+    "vite": "^7.1.10",
     "vue": "^3.5.22",
     "vue-i18n": "^11.1.12",
     "vue-renderer-markdown": "latest",
-    "vue-router": "^4.5.1",
+    "vue-router": "^4.6.3",
     "vue-use-monaco": "^0.0.33"
   },
   "devDependencies": {
-    "@types/node": "^20.19.20",
+    "@types/node": "^20.19.21",
     "@unocss/reset": "^0.61.9",
     "@vue/test-utils": "^2.4.6",
     "eslint": "^9.37.0",
