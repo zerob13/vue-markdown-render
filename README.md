@@ -111,13 +111,13 @@ Install these to enable advanced features. The library will gracefully degrade i
 
 ```bash
 # pnpm
-pnpm add @iconify/vue mermaid vue-use-monaco shiki
+pnpm add mermaid vue-use-monaco shiki
 
 # npm
-npm install @iconify/vue mermaid vue-use-monaco shiki
+npm install mermaid vue-use-monaco shiki
 
 # yarn
-yarn add @iconify/vue mermaid vue-use-monaco shiki
+yarn add mermaid vue-use-monaco shiki
 ```
 
 **Individual optional features:**
@@ -127,12 +127,12 @@ yarn add @iconify/vue mermaid vue-use-monaco shiki
 | `mermaid` | >=11 | Progressive Mermaid diagram rendering | Shows code block source |
 | `vue-use-monaco` | >=0.0.33 | Monaco Editor for interactive code editing | Plain text display |
 | `shiki` | ^3.13.0 | Syntax highlighting for `MarkdownCodeBlockNode` | Plain text display |
-| `@iconify/vue` | >=5.0.0 | Icons in UI (toolbar buttons) | Simple fallback elements |
 | `vue-i18n` | >=9 | Internationalization support | Built-in fallback translator |
 
 **Important Notes:**
 
 - ✅ **KaTeX is bundled** with this package and does not need to be installed separately
+- 🖼️ Toolbar icons ship as local SVGs—no additional icon libraries required
 - The exact peer version ranges are declared in this package's `package.json`
 - Optional peers are lazy-loaded at runtime, so you can start with minimal dependencies and add features later
 - For monorepos or pnpm workspaces, install peers at the workspace root to ensure they are available to consuming packages
@@ -317,18 +317,13 @@ pnpm add vue-use-monaco
 pnpm add shiki
 ```
 
-**Icons:**
-```bash
-pnpm add @iconify/vue
-```
-
 ### Choose Your Code Block Style
 
 The library offers flexible code block rendering:
 
 | Mode | Component | Best for | Dependencies |
 |------|-----------|----------|---------------|
-| **Monaco Editor (default)** | `CodeBlockNode` | Rich editing, streaming diffs, toolbar actions | `vue-use-monaco`, `@iconify/vue` |
+| **Monaco Editor (default)** | `CodeBlockNode` | Rich editing, streaming diffs, toolbar actions | `vue-use-monaco` |
 | **Shiki Syntax Highlighting** | `MarkdownCodeBlockNode` | Lightweight read-only views, SSR friendly output | `shiki` |
 | **Plain Text** | `PreCodeNode` | Minimal dependencies, AI reasoning traces, logging output | _None_ |
 
@@ -532,7 +527,7 @@ Description:
 
 Notes:
 - When `renderCodeBlocksAsPre: true`, props passed to `CodeBlockNode` such as `codeBlockDarkTheme`, `codeBlockMonacoOptions`, `themes`, `minWidth`, `maxWidth`, etc. will not take effect because `CodeBlockNode` is not used.
-- If you need the full code block feature set (syntax highlighting, folding, copy button, etc.), keep the default `false` and install the optional peers (`mermaid`, `vue-use-monaco`, `@iconify/vue`).
+- If you need the full code block feature set (syntax highlighting, folding, copy button, etc.), keep the default `false` and install the optional peers (`mermaid`, `vue-use-monaco`).
 
 Example (Vue usage):
 ```vue
@@ -1235,13 +1230,11 @@ See the [Tailwind section](#tailwind-eg-shadcn--fix-style-ordering-issues) for m
 
 **Symptom:** Toolbar buttons show fallback elements instead of icons.
 
-**Solution:** Install the `@iconify/vue` peer dependency:
+**Solutions:**
 
-```bash
-pnpm add @iconify/vue
-```
-
-Note: The library works without icons but provides a better UI experience when `@iconify/vue` is installed.
+1. Ensure you are importing the library styles (`import 'vue-renderer-markdown/index.css'`).
+2. Confirm your bundler includes static asset imports (SVG files) from dependencies.
+3. If you override icon components, verify your custom replacements render the expected SVG output.
 
 ### Performance issues with large documents
 

@@ -5,7 +5,6 @@ import { hideTooltip, showTooltipForAnchor } from '../../composables/useSingleto
 import mermaidIconUrl from '../../icon/mermaid.svg?url'
 import { safeRaf } from '../../utils/safeRaf'
 import { canParseOffthread as canParseOffthreadClient, findPrefixOffthread as findPrefixOffthreadClient, terminateWorker as terminateMermaidWorker } from '../../workers/mermaidWorkerClient'
-import { getIconify } from '../CodeBlockNode/iconify'
 import { getMermaid } from './mermaid'
 
 const props = withDefaults(
@@ -22,8 +21,6 @@ const props = withDefaults(
   },
 )
 const emits = defineEmits(['copy'])
-// Optional runtime imports - will be dynamically loaded if available
-const Icon: any = getIconify()
 let mermaid: any = null
 
 // Only initialize mermaid on the client to avoid SSR errors
@@ -1285,7 +1282,7 @@ watch(
           @blur="onBtnLeave"
         >
           <div class="flex items-center space-x-1">
-            <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:eye', class: 'w-3 h-3' }" />
+            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" class="w-3 h-3"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M2.062 12.348a1 1 0 0 1 0-.696a10.75 10.75 0 0 1 19.876 0a1 1 0 0 1 0 .696a10.75 10.75 0 0 1-19.876 0" /><circle cx="12" cy="12" r="3" /></g></svg>
             <span>Preview</span>
           </div>
         </button>
@@ -1303,7 +1300,7 @@ watch(
           @blur="onBtnLeave"
         >
           <div class="flex items-center space-x-1">
-            <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:code', class: 'w-3 h-3' }" />
+            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" class="w-3 h-3"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m16 18l6-6l-6-6M8 6l-6 6l6 6" /></svg>
             <span>Source</span>
           </div>
         </button>
@@ -1320,11 +1317,7 @@ watch(
           @mouseleave="onBtnLeave"
           @blur="onBtnLeave"
         >
-          <component
-            :is="Icon ? Icon : 'span'" icon="lucide:chevron-right" class="w-3 h-3" :style="{
-              rotate: isCollapsed ? '0deg' : '90deg',
-            }"
-          />
+          <svg :style="{ rotate: isCollapsed ? '0deg' : '90deg' }" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" class="w-3 h-3"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 18l6-6l-6-6" /></svg>
         </button>
         <button
           class="mermaid-action-btn p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -1334,8 +1327,8 @@ watch(
           @mouseleave="onBtnLeave"
           @blur="onBtnLeave"
         >
-          <component :is="Icon" v-if="Icon" v-bind="{ icon: !copyText ? 'lucide:copy' : 'lucide:check', class: 'w-3 h-3' }" />
-          <span v-else class="w-3 h-3 inline-block" />
+          <svg v-if="!copyText" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" class="w-3 h-3"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></g></svg>
+          <svg v-else xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" class="w-3 h-3"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 6L9 17l-5-5" /></svg>
         </button>
         <button
           class="mermaid-action-btn p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -1347,7 +1340,7 @@ watch(
           @mouseleave="onBtnLeave"
           @blur="onBtnLeave"
         >
-          <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:download', class: 'w-3 h-3' }" />
+          <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" class="w-3 h-3"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12 15V3m9 12v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="m7 10l5 5l5-5" /></g></svg>
         </button>
         <button
           class="mermaid-action-btn p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -1359,7 +1352,8 @@ watch(
           @mouseleave="onBtnLeave"
           @blur="onBtnLeave"
         >
-          <component :is="Icon ? Icon : 'span'" v-bind="{ icon: isModalOpen ? 'lucide:minimize-2' : 'lucide:maximize-2', class: 'w-3 h-3' }" />
+          <svg v-if="!isModalOpen" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="0.75rem" height="0.75rem" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 3h6v6m0-6l-7 7M3 21l7-7m-1 7H3v-6" /></svg>
+          <svg v-else xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="0.75rem" height="0.75rem" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m14 10l7-7m-1 7h-6V4M3 21l7-7m-6 0h6v6" /></svg>
         </button>
       </div>
     </div>
@@ -1381,7 +1375,7 @@ watch(
               @mouseleave="onBtnLeave"
               @blur="onBtnLeave"
             >
-              <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:zoom-in', class: 'w-3 h-3' }" />
+              <svg data-v-3d59cc65="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" class="w-3 h-3"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="11" cy="11" r="8" /><path d="m21 21l-4.35-4.35M11 8v6m-3-3h6" /></g></svg>
             </button>
             <button
               class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -1391,7 +1385,7 @@ watch(
               @mouseleave="onBtnLeave"
               @blur="onBtnLeave"
             >
-              <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:zoom-out', class: 'w-3 h-3' }" />
+              <svg data-v-3d59cc65="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" class="w-3 h-3"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="11" cy="11" r="8" /><path d="m21 21l-4.35-4.35M8 11h6" /></g></svg>
             </button>
             <button
               class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -1447,13 +1441,13 @@ watch(
                     class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                     @click="zoomIn"
                   >
-                    <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:zoom-in', class: 'w-3 h-3' }" />
+                    <svg data-v-3d59cc65="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" class="w-3 h-3"><g data-v-3d59cc65="" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle data-v-3d59cc65="" cx="11" cy="11" r="8" /><path data-v-3d59cc65="" d="m21 21l-4.35-4.35M11 8v6m-3-3h6" /></g></svg>
                   </button>
                   <button
                     class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                     @click="zoomOut"
                   >
-                    <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:zoom-out', class: 'w-3 h-3' }" />
+                    <svg data-v-3d59cc65="" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" class="w-3 h-3"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="11" cy="11" r="8" /><path d="m21 21l-4.35-4.35M8 11h6" /></g></svg>
                   </button>
                   <button
                     class="p-2 text-xs rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -1465,7 +1459,7 @@ watch(
                     class="inline-flex items-center justify-center p-2 rounded text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                     @click="closeModal"
                   >
-                    <component :is="Icon ? Icon : 'span'" v-bind="{ icon: 'lucide:x', class: 'w-3 h-3' }" />
+                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" class="w-3 h-3"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 6L6 18M6 6l12 12" /></svg>
                   </button>
                 </div>
                 <div

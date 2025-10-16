@@ -104,7 +104,7 @@ const CodeBlockNodeAsync = defineAsyncComponent(async () => {
   }
   catch (e) {
     console.warn(
-      '[vue-markdown-render] Optional peer dependencies for CodeBlockNode are missing. Falling back to inline-code rendering (no Monaco). To enable full code block features, please install "vue-use-monaco" and "@iconify/vue".',
+      '[vue-markdown-render] Optional peer dependencies for CodeBlockNode are missing. Falling back to inline-code rendering (no Monaco). To enable full code block features, please install "vue-use-monaco".',
       e,
     )
     return PreCodeNode

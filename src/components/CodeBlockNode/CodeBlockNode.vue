@@ -8,7 +8,6 @@ import { hideTooltip, showTooltipForAnchor } from '../../composables/useSingleto
 import { getLanguageIcon, languageMap } from '../../utils'
 import { safeCancelRaf, safeRaf } from '../../utils/safeRaf'
 import PreCodeNode from '../PreCodeNode'
-import { getIconify } from './iconify'
 import { getUseMonaco } from './monaco'
 
 interface MonacoOptions {
@@ -81,8 +80,6 @@ const editorCreated = ref(false)
 let expandRafId: number | null = null
 const heightBeforeCollapse = ref<number | null>(null)
 let resumeGuardFrames = 0
-
-const Icon = getIconify()
 
 // Lazy-load `vue-use-monaco` helpers at runtime so consumers who don't install
 // `vue-use-monaco` won't have the editor code bundled. We provide safe no-op
@@ -852,7 +849,7 @@ onUnmounted(() => {
             @mouseleave="onBtnLeave"
             @blur="onBtnLeave"
           >
-            <Icon icon="lucide:chevron-right" class="w-3 h-3" :style="{ rotate: isCollapsed ? '0deg' : '90deg' }" />
+            <svg :style="{ rotate: isCollapsed ? '0deg' : '90deg' }" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" class="w-3 h-3"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 18l6-6l-6-6" /></svg>
           </button>
           <template v-if="props.showFontSizeButtons && props.enableFontSizeControl">
             <button
@@ -865,7 +862,7 @@ onUnmounted(() => {
               @mouseleave="onBtnLeave"
               @blur="onBtnLeave"
             >
-              <Icon icon="lucide:minus" class="w-3 h-3" />
+              <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" class="w-3 h-3"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14" /></svg>
             </button>
             <button
               type="button"
@@ -877,7 +874,7 @@ onUnmounted(() => {
               @mouseleave="onBtnLeave"
               @blur="onBtnLeave"
             >
-              <Icon icon="lucide:rotate-ccw" class="w-3 h-3" />
+              <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" class="w-3 h-3"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9a9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></g></svg>
             </button>
             <button
               type="button"
@@ -889,7 +886,7 @@ onUnmounted(() => {
               @mouseleave="onBtnLeave"
               @blur="onBtnLeave"
             >
-              <Icon icon="lucide:plus" class="w-3 h-3" />
+              <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" class="w-3 h-3"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7v14" /></svg>
             </button>
           </template>
 
@@ -904,8 +901,8 @@ onUnmounted(() => {
             @mouseleave="onBtnLeave"
             @blur="onBtnLeave"
           >
-            <Icon v-if="!copyText" icon="lucide:copy" class="w-3 h-3" />
-            <Icon v-else icon="lucide:check" class="w-3 h-3" />
+            <svg v-if="!copyText" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" class="w-3 h-3"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></g></svg>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" class="w-3 h-3"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 6L9 17l-5-5" /></svg>
           </button>
 
           <button
@@ -919,7 +916,8 @@ onUnmounted(() => {
             @mouseleave="onBtnLeave"
             @blur="onBtnLeave"
           >
-            <Icon :icon="isExpanded ? 'lucide:minimize-2' : 'lucide:maximize-2'" class="w-3 h-3" />
+            <svg v-if="isExpanded" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" class="w-3 h-3"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 3h6v6m0-6l-7 7M3 21l7-7m-1 7H3v-6" /></svg>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" class="w-3 h-3"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m14 10l7-7m-1 7h-6V4M3 21l7-7m-6 0h6v6" /></svg>
           </button>
 
           <button

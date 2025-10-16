@@ -52,10 +52,10 @@ yarn add vue-renderer-markdown vue
 | `mermaid` | >=11 | Mermaid 图表 | 展示源代码 |
 | `vue-use-monaco` | >=0.0.33 | Monaco 编辑器 | 仅显示纯文本 |
 | `shiki` | ^3.13.0 | MarkdownCodeBlockNode 语法高亮 | 仅显示纯文本 |
-| `@iconify/vue` | >=5.0.0 | 工具栏图标 | 使用简易占位元素 |
 | `vue-i18n` | >=9 | 国际化 | 内置同步翻译器 |
 
-> 提示：KaTeX 已随库一并打包，无需额外安装。
+- ✅ KaTeX 已随库一并打包，无需额外安装
+- 🖼️ 工具栏图标改用本地 SVG，无需额外图标库
 
 ## 快速开始
 
@@ -302,11 +302,11 @@ setCustomComponents({
 
 **现象**：复制、折叠等工具栏按钮显示为文本或占位符。
 
-**解决方案**：安装 `@iconify/vue`，库会在运行时自动检测并启用图标。
+**解决方案**：
 
-```bash
-pnpm add @iconify/vue
-```
+1. 确认已经引入库的样式文件（`import 'vue-renderer-markdown/index.css'`）。
+2. 检查构建工具是否允许从依赖中导入静态资源（SVG）。
+3. 如已自定义图标组件，请确保它们渲染了预期的 SVG 内容。
 
 ## 性能优化建议
 

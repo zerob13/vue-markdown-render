@@ -54,16 +54,6 @@ vi.mock('vue-use-monaco', () => ({
   detectLanguage: () => 'plaintext',
 }))
 
-vi.mock('@iconify/vue', () => ({
-  Icon: defineComponent({
-    name: 'IconStub',
-    props: { icon: { type: String, required: false } },
-    setup(props, { slots }) {
-      return () => h('span', { 'class': 'icon-stub', 'data-icon': props.icon ?? '' }, slots.default?.())
-    },
-  }),
-}))
-
 vi.mock('mermaid', () => ({
   default: {
     initialize: () => {},

@@ -52,8 +52,6 @@ export default defineConfig(({ mode }) => {
             return true
           return [
             'vue',
-            '@iconify/vue',
-            '@lezer/highlight',
             'markdown-it',
             'markdown-it-container',
             'markdown-it-emoji',
