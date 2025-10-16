@@ -4,11 +4,12 @@ import MarkdownRender from '../../../src/components/NodeRenderer'
 import { streamContent } from '../const/markdown'
 // 每隔 10 毫秒输出一部分内容
 const content = ref<string>('')
+const streamDelay = ref(16)
 
 // To avoid flashing sequences like ":::" during streaming (which later
 // become an AdmonitionNode), we look ahead when encountering ":" and
 // defer appending consecutive colons until a non-colon character is seen.
-useInterval(16, {
+useInterval(streamDelay, {
   callback() {
     const cur = content.value.length
     if (cur >= streamContent.length)
@@ -615,6 +616,26 @@ watch(content, () => {
                   class="w-4 h-4 text-gray-400 dark:text-gray-500"
                 />
               </div>
+            </div>
+          </div>
+
+          <!-- 流式速度控制 -->
+          <div class="space-y-2">
+            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+              Stream Delay
+            </label>
+            <div class="flex items-center gap-3">
+              <input
+                v-model.number="streamDelay"
+                type="range"
+                min="4"
+                max="200"
+                step="4"
+                class="flex-1 cursor-pointer"
+              >
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400 w-12 text-right">
+                {{ streamDelay }}ms
+              </span>
             </div>
           </div>
 
