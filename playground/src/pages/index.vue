@@ -5,6 +5,8 @@ import { streamContent } from '../const/markdown'
 // 每隔 10 毫秒输出一部分内容
 const content = ref<string>('')
 const streamDelay = ref(16)
+const streamChunkSize = ref(1)
+const normalizedChunkSize = computed(() => Math.max(1, Math.floor(streamChunkSize.value) || 1))
 
 // To avoid flashing sequences like ":::" during streaming (which later
 // become an AdmonitionNode), we look ahead when encountering ":" and
@@ -14,9 +16,10 @@ useInterval(streamDelay, {
     const cur = content.value.length
     if (cur >= streamContent.length)
       return
-    const nextChar = streamContent.charAt(cur)
-    // Normal single-character append for non-colon characters.
-    content.value += nextChar
+    const chunkSize = normalizedChunkSize.value
+    const nextChunk = streamContent.slice(cur, cur + chunkSize)
+    // Append chunk-sized slices so users can preview larger batches while streaming.
+    content.value += nextChunk
   },
 })
 
@@ -635,6 +638,26 @@ watch(content, () => {
               >
               <span class="text-xs font-medium text-gray-600 dark:text-gray-400 w-12 text-right">
                 {{ streamDelay }}ms
+              </span>
+            </div>
+          </div>
+
+          <!-- 流式字符数量控制 -->
+          <div class="space-y-2">
+            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+              Chunk Size
+            </label>
+            <div class="flex items-center gap-3">
+              <input
+                v-model.number="streamChunkSize"
+                type="range"
+                min="1"
+                max="16"
+                step="1"
+                class="flex-1 cursor-pointer"
+              >
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400 w-12 text-right">
+                {{ normalizedChunkSize }}
               </span>
             </div>
           </div>
