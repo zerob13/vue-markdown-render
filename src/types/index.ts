@@ -230,6 +230,7 @@ export interface MarkdownToken {
   markup?: string
   meta?: any
   map?: [number, number]
+  raw?: string
 }
 
 export type ParsedNode

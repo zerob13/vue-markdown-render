@@ -35,11 +35,11 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
     switch (token.type) {
       case 'text': {
         const content = token.content || ''
-        if (content === '`' || content === '|') {
+        if (content === '`' || content === '|' || content === '$') {
           i++
           break
         }
-        if (content.startsWith('[') && pPreToken?.type === 'list_item_open') {
+        if (raw?.startsWith('[') && pPreToken?.type === 'list_item_open') {
           const _content = content.slice(1)
           const w = _content.match(/[^\s\]]/)
           // 如果 里面不是 w, 应该不处理

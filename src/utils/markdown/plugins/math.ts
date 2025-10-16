@@ -139,6 +139,16 @@ const WORDS_RE = /\b(?:sin|cos|tan|log|ln|exp|sqrt|frac|sum|lim|int|prod)\b/
 // Heuristic to detect common date/time patterns like 2025/9/30 21:37:24 and
 // avoid classifying them as math merely because they contain '/' or ':'
 const DATE_TIME_RE = /\b\d{4}\/\d{1,2}\/\d{1,2}(?:[ T]\d{1,2}:\d{2}(?::\d{2})?)?\b/
+function countUnescapedStrong(s: string) {
+  const re = /(^|[^\\])(__|\*\*)/g
+  let m: RegExpExecArray | null
+  let c = 0
+  // eslint-disable-next-line unused-imports/no-unused-vars
+  while ((m = re.exec(s)) !== null) {
+    c++
+  }
+  return c
+}
 
 export function isMathLike(s: string) {
   if (!s)
@@ -275,26 +285,26 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
 
         if (!text)
           return
-        const strongMatch = text.match(/^(\*+)([^*]+)(\**)/)
-        if (strongMatch) {
-          const strongToken = state.push('strong_open', '', 0)
-          strongToken.markup = strongMatch[1]
-          const strongTextToken = state.push('text', '', 0)
-          // guard against unexpected undefined values
-          strongTextToken.content = strongMatch[2] == null ? '' : String(strongMatch[2])
-          const strongCloseToken = state.push('strong_close', '', 0)
-          strongCloseToken.markup = strongMatch[1]
-          if (!strongMatch[3])
-            return
-          text = text.slice(strongMatch[0].length)
-          if (text) {
-            const t = state.push('text', '', 0)
-            t.content = text
-          }
-          state.pos = state.src.length
-          searchPos = state.pos
-          return
-        }
+        // const strongMatch = text.match(/^(\*+)([^*]+)(\**)/)
+        // if (strongMatch) {
+        //   const strongToken = state.push('strong_open', '', 0)
+        //   strongToken.markup = strongMatch[1]
+        //   const strongTextToken = state.push('text', '', 0)
+        //   // guard against unexpected undefined values
+        //   strongTextToken.content = strongMatch[2] == null ? '' : String(strongMatch[2])
+        //   const strongCloseToken = state.push('strong_close', '', 0)
+        //   strongCloseToken.markup = strongMatch[1]
+        //   if (!strongMatch[3])
+        //     return
+        //   text = text.slice(strongMatch[0].length)
+        //   if (text) {
+        //     const t = state.push('text', '', 0)
+        //     t.content = text
+        //   }
+        //   state.pos = state.src.length
+        //   searchPos = state.pos
+        //   return
+        // }
 
         const t = state.push('text', '', 0)
         t.content = text
@@ -334,14 +344,31 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
             foundAny = true
             if (!silent) {
               state.pending = ''
+              const toPushBefore = preMathPos ? src.slice(preMathPos, searchPos) : src.slice(0, searchPos)
+              const isStrongPrefix = countUnescapedStrong(toPushBefore) % 2 === 1
+
               if (preMathPos)
                 pushText(src.slice(preMathPos, searchPos))
               else
                 pushText(src.slice(0, searchPos))
-              const token = state.push('math_inline', 'math', 0)
-              token.content = normalizeStandaloneBackslashT(content, mathOpts)
-              token.markup = open === '$$' ? '$$' : open === '\\(' ? '\\(\\)' : open === '$' ? '$' : '()'
-              token.loading = true
+              if (isStrongPrefix) {
+                const strongToken = state.push('strong_open', '', 0)
+                strongToken.markup = src.slice(0, index + 2)
+                const token = state.push('math_inline', 'math', 0)
+                token.content = normalizeStandaloneBackslashT(content, mathOpts)
+                token.markup = open === '$$' ? '$$' : open === '\\(' ? '\\(\\)' : open === '$' ? '$' : '()'
+                token.raw = `${open}${content}${close}`
+                token.loading = true
+                strongToken.content = content
+                state.push('strong_close', '', 0)
+              }
+              else {
+                const token = state.push('math_inline', 'math', 0)
+                token.content = normalizeStandaloneBackslashT(content, mathOpts)
+                token.markup = open === '$$' ? '$$' : open === '\\(' ? '\\(\\)' : open === '$' ? '$' : '()'
+                token.raw = `${open}${content}${close}`
+                token.loading = true
+              }
               // consume the full inline source
               state.pos = src.length
             }
@@ -373,16 +400,6 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
           // strong-open when the number of unescaped strong markers in the
           // preceding segment is odd (i.e. there's an unmatched opener). This
           // avoids treating a fully paired `**bold**` as an open prefix.
-          const countUnescapedStrong = (s: string) => {
-            const re = /(^|[^\\])(__|\*\*)/g
-            let m: RegExpExecArray | null
-            let c = 0
-            // eslint-disable-next-line unused-imports/no-unused-vars
-            while ((m = re.exec(s)) !== null) {
-              c++
-            }
-            return c
-          }
 
           let toPushBefore = prevConsumed ? src.slice(preMathPos, index) : before
           const isStrongPrefix = countUnescapedStrong(toPushBefore) % 2 === 1
@@ -393,27 +410,50 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
           // strong prefix handling (preserve previous behavior)
           if (state.pending !== toPushBefore) {
             state.pending = ''
-            pushText(isStrongPrefix ? toPushBefore.replace(/^\*+/, '') : toPushBefore)
+            if (isStrongPrefix) {
+              const _match = toPushBefore.match(/(\*+)/)
+              const after = toPushBefore.slice(_match!.index! + _match![0].length)
+              pushText(toPushBefore.slice(0, _match!.index!))
+              const strongToken = state.push('strong_open', '', 0)
+              strongToken.markup = _match![0]
+              const textToken = state.push('text', '', 0)
+              textToken.content = after
+              state.push('strong_close', '', 0)
+            }
+            else {
+              pushText(toPushBefore)
+            }
           }
-          const token = state.push('math_inline', 'math', 0)
-          token.content = normalizeStandaloneBackslashT(content, mathOpts)
-          token.markup = open === '$$' ? '$$' : open === '\\(' ? '\\(\\)' : open === '$' ? '$' : '()'
-          token.loading = false
-          // we'll handle the trailing text after loop; but to preserve the
-          // original behaviour when strong prefix was detected, mimic it here
           if (isStrongPrefix) {
-            const textToken = state.push('strong_open', '', 0)
-            textToken.markup = src.slice(0, index + 2)
-            const textContentToken = state.push('text', '', 0)
-            // sanitize slice result
+            const strongToken = state.push('strong_open', '', 0)
+            strongToken.markup = '**'
+            const token = state.push('math_inline', 'math', 0)
+            token.content = normalizeStandaloneBackslashT(content, mathOpts)
+            token.markup = open === '$$' ? '$$' : open === '\\(' ? '\\(\\)' : open === '$' ? '$' : '()'
+            token.raw = `${open}${content}${close}`
+            token.loading = false
             const raw = src.slice(endIdx + close.length)
-            textContentToken.content = (raw == null ? '' : String(raw)).replace(/\*+$/, '')
-            state.push('strong_close', '', 0)
-            // since we've pushed the remainder as part of strong, we're done
+            const isBeforeClose = raw.startsWith('*')
+            if (isBeforeClose) {
+              state.push('strong_close', '', 0)
+            }
+            if (raw) {
+              const textContentToken = state.push('text', '', 0)
+              textContentToken.content = (raw == null ? '' : String(raw)).replace(/^\*+/, '')
+            }
+            if (!isBeforeClose)
+              state.push('strong_close', '', 0)
             state.pos = src.length
             searchPos = src.length
             preMathPos = searchPos
             continue
+          }
+          else {
+            const token = state.push('math_inline', 'math', 0)
+            token.content = normalizeStandaloneBackslashT(content, mathOpts)
+            token.markup = open === '$$' ? '$$' : open === '\\(' ? '\\(\\)' : open === '$' ? '$' : '()'
+            token.raw = `${open}${content}${close}`
+            token.loading = false
           }
         }
 
