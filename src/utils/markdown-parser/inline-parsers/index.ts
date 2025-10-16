@@ -20,7 +20,7 @@ import { parseSuperscriptToken } from './superscript-parser'
 import { parseTextToken } from './text-parser'
 
 // Process inline tokens (for text inside paragraphs, headings, etc.)
-export function parseInlineTokens(tokens: MarkdownToken[], raw?: string): ParsedNode[] {
+export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreToken?: MarkdownToken): ParsedNode[] {
   if (!tokens || tokens.length === 0)
     return []
 
@@ -38,6 +38,22 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string): Parsed
         if (content === '`' || content === '|') {
           i++
           break
+        }
+        if (content.startsWith('[') && pPreToken?.type === 'list_item_open') {
+          const _content = content.slice(1)
+          const w = _content.match(/[^\s\]]/)
+          // 如果 里面不是 w, 应该不处理
+          if ((w && /x/i.test(w[0])) || !w) {
+            // 转换成 checkbox_input
+            const checked = w ? (w[0] === 'x' || w[0] === 'X') : false
+            result.push({
+              type: 'checkbox_input',
+              checked,
+              raw: checked ? '[x]' : '[ ]',
+            })
+            i++
+            break
+          }
         }
         if (/`[^`]*/.test(content)) {
           // 包含了 `， 需要特殊处理 code

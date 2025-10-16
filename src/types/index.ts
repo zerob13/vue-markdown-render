@@ -22,6 +22,7 @@ export interface HeadingNode extends BaseNode {
 export interface ParagraphNode extends BaseNode {
   type: 'paragraph'
   children: ParsedNode[]
+  maybeCheckbox?: boolean
 }
 
 export interface ListNode extends BaseNode {
