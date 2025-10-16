@@ -4,9 +4,27 @@ import MarkdownRender from '../../../src/components/NodeRenderer'
 import { streamContent } from '../const/markdown'
 // 每隔 10 毫秒输出一部分内容
 const content = ref<string>('')
-const streamDelay = ref(16)
-const streamChunkSize = ref(1)
+const streamDelay = useLocalStorage<number>('vmr-settings-stream-delay', 16)
+const streamChunkSize = useLocalStorage<number>('vmr-settings-stream-chunk-size', 1)
 const normalizedChunkSize = computed(() => Math.max(1, Math.floor(streamChunkSize.value) || 1))
+
+// Keep persisted values within reasonable bounds on hydration.
+watchEffect(() => {
+  const parsedDelay = Number(streamDelay.value)
+  const fallbackDelay = Number.isFinite(parsedDelay) ? parsedDelay : 16
+  const boundedDelay = Math.min(200, Math.max(4, fallbackDelay))
+  if (streamDelay.value !== boundedDelay)
+    streamDelay.value = boundedDelay
+})
+
+watchEffect(() => {
+  const parsedChunk = Number(streamChunkSize.value)
+  const fallbackChunk = Number.isFinite(parsedChunk) ? parsedChunk : 1
+  const normalizedChunk = Math.floor(fallbackChunk) || 1
+  const boundedChunk = Math.min(16, Math.max(1, normalizedChunk))
+  if (streamChunkSize.value !== boundedChunk)
+    streamChunkSize.value = boundedChunk
+})
 
 // To avoid flashing sequences like ":::" during streaming (which later
 // become an AdmonitionNode), we look ahead when encountering ":" and
@@ -89,7 +107,7 @@ const themes = [
   'vitesse-dark',
   'vitesse-light',
 ]
-const selectedTheme = ref('vitesse-dark')
+const selectedTheme = useLocalStorage<string>('vmr-settings-selected-theme', 'vitesse-dark')
 
 // 格式化主题名称显示
 function formatThemeName(themeName: string) {
