@@ -185,36 +185,63 @@ function teardownBottomObserver() {
 // Unified function to perform auto-scroll to bottom
 let scrollCheckTimeoutId: number | null = null
 let lastScrollAttemptTime = 0
-function performAutoScrollIfNeeded() {
+function performAutoScrollIfNeeded(force = false) {
   if (!messagesContainer.value || !autoScrollEnabled.value)
     return
 
   const container = messagesContainer.value
-  const shouldScroll = isAtBottom(container, 150)
+  const nearBottom = isAtBottom(container, 150)
+  const shouldScroll = force || nearBottom
+  if (!shouldScroll)
+    return
 
-  if (shouldScroll) {
-    const now = Date.now()
-    const timeSinceLastScroll = now - lastScrollAttemptTime
-
-    // Immediate scroll if it's been more than 50ms since last scroll
-    // This ensures real-time scrolling while still batching rapid changes
-    if (timeSinceLastScroll > 50) {
+  const doImmediateScroll = () => {
+    executeScroll()
+    lastScrollAttemptTime = Date.now()
+    // Run a follow-up on the next frame so late layout changes still snap to bottom.
+    requestAnimationFrame(() => {
       executeScroll()
-      lastScrollAttemptTime = now
-    }
+      lastScrollAttemptTime = Date.now()
+    })
+  }
 
-    // Clear any pending timeout
+  if (force) {
     if (scrollCheckTimeoutId !== null) {
       clearTimeout(scrollCheckTimeoutId)
-    }
-
-    // Schedule a follow-up scroll to catch any content that renders after this call
-    scrollCheckTimeoutId = window.setTimeout(() => {
-      executeScroll()
       scrollCheckTimeoutId = null
-      lastScrollAttemptTime = Date.now()
-    }, 50)
+    }
+    doImmediateScroll()
+    return
   }
+
+  const now = Date.now()
+  const timeSinceLastScroll = now - lastScrollAttemptTime
+
+  if (timeSinceLastScroll > 16)
+    doImmediateScroll()
+
+  if (scrollCheckTimeoutId !== null)
+    clearTimeout(scrollCheckTimeoutId)
+
+  scrollCheckTimeoutId = window.setTimeout(() => {
+    doImmediateScroll()
+    scrollCheckTimeoutId = null
+  }, 10)
+}
+
+function forceScrollWithFrames(frameCount = 2) {
+  if (!autoScrollEnabled.value)
+    return
+
+  let remaining = Math.max(0, frameCount)
+  const step = () => {
+    performAutoScrollIfNeeded(true)
+    if (remaining <= 0)
+      return
+    remaining -= 1
+    requestAnimationFrame(step)
+  }
+  step()
 }
 
 function executeScroll() {
@@ -262,9 +289,8 @@ function setupContentResizeObserver() {
 
     const currentHeight = messagesContainer.value.scrollHeight
     // Only react to height increases (new content rendered)
-    if (currentHeight > lastContentHeight) {
-      performAutoScrollIfNeeded()
-    }
+    if (currentHeight > lastContentHeight)
+      forceScrollWithFrames(3)
     lastContentHeight = currentHeight
   })
 
@@ -301,8 +327,8 @@ function setupContentMutationObserver() {
 
     if (shouldCheck) {
       // Use nextTick to ensure Vue has finished updating
-      nextTick(() => {
-        performAutoScrollIfNeeded()
+      queueMicrotask(() => {
+        forceScrollWithFrames(3)
       })
     }
   })
@@ -523,22 +549,11 @@ onUnmounted(() => {
 })
 
 watch(content, () => {
-  // Only auto-scroll if enabled (user hasn't scrolled away from bottom)
   if (!autoScrollEnabled.value)
     return
 
-  // Trigger the unified auto-scroll function immediately
-  performAutoScrollIfNeeded()
-
-  // Also schedule additional checks to handle async rendering
-  // (like code highlighting, mermaid, etc.)
-  const retryDelays = [100, 200, 400, 800]
-  retryDelays.forEach((delay) => {
-    setTimeout(() => {
-      performAutoScrollIfNeeded()
-    }, delay)
-  })
-})
+  forceScrollWithFrames(4)
+}, { flush: 'post' })
 </script>
 
 <template>
