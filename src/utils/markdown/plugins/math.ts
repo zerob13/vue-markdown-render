@@ -246,9 +246,6 @@ export function normalizeStandaloneBackslashT(s: string, opts?: MathOptions) {
 export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
   // Inline rule for \(...\) and $$...$$ and $...$
   const mathInline = (state: any, silent: boolean) => {
-    if (state.src.includes('\n')) {
-      return false
-    }
     if (/^\*[^*]+/.test(state.src)) {
       return false
     }
@@ -257,6 +254,7 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
       ['\\(', '\\)'],
       ['\(', '\)'],
     ]
+
     let searchPos = 0
     let preMathPos = 0
     // use findMatchingClose from util
@@ -336,6 +334,7 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
         // endIndex 需要找到与 open 对应的 close
         // 不能简单地用 indexOf 找到第一个 close — 需要处理嵌套与转义字符
         const endIdx = findMatchingClose(src, index + open.length, open, close)
+
         if (endIdx === -1) {
           // no matching close for this opener; skip forward
           const content = src.slice(index + open.length)
@@ -505,18 +504,16 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
         if (open.includes('[')) {
           if (lineText.replace('\\', '') === '[') {
             if (startLine + 1 < endLine) {
-              const nextLineStart
-                = state.bMarks[startLine + 1] + state.tShift[startLine + 1]
-              const nextLineText = state.src.slice(
-                nextLineStart,
-                state.eMarks[startLine + 1],
-              )
-              if (isMathLike(nextLineText.trim())) {
-                matched = true
-                openDelim = open
-                closeDelim = close
-                break
-              }
+              // const nextLineStart
+              //   = state.bMarks[startLine + 1] + state.tShift[startLine + 1]
+              // const nextLineText = state.src.slice(
+              //   nextLineStart,
+              //   state.eMarks[startLine + 1],
+              // )
+              matched = true
+              openDelim = open
+              closeDelim = close
+              break
             }
             continue
           }
@@ -554,6 +551,7 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
       token.markup
         = openDelim === '$$' ? '$$' : openDelim === '[' ? '[]' : '\\[\\]'
       token.map = [startLine, startLine + 1]
+      token.raw = `${openDelim}${content}${closeDelim}`
       token.block = true
       token.loading = false
       state.line = startLine + 1
@@ -599,6 +597,7 @@ export function applyMath(md: MarkdownIt, mathOpts?: MathOptions) {
     token.content = normalizeStandaloneBackslashT(content)
     token.markup
       = openDelim === '$$' ? '$$' : openDelim === '[' ? '[]' : '\\[\\]'
+    token.raw = `${openDelim}${content}${content.startsWith('\n') ? '\n' : ''}${closeDelim}`
     token.map = [startLine, nextLine + 1]
     token.block = true
     token.loading = !found

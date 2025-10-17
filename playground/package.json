@@ -19,7 +19,7 @@
     "vite": "^7.1.10",
     "vue": "^3.5.22",
     "vue-i18n": "^11.1.12",
-    "vue-renderer-markdown": "latest",
+    "vue-renderer-markdown": "workspace:*",
     "vue-router": "^4.6.3",
     "vue-use-monaco": "^0.0.33"
   },
