@@ -71,9 +71,9 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
           i++
           break
         }
-        if (/[^~]*~+[^~]+/.test(content)) {
+        if (/[^~]*~~+[^~]+/.test(content)) {
           // 处理成 parseStrikethroughToken
-          const index = content.indexOf('~') || 0
+          const index = content.indexOf('~~') || 0
           const _text = content.slice(0, index)
           if (_text) {
             if (currentTextNode) {
