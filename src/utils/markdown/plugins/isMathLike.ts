@@ -1,4 +1,25 @@
-import { ESCAPED_TEX_BRACE_COMMANDS } from './math'
+export const TEX_BRACE_COMMANDS = [
+  'mathbf',
+  'boldsymbol',
+  'mathbb',
+  'mathcal',
+  'mathfrak',
+  'mathrm',
+  'mathit',
+  'mathsf',
+  'vec',
+  'hat',
+  'bar',
+  'tilde',
+  'overline',
+  'underline',
+  'mathscr',
+  'mathnormal',
+  'operatorname',
+  'mathbf*',
+]
+
+export const ESCAPED_TEX_BRACE_COMMANDS = TEX_BRACE_COMMANDS.map(c => c.replace(/[.*+?^${}()|[\\]"\]/g, '\\$&')).join('|')
 
 const TEX_CMD_RE = /\\[a-z]+/i
 const PREFIX_CLASS = '(?:\\\\|\\u0008)'

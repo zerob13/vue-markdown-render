@@ -2,37 +2,16 @@ import type MarkdownIt from 'markdown-it'
 import type { MathOptions } from '../config'
 
 import findMatchingClose from '../findMatchingClose'
-import { isMathLike } from './isMathLike'
+import { ESCAPED_TEX_BRACE_COMMANDS, isMathLike } from './isMathLike'
 
 // Heuristic to decide whether a piece of text is likely math.
 // Matches common TeX commands, math operators, function-call patterns like f(x),
 // superscripts/subscripts, and common math words.
 // Common TeX formatting commands that take a brace argument, e.g. \boldsymbol{...}
 // Keep this list in a single constant so it's easy to extend/test.
-export const TEX_BRACE_COMMANDS = [
-  'mathbf',
-  'boldsymbol',
-  'mathbb',
-  'mathcal',
-  'mathfrak',
-  'mathrm',
-  'mathit',
-  'mathsf',
-  'vec',
-  'hat',
-  'bar',
-  'tilde',
-  'overline',
-  'underline',
-  'mathscr',
-  'mathnormal',
-  'operatorname',
-  'mathbf*',
-]
 
 // Precompute an escaped, |-joined string of TEX brace commands so we don't
 // rebuild it on every call to `isMathLike`.
-export const ESCAPED_TEX_BRACE_COMMANDS = TEX_BRACE_COMMANDS.map(c => c.replace(/[.*+?^${}()|[\\]"\]/g, '\\$&')).join('|')
 
 // Common KaTeX/TeX command names that might lose their leading backslash.
 // Keep this list conservative to avoid false-positives in normal text.
