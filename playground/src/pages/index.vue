@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 import MarkdownRender from '../../../src/components/NodeRenderer'
+import { removeCustomComponents, setCustomComponents } from '../../../src/utils/nodeComponents'
+import ThinkingNode from '../components/ThinkingNode.vue'
 import { streamContent } from '../const/markdown'
 import 'katex/dist/katex.min.css'
 
@@ -42,6 +44,40 @@ useInterval(streamDelay, {
     content.value += nextChunk
   },
 })
+
+setCustomComponents('playground-demo', { thinking: ThinkingNode })
+const parseOptions = {
+  preTransformTokens: (tokens: any[]) => {
+    // Example: Log tokens during parsing
+    // console.log('Pre-transform tokens:', tokens)
+    return tokens.map((token) => {
+      if (token.content === '<') {
+        token.content = ''
+        if (token.children)
+          token.children.length = 0
+      }
+      if (token.type === 'html_block' && /^<\w+/.test(token.content) && !token.content.includes('>')) {
+        token.type = 'inline'
+        token.children = []
+      }
+      if (token.type === 'inline' && /^<\w*/.test(token.content) && !token.content.includes('>')) {
+        token.children.length = 0
+      }
+      if ((token.type === 'inline' || token.type === 'html_block') && token.content.startsWith('<thinking>')) {
+        return {
+          children: [
+            {
+              type: 'thinking',
+              // eslint-disable-next-line regexp/no-super-linear-backtracking
+              content: token.content.replace('<thinking>', '').replace(/<\/*t*h*i*n*k*i*n*g*>*$/, ''),
+            },
+          ],
+        }
+      }
+      return token
+    })
+  },
+}
 
 // 主题切换
 const isDark = useDark()
@@ -566,6 +602,13 @@ onUnmounted(() => {
     teardownContentResizeObserver()
     teardownContentMutationObserver()
   }
+  // cleanup any playground scoped custom components
+  try {
+    removeCustomComponents('playground-demo')
+  }
+  catch {
+    // ignore
+  }
 })
 
 watch(content, () => {
@@ -808,6 +851,8 @@ watch(content, () => {
           :code-block-light-theme="selectedTheme || undefined"
           :themes="themes"
           :is-dark="isDark"
+          :parse-options="parseOptions"
+          custom-id="playground-demo"
           class="p-6"
         />
         <!-- Sentinel observed by IntersectionObserver to detect reaching bottom reliably on mobile -->

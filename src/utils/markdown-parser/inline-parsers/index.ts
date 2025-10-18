@@ -76,7 +76,7 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
           i++
           break
         }
-        if (/[^~]*~~+[^~]+/.test(content)) {
+        if (/[^~]*~{2,}[^~]+/.test(content)) {
           // 处理成 parseStrikethroughToken
           const index = content.indexOf('~~') || 0
           const _text = content.slice(0, index)
@@ -527,6 +527,7 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
 
       default:
         // Skip unknown token types, ensure text merging stops
+        result.push(token)
         currentTextNode = null // Reset current text node
         i++
         break

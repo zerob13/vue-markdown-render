@@ -184,6 +184,72 @@ app.use(VueRendererMarkdown, {
 app.mount('#app')
 ```
 
+### NodeRenderer 属性：`parseOptions`
+
+`<MarkdownRender />`（组件内部名为 `NodeRenderer`）现已支持一个新的 `parseOptions` 属性。当你通过 `content` 传入 Markdown 字符串并让组件内部解析时，`parseOptions` 会被转发给内部的 `parseMarkdownToStructure`，从而允许你在解析前/后对 token 或节点做自定义转换，而不需要手动调用解析函数。
+
+类型说明（库中已导出）：
+
+- `preTransformTokens?: (tokens: MarkdownToken[]) => MarkdownToken[]` — 在 `markdown-it` 生成 token 之后、库处理之前调用。用于重写或替换 tokens。
+- `postTransformTokens?: (tokens: MarkdownToken[]) => MarkdownToken[]` — 在库做内部 token 修复之后调用；如果你返回了新的 token 数组，库会重新将其处理为节点。
+- `postTransformNodes?: (nodes: ParsedNode[]) => ParsedNode[]` — 直接在解析出的节点树上操作，常用于调整最终输出，是最简单高效的方式之一。
+
+使用场景：当你需要支持自定义语法（例如把特定 HTML 块映射为自定义节点类型）或做轻量级的 token 修改以支持自定义组件渲染时，`parseOptions` 非常有用。配合 `setCustomComponents`（或实例级的 `custom-id` 机制）可将自定义节点类型映射为 Vue 组件。
+
+Token 级示例（作为组件 prop 传入）：
+
+```vue
+<script setup lang="ts">
+import MarkdownRender, { getMarkdown } from 'vue-renderer-markdown'
+
+const md = getMarkdown()
+
+function pre(tokens: any[]) {
+  return tokens.map((t) => {
+    if (t.type === 'html_block' && /<thinking>/.test(t.content || '')) {
+      return { ...t, type: 'thinking_block', content: (t.content || '').replace(/<\/?thinking>/g, '') }
+    }
+    return t
+  })
+}
+
+const parseOptions = { preTransformTokens: pre }
+</script>
+
+<template>
+  <MarkdownRender :content="markdownString" :parse-options="parseOptions" custom-id="playground-demo" />
+</template>
+```
+
+节点级示例（postTransformNodes 作为组件 prop）：
+
+```vue
+<script setup lang="ts">
+import MarkdownRender from 'vue-renderer-markdown'
+
+function postNodes(nodes) {
+  if (!nodes || nodes.length === 0)
+    return nodes
+  const first = nodes[0]
+  if (first.type === 'paragraph') {
+    return [{ type: 'thinking', content: 'Auto-thought', children: [first] }, ...nodes.slice(1)]
+  }
+  return nodes
+}
+
+const parseOptions = { postTransformNodes: postNodes }
+</script>
+
+<template>
+  <MarkdownRender :content="markdownString" :parse-options="parseOptions" />
+</template>
+```
+
+注意：
+
+- 如果你已经自己调用 `parseMarkdownToStructure` 并将 `nodes` 直接传给组件，则 `parseOptions` 不会生效——它仅在组件接收 `content` 并在内部解析时被使用。
+- 当你通过 token 转换生成新的自定义节点类型时，请用 `setCustomComponents('your-id', { your_node_type: YourComponent })` 注册对应的 Vue 组件，并给组件传入 `custom-id="your-id"`，以便渲染器能找到并渲染你的组件。
+
 ## SSR 指南
 
 - Nuxt 3：使用 `<client-only>` 包裹组件

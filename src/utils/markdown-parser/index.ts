@@ -1,5 +1,5 @@
 import type MarkdownIt from 'markdown-it'
-import type { MarkdownToken, ParsedNode } from '../../types'
+import type { MarkdownToken, ParsedNode, ParseOptions } from '../../types'
 import { fixTableTokens } from './fixTableTokens'
 import { parseInlineTokens } from './inline-parsers'
 import { parseFenceToken } from './inline-parsers/fence-parser'
@@ -17,10 +17,10 @@ import { parseParagraph } from './node-parsers/paragraph-parser'
 import { parseTable } from './node-parsers/table-parser'
 import { parseThematicBreak } from './node-parsers/thematic-break-parser'
 
-// Function to parse markdown into a structured representation
 export function parseMarkdownToStructure(
   markdown: string,
   md: MarkdownIt,
+  options: ParseOptions = {},
 ): ParsedNode[] {
   // Ensure markdown is a string — guard against null/undefined inputs from callers
   let safeMarkdown = (markdown ?? '').toString().replace(/([^\\])\right/g, '$1\\right')
@@ -42,9 +42,22 @@ export function parseMarkdownToStructure(
   if (!tokens || !Array.isArray(tokens))
     return []
 
-  // Process the tokens into our structured format
-  const result = processTokens(tokens)
+  // Allow consumers to transform tokens before processing
+  const pre = options.preTransformTokens
+  const post = options.postTransformTokens
 
+  let transformedTokens = tokens
+  if (pre && typeof pre === 'function') {
+    transformedTokens = pre(tokens) || tokens
+  }
+  // Process the tokens into our structured format
+  let result = processTokens(transformedTokens)
+
+  // Backwards compatible token-level post hook: if provided and returns
+  // a modified token array, re-process tokens and override node-level result.
+  if (post && typeof post === 'function') {
+    result = post(transformedTokens) || transformedTokens
+  }
   return result
 }
 

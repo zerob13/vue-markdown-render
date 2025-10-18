@@ -1,4 +1,6 @@
-export const streamContent = `>>>I'll create a simple Electron + Vue chat application demo. Here's the structure:
+export const streamContent = `
+<thinking>这是一段自定义解析处理的thinking组件</thinking>
+>>>I'll create a simple Electron + Vue chat application demo. Here's the structure:
 
 [Star on GitHub](https://github.com/Simon-He95/vue-markdown-render)
 

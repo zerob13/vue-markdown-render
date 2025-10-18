@@ -267,7 +267,7 @@ export type ParsedNode
     | MathInlineNode
     | MathBlockNode
     | ReferenceNode
-
+    | Record<string, any>
 export interface CustomComponents {
   text: any
   paragraph: any
@@ -300,3 +300,13 @@ export interface CustomComponents {
   mermaid: any
   [key: string]: any
 }
+
+// Function to parse markdown into a structured representation
+export type TransformTokensHook = (tokens: MarkdownToken[]) => MarkdownToken[]
+
+export interface ParseOptions {
+  preTransformTokens?: TransformTokensHook
+  postTransformTokens?: TransformTokensHook
+}
+
+export type PostTransformNodesHook = (nodes: ParsedNode[]) => ParsedNode[]

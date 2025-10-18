@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { MonacoTheme } from 'vue-use-monaco'
-import type { BaseNode } from '../../utils'
+import type { BaseNode, ParsedNode, ParseOptions } from '../../utils'
 import { computed, defineAsyncComponent, ref } from 'vue'
 import AdmonitionNode from '../../components/AdmonitionNode'
 import BlockquoteNode from '../../components/BlockquoteNode'
@@ -23,8 +23,8 @@ import ParagraphNode from '../../components/ParagraphNode'
 import PreCodeNode from '../../components/PreCodeNode'
 import ReferenceNode from '../../components/ReferenceNode'
 import StrikethroughNode from '../../components/StrikethroughNode'
-import StrongNode from '../../components/StrongNode'
 
+import StrongNode from '../../components/StrongNode'
 import SubscriptNode from '../../components/SubscriptNode'
 import SuperscriptNode from '../../components/SuperscriptNode'
 import TableNode from '../../components/TableNode'
@@ -42,6 +42,8 @@ const props = defineProps<
   | {
     content: string
     nodes?: undefined
+    /** Options forwarded to parseMarkdownToStructure when content is provided */
+    parseOptions?: ParseOptions
     // 全局传递到每个 CodeBlockNode 的主题（monaco theme 对象）
     codeBlockDarkTheme?: any
     codeBlockLightTheme?: any
@@ -63,6 +65,7 @@ const props = defineProps<
   | {
     content?: undefined
     nodes: BaseNode[]
+    parseOptions?: ParseOptions
     codeBlockDarkTheme?: any
     codeBlockLightTheme?: any
     codeBlockMonacoOptions?: Record<string, any>
@@ -86,12 +89,12 @@ defineEmits(['copy', 'handleArtifactClick', 'click', 'mouseover', 'mouseout'])
 const md = getMarkdown()
 preload()
 const containerRef = ref<HTMLElement>()
-const parsedNodes = computed<BaseNode[]>(() => {
+const parsedNodes = computed<ParsedNode[]>(() => {
   // 解析 content 字符串为节点数组
   return props.nodes?.length
     ? props.nodes
     : props.content
-      ? parseMarkdownToStructure(props.content, md)
+      ? parseMarkdownToStructure(props.content, md, props.parseOptions)
       : []
 })
 
@@ -149,7 +152,7 @@ const nodeComponents = {
 // Decide which component to use for a given node. Ensure that code blocks
 // with language `mermaid` are rendered with `MermaidBlockNode` (unless a
 // custom component named `mermaid` is registered for the given customId).
-function getNodeComponent(node: BaseNode) {
+function getNodeComponent(node: ParsedNode) {
   if (!node)
     return FallbackComponent
   if (node.type === 'code_block') {
@@ -163,7 +166,7 @@ function getNodeComponent(node: BaseNode) {
   return (nodeComponents as any)[node.type] || FallbackComponent
 }
 
-function getBindingsFor(node: BaseNode) {
+function getBindingsFor(node: ParsedNode) {
   // For mermaid blocks we don't forward CodeBlock-specific props
   if (node?.type === 'code_block' && String((node as any).language || '').trim().toLowerCase() === 'mermaid')
     return {}

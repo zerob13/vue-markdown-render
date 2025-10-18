@@ -86,6 +86,53 @@ yarn add vue-renderer-markdown
 
 ### Peer Dependencies
 
+### Custom parse hooks
+
+For advanced use-cases you can inject hooks into the parsing pipeline via `parseMarkdownToStructure`'s `options` argument or by calling the utility directly when you need an AST.
+
+- `preTransformTokens?: (tokens: MarkdownToken[]) => MarkdownToken[]` — called immediately after `markdown-it` produces tokens. Use this to rewrite or replace tokens before library parsing.
+- `postTransformTokens?: (tokens: MarkdownToken[]) => MarkdownToken[]` — called after internal fixes; if you return a different token array instance it will be re-processed into nodes.
+- `postTransformNodes?: (nodes: ParsedNode[]) => ParsedNode[]` — operate directly on the parsed node tree. This is often the simplest and most efficient way to adjust the final output.
+
+Token-level example (preTransformTokens):
+
+```ts
+import { getMarkdown, parseMarkdownToStructure } from 'vue-renderer-markdown'
+
+const md = getMarkdown()
+
+function pre(tokens) {
+  return tokens.map((t) => {
+    if (t.type === 'html_block' && /<thinking>/.test(t.content || '')) {
+      return { ...t, type: 'thinking_block', content: (t.content || '').replace(/<\/?thinking>/g, '') }
+    }
+    return t
+  })
+}
+
+const nodes = parseMarkdownToStructure(markdownString, md, { preTransformTokens: pre })
+```
+
+Node-level example (postTransformNodes):
+
+```ts
+function postNodes(nodes) {
+  if (!nodes || nodes.length === 0)
+    return nodes
+  const first = nodes[0]
+  if (first.type === 'paragraph') {
+    return [{ type: 'thinking', content: 'Auto-thought', children: [first] }, ...nodes.slice(1)]
+  }
+  return nodes
+}
+
+const nodes2 = parseMarkdownToStructure(markdownString, md, { postTransformNodes: postNodes })
+```
+
+Playground demo
+
+The included playground demonstrates a small, scoped custom component mapping example: `playground/src/components/ThinkingNode.vue` renders `type: 'thinking'` nodes. The playground registers this mapping with `setCustomComponents('playground-demo', { thinking: ThinkingNode })` and the `MarkdownRender` instance in `playground/src/pages/index.vue` uses `custom-id="playground-demo"`. You can toggle the demo at runtime in the playground's settings panel.
+
 This package requires **Vue 3**. Math (LaTeX) rendering is optional and requires installing `katex` as a peer dependency — KaTeX is not bundled or auto-injected. Additional optional peer dependencies enable advanced features and are lazy-loaded at runtime when available.
 
 #### Required Peer Dependencies
@@ -316,6 +363,73 @@ console.log('Code block!')
 
 **Mermaid Diagrams:**
 ```bash
+
+### NodeRenderer prop: `parseOptions`
+
+The `<MarkdownRender />` component (a.k.a. `NodeRenderer`) now accepts a `parseOptions` prop which is forwarded to the internal `parseMarkdownToStructure` call when you pass `content` to the component. This lets you inject token- or node-level transforms from the component usage without calling the parser yourself.
+
+Type shape (re-exported from the library):
+
+- `preTransformTokens?: (tokens: MarkdownToken[]) => MarkdownToken[]` — called immediately after `markdown-it` produces tokens. Use to rewrite or replace tokens before the library processes them.
+- `postTransformTokens?: (tokens: MarkdownToken[]) => MarkdownToken[]` — called after internal token fixes; if you return a different array it will be re-processed into nodes.
+- `postTransformNodes?: (nodes: ParsedNode[]) => ParsedNode[]` — operate directly on the parsed node tree.
+
+Why use the prop? Passing `parseOptions` is convenient when you want to support custom inline syntax or lightweight HTML-like tokens that should be mapped to custom node types and rendered with your own Vue components. Combine `parseOptions` with `setCustomComponents` (or the `custom-id` / per-instance custom components mechanism) to map custom node `type` values to Vue components.
+
+Token-level example (pass as component prop):
+
+```vue
+<script setup lang="ts">
+import MarkdownRender, { getMarkdown } from 'vue-renderer-markdown'
+
+const md = getMarkdown()
+
+function pre(tokens: any[]) {
+  return tokens.map((t) => {
+    if (t.type === 'html_block' && /<thinking>/.test(t.content || '')) {
+      return { ...t, type: 'thinking_block', content: (t.content || '').replace(/<\/?thinking>/g, '') }
+    }
+    return t
+  })
+}
+
+const parseOptions = { preTransformTokens: pre }
+</script>
+
+<template>
+  <MarkdownRender :content="markdownString" :parseOptions="parseOptions" custom-id="playground-demo" />
+</template>
+```
+
+Node-level example (postTransformNodes as a component prop):
+
+```vue
+<script setup lang="ts">
+import MarkdownRender from 'vue-renderer-markdown'
+
+function postNodes(nodes) {
+  if (!nodes || nodes.length === 0)
+    return nodes
+  const first = nodes[0]
+  if (first.type === 'paragraph') {
+    return [{ type: 'thinking', content: 'Auto-thought', children: [first] }, ...nodes.slice(1)]
+  }
+  return nodes
+}
+
+const parseOptions = { postTransformNodes: postNodes }
+</script>
+
+<template>
+  <MarkdownRender :content="markdownString" :parse-options="parseOptions" />
+</template>
+```
+
+Notes:
+
+- When you create custom node types via token transforms, register the corresponding Vue component with `setCustomComponents('your-id', { your_node_type: YourComponent })` and pass `custom-id="your-id"` to the `MarkdownRender` instance so it can look up and render your component.
+- If you already call `parseMarkdownToStructure` yourself and pass `nodes` to the component, `parseOptions` is ignored — it only applies when `content` is provided and the component does the parsing.
+
 pnpm add mermaid
 ```
 
