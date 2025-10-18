@@ -364,10 +364,22 @@ function updateExpandedHeight() {
     const container = codeEditor.value
     if (!container)
       return
+
+    // 保存当前滚动位置（相对于容器顶部的距离）
+    const containerRect = container.getBoundingClientRect()
+    const scrollAnchor = window.scrollY + containerRect.top
+
     const h = computeContentHeight()
     if (h != null && h > 0) {
+      const oldHeight = containerRect.height
       container.style.height = `${Math.ceil(h)}px`
       container.style.maxHeight = 'none'
+
+      // 恢复滚动位置：补偿高度变化
+      const heightDelta = Math.ceil(h) - oldHeight
+      if (heightDelta !== 0 && scrollAnchor < window.scrollY) {
+        window.scrollBy(0, heightDelta)
+      }
     }
   }
   catch {}
@@ -378,6 +390,12 @@ function updateCollapsedHeight() {
     const container = codeEditor.value
     if (!container)
       return
+
+    // 保存当前滚动位置（相对于容器顶部的距离）
+    const containerRect = container.getBoundingClientRect()
+    const scrollAnchor = window.scrollY + containerRect.top
+    const oldHeight = containerRect.height
+
     const max = getMaxHeightValue()
     if (resumeGuardFrames > 0) {
       resumeGuardFrames--
@@ -386,6 +404,12 @@ function updateCollapsedHeight() {
         container.style.height = `${Math.ceil(h)}px`
         container.style.maxHeight = `${Math.ceil(max)}px`
         container.style.overflow = 'auto'
+
+        // 恢复滚动位置
+        const heightDelta = Math.ceil(h) - oldHeight
+        if (heightDelta !== 0 && scrollAnchor < window.scrollY) {
+          window.scrollBy(0, heightDelta)
+        }
         return
       }
     }
@@ -396,6 +420,12 @@ function updateCollapsedHeight() {
       container.style.height = `${Math.ceil(h)}px`
       container.style.maxHeight = `${Math.ceil(max)}px`
       container.style.overflow = 'auto'
+
+      // 恢复滚动位置
+      const heightDelta = Math.ceil(h) - oldHeight
+      if (heightDelta !== 0 && scrollAnchor < window.scrollY) {
+        window.scrollBy(0, heightDelta)
+      }
       return
     }
 
@@ -405,6 +435,12 @@ function updateCollapsedHeight() {
       container.style.height = `${Math.ceil(h)}px`
       container.style.maxHeight = `${Math.ceil(max)}px`
       container.style.overflow = 'auto'
+
+      // 恢复滚动位置
+      const heightDelta = Math.ceil(h) - oldHeight
+      if (heightDelta !== 0 && scrollAnchor < window.scrollY) {
+        window.scrollBy(0, heightDelta)
+      }
       return
     }
 
@@ -415,17 +451,37 @@ function updateCollapsedHeight() {
       container.style.height = `${Math.ceil(h)}px`
       container.style.maxHeight = `${Math.ceil(max)}px`
       container.style.overflow = 'auto'
+
+      // 恢复滚动位置
+      const heightDelta = Math.ceil(h) - oldHeight
+      if (heightDelta !== 0 && scrollAnchor < window.scrollY) {
+        window.scrollBy(0, heightDelta)
+      }
       return
     }
 
     // 4) 兜底：若有先前行高/字体，可估一个最小高度；否则保持现状，避免强制跳到 MAX
     const prev = Number.parseFloat(container.style.height)
     if (!Number.isNaN(prev) && prev > 0) {
-      container.style.height = `${Math.ceil(Math.min(prev, max))}px`
+      const h = Math.ceil(Math.min(prev, max))
+      container.style.height = `${h}px`
+
+      // 恢复滚动位置
+      const heightDelta = h - oldHeight
+      if (heightDelta !== 0 && scrollAnchor < window.scrollY) {
+        window.scrollBy(0, heightDelta)
+      }
     }
     else {
       // 实在没有历史高度，才退到 max（极少数首次场景）
-      container.style.height = `${Math.ceil(max)}px`
+      const h = Math.ceil(max)
+      container.style.height = `${h}px`
+
+      // 恢复滚动位置
+      const heightDelta = h - oldHeight
+      if (heightDelta !== 0 && scrollAnchor < window.scrollY) {
+        window.scrollBy(0, heightDelta)
+      }
     }
     container.style.maxHeight = `${Math.ceil(max)}px`
     container.style.overflow = 'auto'
