@@ -64,10 +64,12 @@ const parseOptions = {
         token.children.length = 0
       }
       if ((token.type === 'inline' || token.type === 'html_block') && token.content.startsWith('<thinking>')) {
+        const loading = !token.content.endsWith('</thinking>')
         return {
           children: [
             {
               type: 'thinking',
+              loading,
               // eslint-disable-next-line regexp/no-super-linear-backtracking
               content: token.content.replace('<thinking>', '').replace(/<\/*t*h*i*n*k*i*n*g*>*$/, ''),
             },
