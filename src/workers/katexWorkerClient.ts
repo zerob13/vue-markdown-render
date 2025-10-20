@@ -41,10 +41,10 @@ try {
   if (typeof window !== 'undefined' && import.meta.env.DEV) {
     // Use an opaque dynamic import path so bundlers don't emit a chunk in prod builds.
     // This runs only in dev; in production the whole block is tree-shaken.
-    const dynImport: (p: string) => Promise<any> = (new Function('p', 'return import(p)')) as any
-    dynImport('../utils/performance-monitor')
-      .then((m: any) => { perfMonitor = m.perfMonitor })
-      .catch(() => { /* ignore if not available */ })
+
+    import('../utils/performance-monitor').then((a) => {
+      perfMonitor = a.perfMonitor
+    })
   }
 }
 catch {
