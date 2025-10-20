@@ -2,6 +2,7 @@
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { renderKaTeXWithBackpressure, WORKER_BUSY_CODE } from '../../workers/katexWorkerClient'
 import { getKatex } from './katex'
+import { useViewportPriority } from '../../composables/viewportPriority'
 
 const props = defineProps<{
   node: {
@@ -22,8 +23,10 @@ let currentRenderId = 0
 let isUnmounted = false
 let currentAbortController: AbortController | null = null
 const renderingLoading = ref(true)
+const registerVisibility = useViewportPriority()
+let visibilityHandle: ReturnType<typeof registerVisibility> | null = null
 
-function renderMath() {
+async function renderMath() {
   if (!props.node.content || !mathElement.value || isUnmounted)
     return
 
@@ -35,6 +38,17 @@ function renderMath() {
   const renderId = ++currentRenderId
   const abortController = new AbortController()
   currentAbortController = abortController
+
+  // Defer heavy work until visible on first render
+  if (!hasRenderedOnce) {
+    try {
+      if (!visibilityHandle && mathElement.value) {
+        visibilityHandle = registerVisibility(mathElement.value)
+      }
+      await visibilityHandle?.whenVisible
+    }
+    catch {}
+  }
 
   renderKaTeXWithBackpressure(props.node.content, false, {
     timeout: 1500,
@@ -102,6 +116,8 @@ onBeforeUnmount(() => {
     currentAbortController.abort()
     currentAbortController = null
   }
+  visibilityHandle?.destroy?.()
+  visibilityHandle = null
 })
 </script>
 

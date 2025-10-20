@@ -2,6 +2,7 @@
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { renderKaTeXWithBackpressure, setKaTeXCache } from '../../workers/katexWorkerClient'
 import { getKatex } from '../MathInlineNode/katex'
+import { useViewportPriority } from '../../composables/viewportPriority'
 
 const props = defineProps<{
   node: {
@@ -20,11 +21,25 @@ let hasRenderedOnce = false
 let currentRenderId = 0
 let isUnmounted = false
 let currentAbortController: AbortController | null = null
+const registerVisibility = useViewportPriority()
+let visibilityHandle: ReturnType<typeof registerVisibility> | null = null
 
 // Function to render math using KaTeX
-function renderMath() {
+async function renderMath() {
   if (!props.node.content || !mathBlockElement.value || isUnmounted)
     return
+
+  // Wait until near/in viewport to prioritize visible area
+  if (!hasRenderedOnce) {
+    try {
+      // register once per mount
+      if (!visibilityHandle && mathBlockElement.value) {
+        visibilityHandle = registerVisibility(mathBlockElement.value)
+      }
+      await visibilityHandle?.whenVisible
+    }
+    catch {}
+  }
 
   // cancel any previous in-flight render
   if (currentAbortController) {
@@ -111,6 +126,8 @@ onBeforeUnmount(() => {
     currentAbortController.abort()
     currentAbortController = null
   }
+  visibilityHandle?.destroy?.()
+  visibilityHandle = null
 })
 </script>
 

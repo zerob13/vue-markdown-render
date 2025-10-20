@@ -34,6 +34,7 @@ import { getCustomNodeComponents } from '../../utils/nodeComponents'
 import { MathBlockNodeAsync, MathInlineNodeAsync } from './asyncComponent'
 import FallbackComponent from './FallbackComponent.vue'
 import { preload } from './preloadMonaco'
+import { provideViewportPriority } from '../../composables/viewportPriority'
 // 组件接收的 props
 // 增加用于统一设置所有 code_block 主题和 Monaco 选项的外部 API
 const props = defineProps<
@@ -42,6 +43,8 @@ const props = defineProps<
     nodes?: undefined
     /** Options forwarded to parseMarkdownToStructure when content is provided */
     parseOptions?: ParseOptions
+    /** Enable priority rendering for visible viewport area */
+    viewportPriority?: boolean
     // 全局传递到每个 CodeBlockNode 的主题（monaco theme 对象）
     codeBlockDarkTheme?: any
     codeBlockLightTheme?: any
@@ -64,6 +67,8 @@ const props = defineProps<
     content?: undefined
     nodes: BaseNode[]
     parseOptions?: ParseOptions
+    /** Enable priority rendering for visible viewport area */
+    viewportPriority?: boolean
     codeBlockDarkTheme?: any
     codeBlockLightTheme?: any
     codeBlockMonacoOptions?: Record<string, any>
@@ -87,6 +92,9 @@ defineEmits(['copy', 'handleArtifactClick', 'click', 'mouseover', 'mouseout'])
 const md = getMarkdown()
 preload()
 const containerRef = ref<HTMLElement>()
+// Provide viewport-priority registrar so heavy nodes can defer work until visible
+const viewportPriorityEnabled = ref(props.viewportPriority !== false)
+provideViewportPriority(() => containerRef.value, viewportPriorityEnabled)
 const parsedNodes = computed<ParsedNode[]>(() => {
   // 解析 content 字符串为节点数组
   return props.nodes?.length
