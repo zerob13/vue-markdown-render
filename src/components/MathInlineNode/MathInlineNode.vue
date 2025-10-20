@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useViewportPriority } from '../../composables/viewportPriority'
 import { renderKaTeXWithBackpressure, WORKER_BUSY_CODE } from '../../workers/katexWorkerClient'
 import { getKatex } from './katex'
-import { useViewportPriority } from '../../composables/viewportPriority'
 
 const props = defineProps<{
   node: {

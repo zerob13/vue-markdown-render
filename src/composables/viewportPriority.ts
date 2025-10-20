@@ -1,4 +1,5 @@
-import { inject, onBeforeUnmount, onMounted, provide, ref, shallowRef, type Ref } from 'vue'
+import type { Ref } from 'vue'
+import { inject, provide, ref } from 'vue'
 
 // Injection key for viewport-priority registration
 const ViewportPriorityKey = Symbol('ViewportPriority') as unknown as InjectionKey<RegisterFn>
@@ -9,7 +10,7 @@ export interface VisibilityHandle {
   destroy: () => void
 }
 
-export type RegisterFn = (el: HTMLElement, opts?: { rootMargin?: string; threshold?: number }) => VisibilityHandle
+export type RegisterFn = (el: HTMLElement, opts?: { rootMargin?: string, threshold?: number }) => VisibilityHandle
 
 type InjectionKey<T> = symbol & { __type?: T }
 
@@ -26,11 +27,14 @@ export function provideViewportPriority(
 
   // Lazily created IO bound to the provided root element
   let io: IntersectionObserver | null = null
-  const targets = new WeakMap<Element, { resolve: () => void; visible: Ref<boolean> }>()
+  const targets = new WeakMap<Element, { resolve: () => void, visible: Ref<boolean> }>()
 
   function ensureObserver() {
     if (io || !isBrowser)
       return io
+    // Guard: some browser-like environments (e.g., jsdom) don't provide IO
+    if (typeof IntersectionObserver === 'undefined')
+      return null
     const root = getRootEl() ?? null
     io = new IntersectionObserver((entries) => {
       for (const entry of entries) {
@@ -42,7 +46,10 @@ export function provideViewportPriority(
           if (!data.visible.value) {
             data.visible.value = true
             // resolve once; subsequent intersections are ignored
-            try { data.resolve() } catch {}
+            try {
+              data.resolve()
+            }
+            catch {}
           }
           io?.unobserve(entry.target)
           targets.delete(entry.target)
@@ -60,10 +67,20 @@ export function provideViewportPriority(
     const visible = ref(false)
     let settled = false
     let resolve!: () => void
-    const whenVisible = new Promise<void>((res) => { resolve = () => { if (!settled) { settled = true; res() } } })
+    const whenVisible = new Promise<void>((res) => {
+      resolve = () => {
+        if (!settled) {
+          settled = true
+          res()
+        }
+      }
+    })
 
     const cleanup = () => {
-      try { io?.unobserve(el) } catch {}
+      try {
+        io?.unobserve(el)
+      }
+      catch {}
       targets.delete(el)
     }
 
@@ -99,7 +116,7 @@ export function useViewportPriority() {
     return injected
 
   // Fallback: create a local root-less IntersectionObserver to the viewport
-  const localTargets = new WeakMap<Element, { resolve: () => void; visible: Ref<boolean> }>()
+  const localTargets = new WeakMap<Element, { resolve: () => void, visible: Ref<boolean> }>()
   let localIo: IntersectionObserver | null = null
   const ensureLocal = () => {
     if (localIo)
@@ -115,7 +132,10 @@ export function useViewportPriority() {
         if (vis) {
           if (!data.visible.value) {
             data.visible.value = true
-            try { data.resolve() } catch {}
+            try {
+              data.resolve()
+            }
+            catch {}
           }
           localIo?.unobserve(e.target)
           localTargets.delete(e.target)
@@ -129,9 +149,19 @@ export function useViewportPriority() {
     const isVisible = ref(false)
     let settled = false
     let resolve!: () => void
-    const whenVisible = new Promise<void>((res) => { resolve = () => { if (!settled) { settled = true; res() } } })
+    const whenVisible = new Promise<void>((res) => {
+      resolve = () => {
+        if (!settled) {
+          settled = true
+          res()
+        }
+      }
+    })
     const cleanup = () => {
-      try { localIo?.unobserve(el) } catch {}
+      try {
+        localIo?.unobserve(el)
+      }
+      catch {}
       localTargets.delete(el)
     }
     const obs = ensureLocal()

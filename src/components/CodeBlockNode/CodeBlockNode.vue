@@ -7,6 +7,7 @@ import { useSafeI18n } from '../../composables/useSafeI18n'
 import { hideTooltip, showTooltipForAnchor } from '../../composables/useSingletonTooltip'
 import { getLanguageIcon, languageMap } from '../../utils'
 import { safeCancelRaf, safeRaf } from '../../utils/safeRaf'
+import { preload } from '../NodeRenderer/preloadMonaco'
 import PreCodeNode from '../PreCodeNode'
 import { getUseMonaco } from './monaco'
 
@@ -111,6 +112,7 @@ if (typeof window !== 'undefined') {
         usePreCodeRender.value = true
         return
       }
+      await preload(mod)
       // `useMonaco` and `detectLanguage` should be available
       const useMonaco = (mod as any).useMonaco
       const det = (mod as any).detectLanguage

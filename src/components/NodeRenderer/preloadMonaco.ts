@@ -1,15 +1,7 @@
-import { getUseMonaco } from '../CodeBlockNode/monaco'
-
 let isPreload = false
-let isPreloading = false
-export function preload() {
-  if (isPreload || isPreloading)
+export async function preload(m) {
+  if (isPreload)
     return
-  isPreloading = true
-  getUseMonaco().then((m) => {
-    m?.preloadMonacoWorkers()
-  }).finally(() => {
-    isPreload = true
-    isPreloading = false
-  })
+  isPreload = true
+  return m.preloadMonacoWorkers()
 }

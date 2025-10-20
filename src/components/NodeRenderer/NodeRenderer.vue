@@ -29,12 +29,12 @@ import SuperscriptNode from '../../components/SuperscriptNode'
 import TableNode from '../../components/TableNode'
 import TextNode from '../../components/TextNode'
 import ThematicBreakNode from '../../components/ThematicBreakNode'
+import { provideViewportPriority } from '../../composables/viewportPriority'
 import { getMarkdown, parseMarkdownToStructure } from '../../utils/markdown'
 import { getCustomNodeComponents } from '../../utils/nodeComponents'
 import { MathBlockNodeAsync, MathInlineNodeAsync } from './asyncComponent'
 import FallbackComponent from './FallbackComponent.vue'
-import { preload } from './preloadMonaco'
-import { provideViewportPriority } from '../../composables/viewportPriority'
+
 // 组件接收的 props
 // 增加用于统一设置所有 code_block 主题和 Monaco 选项的外部 API
 const props = defineProps<
@@ -90,7 +90,6 @@ const props = defineProps<
 // 定义事件
 defineEmits(['copy', 'handleArtifactClick', 'click', 'mouseover', 'mouseout'])
 const md = getMarkdown()
-preload()
 const containerRef = ref<HTMLElement>()
 // Provide viewport-priority registrar so heavy nodes can defer work until visible
 const viewportPriorityEnabled = ref(props.viewportPriority !== false)
