@@ -96,10 +96,11 @@ async function renderMath() {
       // If we reach here, the worker render failed and sync fallback was not possible.
       // Stop the spinner and show raw text when we have not rendered once yet
       // or the node isn't in loading mode.
-      if (!hasRenderedOnce || !props.node.loading) {
-        renderingLoading.value = false
-        mathElement.value.textContent = props.node.raw
+      if (!hasRenderedOnce) {
+        renderingLoading.value = true
       }
+      if (!props.node.loading)
+        mathElement.value.textContent = props.node.raw
     })
 }
 
