@@ -65,7 +65,7 @@
     "play": "pnpm run -C playground dev",
     "play:build": "pnpm run -C playground build",
     "preview": "pnpm run -C playground preview",
-    "build": "vite build --mode npm && node ./scripts/fix-workers.mjs && pnpm run build:dts",
+    "build": "vite build --mode npm && pnpm run build:dts",
     "build:dts": "rollup -c ./scripts/rollup.dts.config.mjs && node ./scripts/clean-dts.cjs",
     "build:demo": "vite build",
     "build:view": "vite preview",

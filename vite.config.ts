@@ -38,23 +38,16 @@ export default defineConfig(({ mode }) => {
       // emit assets at dist root (no assets/ folder)
       assetsDir: '',
       copyPublicDir: false,
-      // Use Vite's default minifier (esbuild) to avoid adding an external terser dependency
       minify: true,
       sourcemap: false,
       lib: {
         entry: './src/exports.ts',
-        // produce both ESM and CJS builds
-        formats: ['es', 'cjs'],
+        // produce both ESM Only
+        formats: ['es'],
         name,
-        fileName: (format: string) => (format === 'cjs' ? 'index.cjs' : 'index'),
+        fileName: (format: string) => (format === 'cjs' ? 'index.cjs' : 'index.js'),
       },
       rollupOptions: {
-        // add worker files as explicit entry points so Rollup emits them deterministically
-        input: {
-          'index': './src/exports.ts',
-          'workers/katexRenderer.worker': './src/workers/katexRenderer.worker.ts',
-          'workers/mermaidParser.worker': './src/workers/mermaidParser.worker.ts',
-        },
         external: (id: string) => {
           if (id === 'mermaid' || id.startsWith('mermaid/'))
             return true
@@ -79,15 +72,14 @@ export default defineConfig(({ mode }) => {
             'shiki',
           ].includes(id)
         },
-        // Use Rollup output naming to place worker bundles into dist/workers
+        // Use Rollup output naming
         output: {
           globals: {
             vue: 'Vue',
           },
           exports: 'named',
-          // Emit deterministic names: entries use their input key as [name]
-          // We declared worker input keys as 'workers/...', so they will be emitted into workers/
-          entryFileNames: '[name].js',
+          // Don't override entryFileNames here - let lib.fileName control the main library output
+          // Workers will be handled by worker.rollupOptions.output below
           chunkFileNames: '[name].js',
           assetFileNames: (assetInfo: any) => {
             try {
@@ -118,6 +110,12 @@ export default defineConfig(({ mode }) => {
       // Externalize mermaid in worker bundling as well (treat mermaid and mermaid/* as external)
       rollupOptions: {
         external: (id: string) => /(?:^|\/)(?:mermaid|katex)(?:\/|$)/.test(id),
+        output: {
+          // Emit workers with deterministic names (no hash) in workers/ subfolder
+          entryFileNames: 'workers/[name].js',
+          chunkFileNames: 'workers/[name].js',
+          assetFileNames: 'workers/[name][extname]',
+        },
       },
     },
     css: {
