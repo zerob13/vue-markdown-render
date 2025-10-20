@@ -1,0 +1,35 @@
+name: Build & Validate dist
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install pnpm
+        run: corepack enable && corepack prepare pnpm@latest --activate
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build
+        run: pnpm run build
+      - name: Validate dist files
+        run: |
+          echo "Listing dist"
+          ls -la dist
+          echo "Listing workers"
+          ls -la dist/workers
+          # Fail if key files are missing
+          test -f dist/index.js
+          test -f dist/index.cjs
+          test -f dist/workers/katexRenderer.worker.js
+          test -f dist/workers/mermaidParser.worker.js

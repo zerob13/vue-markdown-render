@@ -35,15 +35,26 @@ export default defineConfig(({ mode }) => {
     build = {
       target: 'es2015',
       cssTarget: 'chrome61',
+      // emit assets at dist root (no assets/ folder)
+      assetsDir: '',
       copyPublicDir: false,
+      // Use Vite's default minifier (esbuild) to avoid adding an external terser dependency
       minify: true,
+      sourcemap: false,
       lib: {
         entry: './src/exports.ts',
-        formats: ['cjs', 'es'],
+        // produce both ESM and CJS builds
+        formats: ['es', 'cjs'],
         name,
-        fileName: 'index',
+        fileName: (format: string) => (format === 'cjs' ? 'index.cjs' : 'index'),
       },
       rollupOptions: {
+        // add worker files as explicit entry points so Rollup emits them deterministically
+        input: {
+          'index': './src/exports.ts',
+          'workers/katexRenderer.worker': './src/workers/katexRenderer.worker.ts',
+          'workers/mermaidParser.worker': './src/workers/mermaidParser.worker.ts',
+        },
         external: (id: string) => {
           if (id === 'mermaid' || id.startsWith('mermaid/'))
             return true
@@ -68,11 +79,25 @@ export default defineConfig(({ mode }) => {
             'shiki',
           ].includes(id)
         },
+        // Use Rollup output naming to place worker bundles into dist/workers
         output: {
           globals: {
             vue: 'Vue',
           },
           exports: 'named',
+          // Emit deterministic names: entries use their input key as [name]
+          // We declared worker input keys as 'workers/...', so they will be emitted into workers/
+          entryFileNames: '[name].js',
+          chunkFileNames: '[name].js',
+          assetFileNames: (assetInfo: any) => {
+            try {
+              const fname = (assetInfo && ((assetInfo as any).name || (assetInfo as any).fileName || '')) as string
+              if (fname && fname.endsWith('.css'))
+                return 'index.css'
+            }
+            catch {}
+            return '[name][extname]'
+          },
         },
       },
     }

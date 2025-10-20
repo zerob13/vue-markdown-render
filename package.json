@@ -38,16 +38,19 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "require": "./dist/index.js"
     },
     "./index.css": "./dist/index.css",
-    "./tailwind": "./dist/tailwind.ts"
+    "./tailwind": "./dist/tailwind.ts",
+    "./workers/katexRenderer.worker": "./dist/workers/katexRenderer.worker.js",
+    "./workers/mermaidParser.worker": "./dist/workers/mermaidParser.worker.js"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "dist/workers"
   ],
   "scripts": {
     "dev": "pnpm run -C playground dev",
@@ -62,7 +65,7 @@
     "play": "pnpm run -C playground dev",
     "play:build": "pnpm run -C playground build",
     "preview": "pnpm run -C playground preview",
-    "build": "vite build --mode npm && pnpm run build:dts",
+    "build": "vite build --mode npm && node ./scripts/fix-workers.mjs && pnpm run build:dts",
     "build:dts": "rollup -c ./scripts/rollup.dts.config.mjs && node ./scripts/clean-dts.cjs",
     "build:demo": "vite build",
     "build:view": "vite preview",
