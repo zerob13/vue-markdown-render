@@ -77,7 +77,10 @@ function callWorker<T>(action: 'canParse' | 'findPrefix', payload: any, timeout 
     const timeoutId = (globalThis as any).setTimeout(() => {
       if (rpcMap.has(id))
         rpcMap.delete(id)
-      reject(new Error('Worker call timed out'))
+      const err: any = new Error('Worker call timed out')
+      err.name = 'WorkerTimeout'
+      err.code = 'WORKER_TIMEOUT'
+      reject(err)
     }, timeout)
 
     // clear timeout on resolution

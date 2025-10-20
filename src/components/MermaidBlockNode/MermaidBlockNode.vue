@@ -14,10 +14,19 @@ const props = withDefaults(
     maxHeight?: string | null
     loading?: boolean
     isDark?: boolean
+    // Optional timeouts (ms) to control parsing/rendering behavior
+    workerTimeoutMs?: number
+    parseTimeoutMs?: number
+    renderTimeoutMs?: number
+    fullRenderTimeoutMs?: number
   }>(),
   {
     maxHeight: '500px',
     loading: true,
+    workerTimeoutMs: 1400,
+    parseTimeoutMs: 1800,
+    renderTimeoutMs: 2500,
+    fullRenderTimeoutMs: 4000,
   },
 )
 const emits = defineEmits(['copy'])
@@ -98,11 +107,13 @@ const savedTransformState = ref({
   containerHeight: '360px',
 })
 
-// Timeouts (ms)
-const WORKER_TIMEOUT_MS = 1400
-const PARSE_TIMEOUT_MS = 1800
-const RENDER_TIMEOUT_MS = 2500
-const FULL_RENDER_TIMEOUT_MS = 4000
+// Timeouts (ms) - configurable via props and reactive
+const timeouts = computed(() => ({
+  worker: props.workerTimeoutMs ?? 1400,
+  parse: props.parseTimeoutMs ?? 1800,
+  render: props.renderTimeoutMs ?? 2500,
+  fullRender: props.fullRenderTimeoutMs ?? 4000,
+}))
 // Background polling while in Preview to upgrade prefix -> full render automatically
 const cancelIdle
   = (globalThis as any).cancelIdleCallback ?? ((id: any) => clearTimeout(id))
@@ -279,19 +290,23 @@ async function canParseOnMain(
   theme: 'light' | 'dark',
   opts?: { signal?: AbortSignal, timeoutMs?: number },
 ) {
+  // Ensure mermaid instance is available; initial async load may not have completed yet
+  if (!mermaid) {
+    return
+  }
   const anyMermaid = mermaid as any
   const themed = applyThemeTo(code, theme)
   if (typeof anyMermaid.parse === 'function') {
     await withTimeoutSignal(() => anyMermaid.parse(themed), {
-      timeoutMs: opts?.timeoutMs ?? PARSE_TIMEOUT_MS,
+      timeoutMs: opts?.timeoutMs ?? timeouts.value.parse,
       signal: opts?.signal,
     })
     return true
   }
   // Fallback: try a headless render (no target element) just to validate
   const id = `mermaid-parse-${Math.random().toString(36).slice(2, 9)}`
-  await withTimeoutSignal(() => mermaid.render(id, themed), {
-    timeoutMs: opts?.timeoutMs ?? RENDER_TIMEOUT_MS,
+  await withTimeoutSignal(() => (mermaid as any).render(id, themed), {
+    timeoutMs: opts?.timeoutMs ?? timeouts.value.render,
     signal: opts?.signal,
   })
   return true
@@ -304,7 +319,7 @@ async function canParseOffthread(
 ) {
   try {
     // client call uses timeout param; if it rejects, fallback to main thread
-    return await canParseOffthreadClient(code, theme, opts?.timeoutMs ?? WORKER_TIMEOUT_MS)
+    return await canParseOffthreadClient(code, theme, opts?.timeoutMs ?? timeouts.value.worker)
   }
   catch {
     return await canParseOnMain(code, theme, opts)
@@ -333,7 +348,7 @@ async function canParseOrPrefix(
     try {
       // prefer worker to refine, if supported
       try {
-        const found = await findPrefixOffthreadClient(code, theme, opts?.timeoutMs ?? WORKER_TIMEOUT_MS)
+        const found = await findPrefixOffthreadClient(code, theme, opts?.timeoutMs ?? timeouts.value.worker)
         if (found && found.trim())
           prefix = found
       }
@@ -744,6 +759,10 @@ async function initMermaid() {
   isRendering.value = true
 
   renderQueue.value = (async () => {
+    // Ensure mermaid is loaded before attempting render
+    if (!mermaid) {
+      return
+    }
     if (mermaidContent.value) {
       mermaidContent.value.style.opacity = '0'
     }
@@ -754,7 +773,7 @@ async function initMermaid() {
         .substring(2, 11)}`
 
       if (!hasRenderedOnce.value && !isThemeRendering.value) {
-        mermaid.initialize({
+        mermaid.initialize?.({
           securityLevel: 'loose',
           startOnLoad: false,
         })
@@ -762,12 +781,12 @@ async function initMermaid() {
       const currentTheme = props.isDark ? 'dark' : 'light'
       const codeWithTheme = getCodeWithTheme(currentTheme)
       const res: any = await withTimeoutSignal(
-        () => mermaid.render(
+        () => (mermaid as any).render(
           id,
           codeWithTheme,
           mermaidContent.value,
         ),
-        { timeoutMs: FULL_RENDER_TIMEOUT_MS },
+        { timeoutMs: timeouts.value.fullRender },
       )
       const svg = res?.svg
       const bindFunctions = res?.bindFunctions
@@ -829,6 +848,10 @@ async function renderPartial(code: string) {
 
   isRendering.value = true
   try {
+    // Ensure mermaid is loaded before attempting render
+    if (!mermaid) {
+      return
+    }
     const id = `mermaid-partial-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
     const theme = props.isDark ? 'dark' : 'light'
     // 如果最后一行是不完整的（如以 |、-、> 等连接符结尾），则剪裁到上一行，
@@ -840,8 +863,8 @@ async function renderPartial(code: string) {
       mermaidContent.value.style.opacity = '0'
 
     const res: any = await withTimeoutSignal(
-      () => mermaid.render(id, codeWithTheme, mermaidContent.value!),
-      { timeoutMs: RENDER_TIMEOUT_MS },
+      () => (mermaid as any).render(id, codeWithTheme, mermaidContent.value!),
+      { timeoutMs: timeouts.value.render },
     )
     const svg = res?.svg
     const bindFunctions = res?.bindFunctions
@@ -895,7 +918,7 @@ async function progressiveRender() {
     return
   }
   try {
-    const res = await canParseOrPrefix(base, theme, { signal, timeoutMs: WORKER_TIMEOUT_MS })
+    const res = await canParseOrPrefix(base, theme, { signal, timeoutMs: timeouts.value.worker })
     if (res.fullOk) {
       await initMermaid()
       // Guard against race: if a newer render started, skip flag changes
@@ -1012,7 +1035,7 @@ function scheduleNextPreviewPoll(delay = 800) {
         previewPollController.abort()
       previewPollController = new AbortController()
       try {
-        const ok = await canParseOffthread(base, theme, { signal: previewPollController.signal, timeoutMs: WORKER_TIMEOUT_MS })
+        const ok = await canParseOffthread(base, theme, { signal: previewPollController.signal, timeoutMs: timeouts.value.worker })
         if (ok) {
           await initMermaid()
           if (hasRenderedOnce.value) {
@@ -1165,7 +1188,7 @@ watch(
 
       // 否则：进行一次最终完整解析，成功则完整渲染；失败才展示错误
       try {
-        await canParseOffthread(base, theme, { timeoutMs: WORKER_TIMEOUT_MS })
+        await canParseOffthread(base, theme, { timeoutMs: timeouts.value.worker })
         await initMermaid()
         // 记录本次渲染的 code（去除空白）
         lastRenderedCode.value = normalizedBase
