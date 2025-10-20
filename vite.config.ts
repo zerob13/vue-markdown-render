@@ -38,7 +38,23 @@ export default defineConfig(({ mode }) => {
       // emit assets at dist root (no assets/ folder)
       assetsDir: '',
       copyPublicDir: false,
-      minify: true,
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          ecma: 2015,
+          drop_console: false,
+          drop_debugger: true,
+          pure_funcs: ['console.log'],
+          passes: 2,
+        },
+        mangle: {
+          safari10: true,
+        },
+        format: {
+          comments: false,
+          ecma: 2015,
+        },
+      },
       sourcemap: false,
       lib: {
         entry: './src/exports.ts',

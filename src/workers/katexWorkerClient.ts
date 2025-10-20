@@ -5,9 +5,26 @@ interface Pending {
 }
 
 let worker: Worker | null = null
-// If worker instantiation fails (for example due to an incorrect new Worker URL/path),
-// we capture the error here so callers can decide to fallback to main-thread rendering.
 let workerInitError: any = null
+
+/**
+ * Allow user to inject a Worker instance, e.g. from Vite ?worker import.
+ */
+export function setKaTeXWorker(w: Worker) {
+  worker = w
+  workerInitError = null
+}
+
+/**
+ * Remove the current worker instance (for cleanup or SSR).
+ */
+export function clearKaTeXWorker() {
+  if (worker) {
+    worker.terminate?.()
+  }
+  worker = null
+  workerInitError = null
+}
 // runtime debug flag controlled by the main thread
 let DEBUG_KATEX_WORKER = false
 const pending = new Map<string, Pending>()
@@ -16,70 +33,10 @@ const cache = new Map<string, string>()
 const CACHE_MAX = 200
 
 function ensureWorker() {
-  if (worker)
-    return worker
-  // Only create a Worker in a browser environment
-  if (typeof window === 'undefined') {
-    worker = null
-    console.warn('[katexWorkerClient] window is undefined — Web Worker will not be created')
+  if (!worker) {
+    workerInitError = new Error('[katexWorkerClient] No worker instance set. Please inject a Worker via setKaTeXWorker().')
+    return null
   }
-  else {
-    // Vite-friendly worker instantiation. Bundlers will inline the worker when configured.
-    worker = new Worker(new URL('./katexRenderer.worker.ts', import.meta.url), { type: 'module' })
-    workerInitError = null
-    ; (worker as any).postMessage({ type: 'init', debug: DEBUG_KATEX_WORKER })
-  }
-
-  if (worker) {
-    worker.addEventListener('message', (ev: MessageEvent) => {
-      const { id, html, error, content, displayMode } = ev.data as any
-      const p = pending.get(id)
-      if (!p) {
-        return
-      }
-      (globalThis as any).clearTimeout(p.timeoutId)
-      pending.delete(id)
-      if (error) {
-        const err = new Error(String(error))
-          ; (err as any).name = 'WorkerRenderError'
-        ; (err as any).code = 'WORKER_RENDER_ERROR'
-        ; (err as any).content = content
-        ; (err as any).displayMode = displayMode
-        p.reject(err)
-        return
-      }
-
-      const cacheKey = `${displayMode ? 'd' : 'i'}:${content}`
-      cache.set(cacheKey, html)
-      if (cache.size > CACHE_MAX) {
-        // evict oldest entry
-        const firstKey = cache.keys().next().value
-        cache.delete(firstKey)
-      }
-
-      p.resolve(html)
-    })
-
-    worker.addEventListener('error', (e) => {
-      const err = new Error(String((e as any)?.message ?? e))
-        ; (err as any).name = 'WorkerInitError'
-      ; (err as any).code = 'WORKER_INIT_ERROR'
-      ; (err as any).original = e
-      ; (err as any).fallbackToRenderer = true
-      workerInitError = err
-      console.error(err)
-      // reject all pending promises so callers can fallback
-      for (const [_id, p] of pending.entries()) {
-        p.reject(err)
-      }
-      pending.clear()
-    })
-
-    worker.addEventListener('messageerror', (ev) => {
-      console.error('[katexWorkerClient] Worker messageerror', ev)
-    })
-  }
-
   return worker
 }
 

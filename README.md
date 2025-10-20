@@ -827,7 +827,7 @@ Tip: to avoid layout shift when switching from placeholder to the image, keep th
 
 ### TableNode loading slot
 
-`TableNode` ships with a lightweight shimmer skeleton + spinner overlay that activates while `node.loading` is `true`. You can replace the overlay content without losing the skeleton effect by providing the named `loading` slot.
+`TableNode` ships with a lightweight shimmer skeleton + spinner overlay that activates while `node.loading` is `true`. You can replace the overlay content without losing the shimmer effect by providing the named `loading` slot.
 
 - Slot name: `loading`
 - Slot props: `{ isLoading: boolean }`
@@ -906,7 +906,7 @@ Example:
 
 Notes:
 - The underline color uses `currentColor`, so by default it matches the `color` prop. If you need an independent underline color, consider a small local CSS override or opening an issue to discuss exposing an `underlineColor` prop.
-- All props are optional; when omitted, sensible defaults are used to remain backward compatible.
+- All props are optional; when omitted, sensible defaults are used to preserve backward compatibility.
 
 ### Override Language Icons
 
@@ -1348,6 +1348,10 @@ See the [Tailwind section](#tailwind-eg-shadcn--fix-style-ordering-issues) for m
      <div v-if="mounted">
        <MarkdownRender :content="markdown" />
      </div>
+     <div v-else>
+       <!-- SSR fallback: lightweight preformatted text -->
+       <pre>{{ markdown }}</pre>
+     </div>
    </template>
    ```
 
@@ -1434,3 +1438,42 @@ Thanks to the authors and contributors of these projects!
 ## License
 
 [MIT](./LICENSE) © [Simon He](https://github.com/Simon-He95)
+
+## Vite Configuration & Worker Usage (Important!)
+
+If you're using Vite, you only need the following minimal configuration:
+
+```typescript
+import vue from '@vitejs/plugin-vue'
+// vite.config.ts
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  plugins: [vue()],
+  worker: {
+    format: 'es',
+  },
+})
+```
+
+> **Why?** You now manually import and set workers via API, so Vite's optimizeDeps is not needed for worker files. This avoids pre-bundling issues and makes configuration simpler.
+
+#### How to use workers in your app (Vite example)
+
+You must import the worker using Vite's `?worker` syntax and inject it into the library via the API:
+
+```ts
+// main.ts or your app entry
+import KatexWorker from 'vue-renderer-markdown/workers/katexRenderer.worker?worker'
+import { setKaTeXWorker } from 'vue-renderer-markdown/workers/katexWorkerClient'
+
+// For Mermaid:
+import MermaidWorker from 'vue-renderer-markdown/workers/mermaidParser.worker?worker'
+import { setMermaidWorker } from 'vue-renderer-markdown/workers/mermaidWorkerClient'
+
+setKaTeXWorker(new KatexWorker())
+
+setMermaidWorker(new MermaidWorker())
+```
+
+> You do **not** need to pass the worker via component props. Just call the API once in your app entry before using Markdown components.

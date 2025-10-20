@@ -252,8 +252,38 @@ const parseOptions = { postTransformNodes: postNodes }
 
 ## SSR 指南
 
+本库设计为 SSR 安全，重型依赖（Monaco、Mermaid）仅在浏览器端懒加载，浏览器相关功能会自动跳过服务端渲染。
+
 - Nuxt 3：使用 `<client-only>` 包裹组件
-- 自定义 Vite SSR：在 `onMounted` 后再渲染组件
+  ```vue
+  <template>
+    <client-only>
+      <MarkdownRender :content="markdown" />
+    </client-only>
+  </template>
+  ```
+- Vite SSR / 自定义 SSR：在 `onMounted` 后再渲染组件
+  ```vue
+  <script setup lang="ts">
+  import { onMounted, ref } from 'vue'
+  import MarkdownRender from 'vue-renderer-markdown'
+
+  const mounted = ref(false)
+  onMounted(() => {
+    mounted.value = true
+  })
+  </script>
+
+  <template>
+    <div v-if="mounted">
+      <MarkdownRender :content="markdown" />
+    </div>
+    <div v-else>
+      <!-- SSR 回退：轻量预格式化文本 -->
+      <pre>{{ markdown }}</pre>
+    </div>
+  </template>
+  ```
 - 运行 `pnpm run check:ssr` 可验证导入安全
 - 需要服务器预渲染的图表或代码，可先生成静态 HTML 后传入
 
@@ -276,7 +306,7 @@ export default {
   plugins: [
     monacoEditorPlugin({
       languageWorkers: ['editorWorkerService', 'typescript', 'css', 'html', 'json'],
-      customDistPath(root, buildOutDir) {
+      customDistPath(root, buildOutDir, base) {
         return path.resolve(buildOutDir, 'monacoeditorwork')
       },
     }),
@@ -284,6 +314,7 @@ export default {
 }
 ```
 
+> 注意：如仅需渲染 Monaco 编辑器（用于代码编辑或预览），可直接集成 `vue-use-monaco`，无需本库的完整 Markdown 渲染管线。
 ### Mermaid 不渲染
 
 **现象**：标记为 ` ```mermaid` 的代码块仍然显示原始文本。
@@ -294,18 +325,26 @@ export default {
    ```bash
    pnpm add mermaid
    ```
-2. 校验 Markdown 语法是否正确（配对的 `graph`、`flowchart` 等关键字）。
+2. 校验代码块语法是否为有效 Mermaid：
+   ```markdown
+   ```mermaid
+   graph TD
+     A[Start] --> B[End]
+   ```
+   ```
 3. 打开控制台查看 Mermaid 抛出的错误，库会在渲染失败时自动回退到源码展示。
 
 ### 语法高亮无效
 
 **现象**：使用 `MarkdownCodeBlockNode` 时代码块仅显示纯文本。
 
-**解决方案**：安装 `shiki` 并确保在渲染器中启用了该组件。
+**解决方案**：安装 `shiki` 依赖：
 
 ```bash
 pnpm add shiki
 ```
+
+并确保在渲染器中启用了该组件：
 
 ```ts
 import { MarkdownCodeBlockNode, setCustomComponents } from 'vue-renderer-markdown'
@@ -325,12 +364,18 @@ setCustomComponents({
    ```ts
    import type { BaseNode, CodeBlockNode } from 'vue-renderer-markdown'
    ```
-2. 如果需要更细的类型定义，可从构建产物中导入：
+2. 如需更细致的类型定义：
    ```ts
-   import type { MarkdownPluginOptions } from 'vue-renderer-markdown/dist/types'
+   import type { MarkdownRenderProps } from 'vue-renderer-markdown/dist/types'
    ```
-3. 在 `tsconfig.json` 中开启 `"moduleResolution": "bundler"`（或 `"node16"`）。
-
+3. 在 `tsconfig.json` 中开启 `"moduleResolution": "bundler"` 或 `"node16"`：
+   ```json
+   {
+     "compilerOptions": {
+       "moduleResolution": "bundler"
+     }
+   }
+   ```
 ### SSR 报 `window is not defined`
 
 **原因**：Monaco、Mermaid、Web Worker 等功能依赖浏览器环境，需要延迟到客户端执行。
@@ -364,15 +409,23 @@ setCustomComponents({
 
 **现象**：库的样式被 Tailwind 或其他组件库覆盖。
 
-**解决方案**：把库的样式放入 Tailwind 的 `components` 层，保证加载顺序可控。
+**解决方案**：将库样式导入 Tailwind 的 `components` 层，确保加载顺序可控。
 
 ```css
-/* main.css */
+/* main.css 或 index.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer components {
+  @import 'vue-renderer-markdown/index.css';
+}
+```
+
+如需更高优先级，可放入 `base` 层：
+
+```css
+@layer base {
   @import 'vue-renderer-markdown/index.css';
 }
 ```
@@ -394,11 +447,11 @@ setCustomComponents({
 - 使用 `setCustomComponents('id', mapping)` 为不同渲染实例分别注册组件，并在不再需要时移除，减少内存占用。
 - 在应用启动时调用 `setDefaultMathOptions`，统一数学公式配置，防止在渲染期间重复计算。
 - 对复杂 Mermaid 图表可提前在服务端校验或预渲染，再将结果作为缓存内容传给组件。
-  - Math 渲染错误时，可通过 `setDefaultMathOptions` 调整需要自动补全反斜杠的指令集合。若需在服务端生成或缓存 KaTeX 输出，请确保宿主应用已安装 `katex` 并将其包含在构建中。
+- Math 渲染错误时，可通过 `setDefaultMathOptions` 调整需要自动补全反斜杠的指令集合。若需在服务端生成或缓存 KaTeX 输出，请确保宿主应用已安装 `katex` 并将其包含在构建中。
 
 ## 国际化 / 备用翻译
 
-如果你不想安装或使用 `vue-i18n`，本库内置了一个小型的同步备用翻译器，用于一些常见的 UI 文案（复制、预览、图片加载等）。你可以在应用启动时通过 `setDefaultI18nMap` 替换默认的英文翻译为你希望的语言：
+如不想安装或使用 `vue-i18n`，本库内置了一个同步备用翻译器，覆盖常见 UI 文案（复制、预览、图片加载等）。可在应用启动时通过 `setDefaultI18nMap` 替换默认英文翻译：
 
 ```ts
 import { setDefaultI18nMap } from 'vue-renderer-markdown'
@@ -417,8 +470,7 @@ setDefaultI18nMap({
 })
 ```
 
-可选：如果你安装并配置了 `vue-i18n`，库会在运行时优先使用它提供的翻译。
-
+如安装并配置了 `vue-i18n`，库会优先使用其翻译。
 ## 相关链接
 
 - Streaming Playground：https://vue-markdown-renderer.simonhe.me/

@@ -37,6 +37,8 @@ import { setLanguageIconResolver } from './utils/languageIcon'
 import { setDefaultMathOptions } from './utils/markdown/config'
 import { clearGlobalCustomComponents, getCustomNodeComponents, removeCustomComponents, setCustomComponents } from './utils/nodeComponents'
 import './index.css'
+import './workers/katexRenderer.worker?worker'
+import './workers/mermaidParser.worker?worker'
 
 export * from './utils'
 export { setDefaultMathOptions } from './utils/markdown/config'

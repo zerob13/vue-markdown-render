@@ -1,59 +1,33 @@
 type Theme = 'light' | 'dark'
 
 let worker: Worker | null = null
-// If worker instantiation fails (for example due to an incorrect new Worker URL/path),
-// we capture the error here so callers can decide to fallback to a main-thread parser.
 let workerInitError: any = null
+
+/**
+ * Allow user to inject a Worker instance, e.g. from Vite ?worker import.
+ */
+export function setMermaidWorker(w: Worker) {
+  worker = w
+  workerInitError = null
+}
+
+/**
+ * Remove the current worker instance (for cleanup or SSR).
+ */
+export function clearMermaidWorker() {
+  if (worker) {
+    worker.terminate?.()
+  }
+  worker = null
+  workerInitError = null
+}
 const rpcMap = new Map<string, { resolve: (v: any) => void, reject: (e: any) => void }>()
 
 function ensureWorker() {
-  if (worker)
-    return worker
-
-  // Vite-style worker URL import
-  // Only create a Worker if running in a browser environment
-  if (typeof window === 'undefined') {
-    worker = null
-    console.warn('[mermaidWorkerClient] window is undefined — Web Worker will not be created')
+  if (!worker) {
+    workerInitError = new Error('[mermaidWorkerClient] No worker instance set. Please inject a Worker via setMermaidWorker().')
+    return null
   }
-  else {
-    worker = new Worker(new URL('./mermaidParser.worker.ts', import.meta.url), { type: 'module' })
-    workerInitError = null
-  }
-
-  if (worker) {
-    worker.addEventListener('message', (ev: MessageEvent) => {
-      const { id, ok, result, error } = ev.data || {}
-      const entry = rpcMap.get(id)
-      if (!entry)
-        return
-      if (ok)
-        entry.resolve(result)
-      else entry.reject(new Error(error ?? 'Worker error'))
-      rpcMap.delete(id)
-    })
-
-    worker.addEventListener('error', (e) => {
-      const err = new Error(String((e as any)?.message ?? e))
-        ; (err as any).name = 'WorkerInitError'
-      ; (err as any).code = 'WORKER_INIT_ERROR'
-      ; (err as any).original = e
-      ; (err as any).fallbackToRenderer = true
-      workerInitError = err
-      console.error(err)
-
-      // reject all pending RPCs so callers can fallback
-      for (const [_id, entry] of rpcMap.entries()) {
-        entry.reject(err)
-      }
-      rpcMap.clear()
-    })
-
-    worker.addEventListener('messageerror', (ev) => {
-      console.error('[mermaidWorkerClient] Worker messageerror', ev)
-    })
-  }
-
   return worker
 }
 
