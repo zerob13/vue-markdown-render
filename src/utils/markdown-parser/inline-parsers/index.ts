@@ -349,7 +349,7 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
         currentTextNode = null // Reset current text node
         const href = token.attrs?.find((attr: any) => attr[0] === 'href')?.[1]
         if (raw && href) {
-          const loadingMath = new RegExp(`(\\s*${href}\\s*)`)
+          const loadingMath = new RegExp(`\\(\\s*${href}\\s*\\)`)
           const pre: any = result.length > 0 ? result[result.length - 1] : null
           const loading = !loadingMath.test(raw)
           if (loading) {
