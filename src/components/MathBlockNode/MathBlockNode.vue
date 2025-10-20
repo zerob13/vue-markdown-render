@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useViewportPriority } from '../../composables/viewportPriority'
-import { renderKaTeXWithBackpressure, setKaTeXCache } from '../../workers/katexWorkerClient'
+import { renderKaTeXWithBackpressure, setKaTeXCache, WORKER_BUSY_CODE } from '../../workers/katexWorkerClient'
 import { getKatex } from '../MathInlineNode/katex'
 
 const props = defineProps<{
@@ -16,6 +16,7 @@ let katex = null
 getKatex().then((k) => {
   katex = k
 })
+const containerEl = ref<HTMLElement | null>(null)
 const mathBlockElement = ref<HTMLElement | null>(null)
 let hasRenderedOnce = false
 let currentRenderId = 0
@@ -33,8 +34,9 @@ async function renderMath() {
   if (!hasRenderedOnce) {
     try {
       // register once per mount
-      if (!visibilityHandle && mathBlockElement.value) {
-        visibilityHandle = registerVisibility(mathBlockElement.value)
+      if (!visibilityHandle && containerEl.value) {
+        // Observe the outer wrapper to ensure IO triggers even if inner is empty
+        visibilityHandle = registerVisibility(containerEl.value)
       }
       await visibilityHandle?.whenVisible
     }
@@ -80,25 +82,26 @@ async function renderMath() {
       // KaTeX render on the main thread as a fallback. If the error is a
       // KaTeX render error from the worker (syntax), we should ignore it here
       // and fall through to the raw/text fallback below.
-      if (katex && (err?.code === 'WORKER_INIT_ERROR' || err?.fallbackToRenderer)) {
-        try {
+      const code = err?.code || err?.name
+      const isWorkerInitFailure = code === 'WORKER_INIT_ERROR' || err?.fallbackToRenderer
+      const isBusyOrTimeout = code === WORKER_BUSY_CODE || code === 'WORKER_TIMEOUT'
+
+      // For blocks, also fall back to main-thread render when the worker is busy/timeout
+      // under viewport bursts to avoid showing raw text.
+      if (isWorkerInitFailure || isBusyOrTimeout) {
+        if (!katex) {
+          katex = await getKatex()
+        }
+        if (katex) {
           const html = katex.renderToString(props.node.content, {
-            throwOnError: true,
+            throwOnError: false,
             displayMode: true,
           })
           mathBlockElement.value.innerHTML = html
           hasRenderedOnce = true
           // populate worker client cache so future calls hit cache
-          try {
-            setKaTeXCache(props.node.content, true, html)
-          }
-          catch {
-            // ignore cache set errors
-          }
+          setKaTeXCache(props.node.content, true, html)
           return
-        }
-        catch {
-          // if synchronous render fails, fall through to raw/text fallback
         }
       }
 
@@ -132,5 +135,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="mathBlockElement" class="math-block text-center overflow-x-auto" />
+  <div ref="containerEl" class="math-block text-center overflow-x-auto">
+    <div ref="mathBlockElement" />
+  </div>
 </template>

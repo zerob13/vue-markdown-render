@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useViewportPriority } from '../../composables/viewportPriority'
-import { renderKaTeXWithBackpressure, WORKER_BUSY_CODE } from '../../workers/katexWorkerClient'
+import { renderKaTeXWithBackpressure, setKaTeXCache, WORKER_BUSY_CODE } from '../../workers/katexWorkerClient'
 import { getKatex } from './katex'
 
 const props = defineProps<{
@@ -17,6 +17,7 @@ getKatex().then((k) => {
   katex = k
 })
 
+const containerEl = ref<HTMLElement | null>(null)
 const mathElement = ref<HTMLElement | null>(null)
 let hasRenderedOnce = false
 let currentRenderId = 0
@@ -42,8 +43,9 @@ async function renderMath() {
   // Defer heavy work until visible on first render
   if (!hasRenderedOnce) {
     try {
-      if (!visibilityHandle && mathElement.value) {
-        visibilityHandle = registerVisibility(mathElement.value)
+      if (!visibilityHandle && containerEl.value) {
+        // Observe the always-visible wrapper, not the v-show hidden math span
+        visibilityHandle = registerVisibility(containerEl.value)
       }
       await visibilityHandle?.whenVisible
     }
@@ -77,16 +79,18 @@ async function renderMath() {
       const code = err?.code || err?.name
       const isWorkerInitFailure = code === 'WORKER_INIT_ERROR' || err?.fallbackToRenderer
       const isBusyOrTimeout = code === WORKER_BUSY_CODE || code === 'WORKER_TIMEOUT'
-      if (katex && (isWorkerInitFailure || isBusyOrTimeout)) {
-        try {
-          const html = katex.renderToString(props.node.content, { throwOnError: true, displayMode: false })
+      if (isWorkerInitFailure || isBusyOrTimeout) {
+        if (!katex) {
+          katex = await getKatex()
+        }
+        if (katex) {
+          const html = katex.renderToString(props.node.content, { throwOnError: false, displayMode: false })
           renderingLoading.value = false
           mathElement.value.innerHTML = html
           hasRenderedOnce = true
+          // populate worker client cache for inline as well
+          setKaTeXCache(props.node.content, false, html)
           return
-        }
-        catch {
-          // fall through to existing loading/raw behaviour
         }
       }
       // If we reach here, the worker render failed and sync fallback was not possible.
@@ -122,7 +126,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <span class="math-inline-wrapper">
+  <span ref="containerEl" class="math-inline-wrapper">
     <span v-show="!renderingLoading" ref="mathElement" class="math-inline" />
     <transition v-if="renderingLoading" name="table-node-fade">
       <span

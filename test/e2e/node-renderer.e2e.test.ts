@@ -1,7 +1,7 @@
 import type { VueWrapper } from '@vue/test-utils'
 import { mount } from '@vue/test-utils'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
-import { nextTick } from 'vue'
+import { flushAll } from '../setup/flush-all'
 
 interface Scenario {
   name: string
@@ -14,12 +14,7 @@ interface Scenario {
 
 let MarkdownRender: any
 
-async function flushAll() {
-  await nextTick()
-  await Promise.resolve()
-  await Promise.resolve()
-  await new Promise(resolve => setTimeout(resolve, 0))
-}
+// Use shared flushAll from test/setup/flush-all
 
 async function mountMarkdown(markdown: string, props: Record<string, any> = {}) {
   const wrapper = mount(MarkdownRender, {
