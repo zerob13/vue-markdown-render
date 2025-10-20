@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { MonacoTheme } from 'vue-use-monaco'
 import type { BaseNode, ParsedNode, ParseOptions } from '../../utils'
 import { computed, defineAsyncComponent, ref } from 'vue'
 import AdmonitionNode from '../../components/AdmonitionNode'
@@ -35,7 +34,6 @@ import { getCustomNodeComponents } from '../../utils/nodeComponents'
 import { MathBlockNodeAsync, MathInlineNodeAsync } from './asyncComponent'
 import FallbackComponent from './FallbackComponent.vue'
 import { preload } from './preloadMonaco'
-
 // 组件接收的 props
 // 增加用于统一设置所有 code_block 主题和 Monaco 选项的外部 API
 const props = defineProps<
@@ -57,7 +55,7 @@ const props = defineProps<
     codeBlockMaxWidth?: string | number
     /** Arbitrary props to forward to every CodeBlockNode */
     codeBlockProps?: Record<string, any>
-    themes?: MonacoTheme[]
+    themes?: string[]
     isDark?: boolean
     customId?: string
     indexKey?: number | string
@@ -77,7 +75,7 @@ const props = defineProps<
     codeBlockMaxWidth?: string | number
     /** Arbitrary props to forward to every CodeBlockNode */
     codeBlockProps?: Record<string, any>
-    themes?: MonacoTheme[]
+    themes?: string[]
     isDark?: boolean
     customId?: string
     indexKey?: number | string

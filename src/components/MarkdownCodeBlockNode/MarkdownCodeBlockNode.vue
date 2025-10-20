@@ -353,7 +353,7 @@ function previewCode() {
               @mouseleave="onBtnLeave"
               @blur="onBtnLeave"
             >
-              <Icon icon="lucide:minus" class="w-3 h-3" />
+              <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" class="w-3 h-3"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14" /></svg>
             </button>
             <button
               type="button"
@@ -365,7 +365,7 @@ function previewCode() {
               @mouseleave="onBtnLeave"
               @blur="onBtnLeave"
             >
-              <Icon icon="lucide:rotate-ccw" class="w-3 h-3" />
+              <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" class="w-3 h-3"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9a9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></g></svg>
             </button>
             <button
               type="button"
@@ -377,7 +377,7 @@ function previewCode() {
               @mouseleave="onBtnLeave"
               @blur="onBtnLeave"
             >
-              <Icon icon="lucide:plus" class="w-3 h-3" />
+              <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" class="w-3 h-3"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7v14" /></svg>
             </button>
           </template>
 
@@ -430,7 +430,7 @@ function previewCode() {
     <div
       v-show="!isCollapsed"
       ref="codeBlockContent"
-      class="code-block-content px-4 pb-4"
+      class="code-block-content"
       :style="contentStyle"
       @scroll="handleScroll"
       v-html="highlightedCode"
@@ -450,6 +450,10 @@ function previewCode() {
   max-height: 500px;
   overflow: auto;
   transition: max-height 0.3s ease;
+}
+
+:deep(.code-block-content pre){
+  padding: 1rem;
 }
 
 .code-action-btn {
