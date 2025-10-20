@@ -347,20 +347,24 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
 
       case 'link_open': {
         currentTextNode = null // Reset current text node
-        if (token.info) {
+        const href = token.attrs?.find((attr: any) => attr[0] === 'href')?.[1]
+        if (raw && href) {
+          const loadingMath = new RegExp(`(\\s*${href}\\s*)`)
           const pre: any = result.length > 0 ? result[result.length - 1] : null
-          const text = pre?.text || (pre as any).content?.slice(1, -1) || ''
-
-          result.splice(result.length - 1, 1, {
-            type: 'link',
-            href: '',
-            text,
-            loading: true,
-          } as any) // remove the pre node
-          i += 3
-          if (tokens[i]?.content === '.')
-            i++
-          break
+          const loading = !loadingMath.test(raw)
+          if (loading) {
+            const text = pre?.text || (pre as any)?.content?.slice(1, -1) || ''
+            result.splice(result.length - 1, 1, {
+              type: 'link',
+              href: '',
+              text,
+              loading,
+            } as any) // remove the pre node
+            i += 3
+            if (tokens[i]?.content === '.')
+              i++
+            break
+          }
         }
         const { node, nextIndex } = parseLinkToken(tokens, i)
         i = nextIndex

@@ -19,10 +19,6 @@ export function parseLinkToken(
 
   // Collect all tokens between link_open and link_close
   while (i < tokens.length && tokens[i].type !== 'link_close') {
-    // Validate: ensure no block-level elements inside link
-    // if (isBlockLevelToken(tokens[i].type)) {
-    //   throw new Error(`Block-level element "${tokens[i].type}" is not allowed inside a link`)
-    // }
     linkTokens.push(tokens[i])
     i++
   }
