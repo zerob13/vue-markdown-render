@@ -50,6 +50,7 @@ vi.mock('vue-use-monaco', () => ({
     cleanupEditor: () => {},
     setTheme: async () => {},
   }),
+  preloadMonacoWorkers: () => {},
   detectLanguage: () => 'plaintext',
 }))
 
@@ -61,9 +62,4 @@ vi.mock('mermaid', () => ({
   },
 }))
 
-vi.mock('../../src/workers/katexWorkerClient', () => ({
-  // eslint-disable-next-line prefer-promise-reject-errors
-  renderKaTeXInWorker: () => Promise.reject({ code: 'WORKER_INIT_ERROR', fallbackToRenderer: true }),
-  setKaTeXWorkerDebug: () => {},
-  setKaTeXCache: () => {},
-}))
+// Do not mock katexWorkerClient here to allow tests to exercise real behavior.

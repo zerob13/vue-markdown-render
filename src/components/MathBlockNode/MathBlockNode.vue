@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { renderKaTeXInWorker, setKaTeXCache } from '../../workers/katexWorkerClient'
+import { renderKaTeXWithBackpressure, setKaTeXCache } from '../../workers/katexWorkerClient'
 import { getKatex } from '../MathInlineNode/katex'
 
 const props = defineProps<{
@@ -37,7 +37,12 @@ function renderMath() {
   const abortController = new AbortController()
   currentAbortController = abortController
 
-  renderKaTeXInWorker(props.node.content, true, 3000, abortController.signal)
+  renderKaTeXWithBackpressure(props.node.content, true, {
+    timeout: 3000,
+    waitTimeout: 2000,
+    maxRetries: 1,
+    signal: abortController.signal,
+  })
     .then((html) => {
       // ignore if a newer render was requested or component unmounted
       if (isUnmounted || renderId !== currentRenderId)
@@ -47,7 +52,7 @@ function renderMath() {
       mathBlockElement.value.innerHTML = html
       hasRenderedOnce = true
     })
-    .catch((err: any) => {
+    .catch(async (err: any) => {
       // ignore if a newer render was requested or component unmounted
       if (isUnmounted || renderId !== currentRenderId)
         return

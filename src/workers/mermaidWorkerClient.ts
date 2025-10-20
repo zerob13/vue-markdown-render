@@ -2,6 +2,7 @@ type Theme = 'light' | 'dark'
 
 let worker: Worker | null = null
 let workerInitError: any = null
+const rpcMap = new Map<string, { resolve: (v: any) => void, reject: (e: any) => void }>()
 
 /**
  * Allow user to inject a Worker instance, e.g. from Vite ?worker import.
@@ -9,6 +10,33 @@ let workerInitError: any = null
 export function setMermaidWorker(w: Worker) {
   worker = w
   workerInitError = null
+
+  // Set up message handler to process worker responses
+  worker.onmessage = (e: MessageEvent) => {
+    const { id, ok, result, error } = e.data
+    const rpc = rpcMap.get(id)
+    if (!rpc)
+      return
+
+    rpcMap.delete(id)
+
+    if (ok === false || error) {
+      rpc.reject(new Error(error || 'Unknown error'))
+    }
+    else {
+      rpc.resolve(result)
+    }
+  }
+
+  // Optional: handle worker errors
+  worker.onerror = (e: ErrorEvent) => {
+    console.error('[mermaidWorkerClient] Worker error:', e)
+    // Reject all pending requests
+    for (const [_id, rpc] of rpcMap.entries()) {
+      rpc.reject(new Error(`Worker error: ${e.message}`))
+    }
+    rpcMap.clear()
+  }
 }
 
 /**
@@ -21,11 +49,12 @@ export function clearMermaidWorker() {
   worker = null
   workerInitError = null
 }
-const rpcMap = new Map<string, { resolve: (v: any) => void, reject: (e: any) => void }>()
 
 function ensureWorker() {
   if (!worker) {
-    workerInitError = new Error('[mermaidWorkerClient] No worker instance set. Please inject a Worker via setMermaidWorker().')
+    workerInitError = new Error('[mermaidWorkerClient] No worker instance set. Please inject a Worker via setMermaidWorker().');
+    (workerInitError as any).name = 'WorkerInitError'
+    ; (workerInitError as any).code = 'WORKER_INIT_ERROR'
     return null
   }
   return worker

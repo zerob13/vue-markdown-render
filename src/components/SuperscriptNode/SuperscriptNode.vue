@@ -52,14 +52,16 @@ const nodeComponents = {
 
 <template>
   <sup class="superscript-node">
-    <component
-      :is="nodeComponents[child.type]"
-      v-for="(child, index) in node.children"
-      :key="`${indexKey || 'superscript'}-${index}`"
-      :index-key="`${indexKey || 'superscript'}-${index}`"
-      :node="child"
-      :custom-id="props.customId"
-    />
+    <template v-for="(child, index) in node.children" :key="`${indexKey || 'superscript'}-${index}`">
+      <component
+        :is="nodeComponents[child.type]"
+        v-if="nodeComponents[child.type]"
+        :node="child"
+        :custom-id="props.customId"
+        :index-key="`${indexKey || 'superscript'}-${index}`"
+      />
+      <span v-else>{{ (child as any).content || (child as any).raw }}</span>
+    </template>
   </sup>
 </template>
 

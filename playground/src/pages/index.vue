@@ -2,6 +2,10 @@
 import { Icon } from '@iconify/vue'
 import MarkdownRender from '../../../src/components/NodeRenderer'
 import { removeCustomComponents, setCustomComponents } from '../../../src/utils/nodeComponents'
+import KatexWorker from '../../../src/workers/katexRenderer.worker?worker&inline'
+import { setKaTeXWorker } from '../../../src/workers/katexWorkerClient'
+import MermaidWorker from '../../../src/workers/mermaidParser.worker?worker&inline'
+import { setMermaidWorker } from '../../../src/workers/mermaidWorkerClient'
 import ThinkingNode from '../components/ThinkingNode.vue'
 import { streamContent } from '../const/markdown'
 import 'katex/dist/katex.min.css'
@@ -11,6 +15,9 @@ const content = ref<string>('')
 const streamDelay = useLocalStorage<number>('vmr-settings-stream-delay', 16)
 const streamChunkSize = useLocalStorage<number>('vmr-settings-stream-chunk-size', 1)
 const normalizedChunkSize = computed(() => Math.max(1, Math.floor(streamChunkSize.value) || 1))
+
+setKaTeXWorker(new KatexWorker())
+setMermaidWorker(new MermaidWorker())
 
 // Keep persisted values within reasonable bounds on hydration.
 watchEffect(() => {

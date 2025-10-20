@@ -31,8 +31,9 @@ export function parseSuperscriptToken(
         : [
             {
               type: 'text',
-              content: tokens[startIndex].content || '',
-              raw: tokens[startIndex].content || '',
+              // Fallback to the collected inner text (e.g., "2" in x^2^)
+              content: supText || tokens[startIndex].content || '',
+              raw: supText || tokens[startIndex].content || '',
             },
           ],
     raw: `^${supText || tokens[startIndex].content || ''}^`,

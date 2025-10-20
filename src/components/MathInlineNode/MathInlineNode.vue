@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { renderKaTeXInWorker } from '../../workers/katexWorkerClient'
+import { renderKaTeXWithBackpressure } from '../../workers/katexWorkerClient'
 import { getKatex } from './katex'
 
 const props = defineProps<{
@@ -36,7 +36,12 @@ function renderMath() {
   const abortController = new AbortController()
   currentAbortController = abortController
 
-  renderKaTeXInWorker(props.node.content, false, 1500, abortController.signal)
+  renderKaTeXWithBackpressure(props.node.content, false, {
+    timeout: 1500,
+    waitTimeout: 1500,
+    maxRetries: 1,
+    signal: abortController.signal,
+  })
     .then((html) => {
       if (isUnmounted || renderId !== currentRenderId)
         return
@@ -46,12 +51,11 @@ function renderMath() {
       mathElement.value.innerHTML = html
       hasRenderedOnce = true
     })
-    .catch((err: any) => {
+    .catch(async (err: any) => {
       if (isUnmounted || renderId !== currentRenderId)
         return
       if (!mathElement.value)
         return
-
       // Only attempt synchronous KaTeX fallback when the worker failed to initialize.
       // If the worker returned a render error (syntax), leave the loading state as-is
       // and don't try to synchronously render here to avoid surfacing KaTeX errors.

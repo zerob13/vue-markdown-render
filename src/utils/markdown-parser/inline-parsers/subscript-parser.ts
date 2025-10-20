@@ -31,8 +31,9 @@ export function parseSubscriptToken(
         : [
             {
               type: 'text',
-              content: tokens[startIndex].content || '',
-              raw: tokens[startIndex].content || '',
+              // Fallback to the collected inner text (e.g., "2" in H~2~O)
+              content: subText || tokens[startIndex].content || '',
+              raw: subText || tokens[startIndex].content || '',
             },
           ],
     raw: `~${subText || tokens[startIndex].content || ''}~`,

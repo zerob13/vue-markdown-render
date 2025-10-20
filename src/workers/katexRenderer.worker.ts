@@ -17,7 +17,7 @@ interface MessageOut {
 
 let DEBUG = false
 
-;(globalThis as any).addEventListener('message', (ev: MessageEvent<MessageIn>) => {
+  ; (globalThis as any).addEventListener('message', (ev: MessageEvent<MessageIn>) => {
   const data = ev.data || {}
   if (data.type === 'init') {
     DEBUG = !!data.debug
@@ -25,7 +25,7 @@ let DEBUG = false
       if (DEBUG)
         console.debug('[katexRenderer.worker] debug enabled')
     }
-    catch {}
+    catch { }
     return
   }
 
@@ -34,61 +34,44 @@ let DEBUG = false
   const displayMode = data.displayMode ?? true
 
   try {
-    try {
-      // note: use console for visibility in DevTools when debugging worker
-      if (DEBUG)
-        console.debug('[katexRenderer.worker] render start', { id, displayMode, content })
-    }
-    catch {}
-
-    // renderToString is CPU-bound but doesn't touch the DOM, so it's safe in a worker
+    // note: use console for visibility in DevTools when debugging worker
+    if (DEBUG)
+      console.debug('[katexRenderer.worker] render start', { id, displayMode, content })
+      // renderToString is CPU-bound but doesn't touch the DOM, so it's safe in a worker
     const html = katex.renderToString(content, {
       throwOnError: true,
       displayMode,
       output: 'html',
       strict: 'ignore',
     })
-
     const out: MessageOut & { content: string, displayMode: boolean } = { id, html, content, displayMode }
     try {
       // send back the generated HTML and original input for caching
-
-      ;(globalThis as any).postMessage(out)
-      try {
-        if (DEBUG)
-          console.debug('[katexRenderer.worker] render success', { id })
-      }
-      catch {}
+      ; (globalThis as any).postMessage(out)
+      if (DEBUG)
+        console.debug('[katexRenderer.worker] render success', { id })
     }
     catch (postErr) {
-      try {
-        console.error('[katexRenderer.worker] failed to postMessage result', postErr)
-      }
-      catch {}
+      console.error('[katexRenderer.worker] failed to postMessage result', postErr)
     }
   }
   catch (err: any) {
     const out: MessageOut & { content: string, displayMode: boolean } = { id, error: String(err?.message ?? err), content, displayMode }
     try {
-      ;(globalThis as any).postMessage(out)
+      ; (globalThis as any).postMessage(out)
     }
     catch (postErr) {
-      try {
-        console.error('[katexRenderer.worker] failed to postMessage error', postErr)
-      }
-      catch {}
+      console.error('[katexRenderer.worker] failed to postMessage error', postErr)
     }
   }
 })
 
 // Catch any uncaught errors in the worker and attempt to inform the main thread
-;(globalThis as any).addEventListener('error', (ev: ErrorEvent) => {
+; (globalThis as any).addEventListener('error', (ev: ErrorEvent) => {
+  console.error('[katexRenderer.worker] uncaught error', ev.message, ev.error)
+
   try {
-    console.error('[katexRenderer.worker] uncaught error', ev.message, ev.error)
+    ; (globalThis as any).postMessage({ id: '__worker_uncaught__', error: String(ev.message ?? ev.error), content: '', displayMode: true })
   }
-  catch {}
-  try {
-    ;(globalThis as any).postMessage({ id: '__worker_uncaught__', error: String(ev.message ?? ev.error), content: '', displayMode: true })
-  }
-  catch {}
+  catch { }
 })

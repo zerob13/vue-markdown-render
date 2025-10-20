@@ -36,8 +36,8 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
     const token = tokens[i] as any
     switch (token.type) {
       case 'text': {
-        let content = token.content || ''
-        if (content === '`' || content === '|' || content === '$' || content === '1' || /^\*+$/.test(content)) {
+        let content = token.content.replace(/\\/g, '') || ''
+        if (content === '`' || content === '|' || content === '$' || content === '1' || /^\*+$/.test(content) || /^\d$/.test(content)) {
           i++
           break
         }
@@ -286,8 +286,9 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
           break
         }
         const linkStart = content.indexOf('[')
-        if (token.content.endsWith('undefined') && !raw?.endsWith('undefined')) {
-          token.content = token.content.slice(0, -9)
+
+        if (content.endsWith('undefined') && !raw?.endsWith('undefined')) {
+          content = content.slice(0, -9)
         }
         const textNode = parseTextToken({ ...token, content })
 
