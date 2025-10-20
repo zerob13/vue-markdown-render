@@ -44,7 +44,7 @@ export * from './utils'
 export { setDefaultMathOptions } from './utils/markdown/config'
 export type { MathOptions } from './utils/markdown/config'
 export { KATEX_COMMANDS, normalizeStandaloneBackslashT } from './utils/markdown/plugins/math'
-export *  from './workers/katexWorkerClient'
+export * from './workers/katexWorkerClient'
 export * from './workers/mermaidWorkerClient'
 
 export {

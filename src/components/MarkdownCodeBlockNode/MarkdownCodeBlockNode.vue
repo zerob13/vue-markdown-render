@@ -5,7 +5,7 @@ import { useSafeI18n } from '../../composables/useSafeI18n'
 import { hideTooltip, showTooltipForAnchor } from '../../composables/useSingletonTooltip'
 import { getLanguageIcon, languageMap } from '../../utils'
 import MermaidBlockNode from '../MermaidBlockNode'
-import { disposeHighlighter, registerHighlight } from './highlight'
+import { registerHighlight } from './highlight'
 
 const props = withDefaults(
   defineProps<{
@@ -129,11 +129,11 @@ const highlighter = ref<Highlighter | null>(null)
 const highlightedCode = ref<string>('')
 if (typeof window !== 'undefined') {
   watch(() => props.themes, async (newThemes) => {
-    disposeHighlighter()
+    // Ensure singleton highlighter exists and optionally loads requested themes
     highlighter.value = await registerHighlight({
       themes: newThemes as any,
     })
-    if (!props.loading) {
+    if (!props.loading && highlighter.value) {
       const theme = props.themes && props.themes.length > 0 ? (props.isDark ? props.themes[0] : props.themes[1] || props.themes[0]) : (props.isDark ? props.darkTheme || 'vitesse-dark' : props.lightTheme || 'vitesse-light')
       const lang = props.node.language.split(':')[0] // 支持 language:variant 形式
       highlightedCode.value = await highlighter.value.codeToHtml(props.node.code, { lang, theme })

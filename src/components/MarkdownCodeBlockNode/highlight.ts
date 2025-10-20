@@ -103,6 +103,9 @@ const themesArray = [
   'vitesse-light',
 ]
 let highlighter: Highlighter | null = null
+// Guard against concurrent initializations so multiple code blocks don't spawn
+// multiple highlighters at once. We keep a single promise while creating.
+let highlighterPromise: Promise<Highlighter> | null = null
 /**
  * Register shiki highlighter with specified themes and languages.
  * If no languages are specified, all supported languages will be registered.
@@ -115,8 +118,38 @@ export async function registerHighlight(options: {
   themes?: ThemeInput[] | SpecialTheme[]
   langs?: string[]
 } = {}) {
-  if (highlighter)
+  // If already initialized, optionally try to load any missing themes/langs
+  if (highlighter) {
+    // Best-effort dynamic loading for additional themes/langs when requested after init
+    // Use duck-typing to avoid tight coupling with Shiki API variations.
+    try {
+      if (options.themes && options.themes.length) {
+        for (const t of options.themes) {
+          if (typeof t === 'string' && (highlighter as any)?.getLoadedThemes && !(highlighter as any).getLoadedThemes().includes(t))
+            await (highlighter as any)?.loadTheme?.(t)
+        }
+      }
+      if (options.langs && options.langs.length) {
+        const want = options.langs
+        const loaded: string[] | undefined = (highlighter as any)?.getLoadedLanguages?.()
+        for (const l of want) {
+          if (!loaded || !loaded.includes(l))
+            await (highlighter as any)?.loadLanguage?.(l)
+        }
+      }
+    }
+    catch {
+      // Non-fatal: if dynamic loading API isn't available, ignore.
+      // The initial highlighter was created with a comprehensive default set.
+    }
     return highlighter
+  }
+
+  // If an init is in-flight, await it
+  if (highlighterPromise)
+    return highlighterPromise
+
+  // Start creating a singleton highlighter
   const { createHighlighter } = await import('shiki')
   if (!options.langs || options.langs.length === 0) {
     options.langs = langsArray
@@ -147,8 +180,17 @@ export async function registerHighlight(options: {
     }) as any
   }
 
-  highlighter = await createHighlighter({ themes: options.themes, langs: options.langs })
-  return highlighter
+  highlighterPromise = createHighlighter({ themes: options.themes, langs: options.langs })
+    .then((h) => {
+      highlighter = h
+      return h
+    })
+    .finally(() => {
+      // Clear the promise guard once settled
+      highlighterPromise = null
+    })
+
+  return highlighterPromise
 }
 export function disposeHighlighter() {
   highlighter = null
