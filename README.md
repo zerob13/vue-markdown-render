@@ -638,6 +638,7 @@ The streaming-optimized engine delivers:
 | `content`          | `string`              | ✓        | Markdown string to render                          |
 | `nodes`            | `BaseNode[]`          |          | Parsed markdown AST nodes (alternative to content) |
 | `renderCodeBlocksAsPre` | `boolean` | | When true, render all `code_block` nodes as simple `<pre><code>` blocks (uses `PreCodeNode`) instead of the full `CodeBlockNode`. Useful for lightweight, dependency-free rendering of multi-line text such as AI "thinking" outputs. Defaults to `false`. |
+| `viewportPriority` | `boolean`             |          | When enabled (default), heavy nodes (e.g. Mermaid, Monaco) prioritize rendering for content within or near the viewport, deferring offscreen work to improve responsiveness. Set to `false` to render everything eagerly (useful for print/export or when you need immediate layout for all nodes). Defaults to `true`. |
 
 > Either `content` or `nodes` must be provided.
 
@@ -666,6 +667,31 @@ const markdown = `Here is an AI thinking output:\n\n\`\`\`text\nStep 1...\nStep 
 
 <template>
   <MarkdownRender :content="markdown" :render-code-blocks-as-pre="true" />
+</template>
+```
+
+## New prop: `viewportPriority`
+
+- Type: `boolean`
+- Default: `true`
+
+Description:
+- When enabled (default), the renderer defers expensive work for offscreen nodes and prioritizes rendering for elements in or near the viewport. This reduces time-to-interactive for long documents and streaming content, especially with heavy components like Mermaid and Monaco.
+- Set to `false` to render all nodes eagerly. This can be helpful for print/export, pre-measuring layouts offscreen, or scenarios where you explicitly want all content rendered immediately.
+
+Example:
+```vue
+<script setup lang="ts">
+import MarkdownRender from 'vue-renderer-markdown'
+
+const markdown = `# Long document with many diagrams and code blocks...`
+</script>
+
+<template>
+  <!-- Disable prioritized/lazy rendering when preparing a printable/exportable view -->
+  <MarkdownRender :content="markdown" :viewport-priority="false" />
+  <!-- Note: in templates, use kebab-case: viewport-priority -->
+  <!-- Default behavior (omit the prop) keeps it enabled -->
 </template>
 ```
 

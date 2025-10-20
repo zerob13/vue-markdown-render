@@ -449,6 +449,30 @@ setCustomComponents({
 - 对复杂 Mermaid 图表可提前在服务端校验或预渲染，再将结果作为缓存内容传给组件。
 - Math 渲染错误时，可通过 `setDefaultMathOptions` 调整需要自动补全反斜杠的指令集合。若需在服务端生成或缓存 KaTeX 输出，请确保宿主应用已安装 `katex` 并将其包含在构建中。
 
+## 新增属性：`viewportPriority`
+
+- 类型：`boolean`
+- 默认值：`true`
+
+说明：
+- 开启（默认）时，渲染器会优先渲染视口内或接近视口的节点，将离屏的重型节点（如 Mermaid、Monaco）延后处理，从而提升长文档与流式内容的首屏可交互体验。
+- 关闭（设为 `false`）时，所有节点将尽快“急切”渲染，适合打印/导出、需要一次性完成布局测量的场景，或你明确希望立即呈现全部内容的情况。
+
+示例：
+```vue
+<script setup lang="ts">
+import MarkdownRender from 'vue-renderer-markdown'
+
+const markdown = `# 包含大量图表与代码块的长文档...`
+</script>
+
+<template>
+  <!-- 准备打印或导出时可关闭视口优先 -->
+  <MarkdownRender :content="markdown" :viewport-priority="false" />
+  <!-- 在模板中使用短横线写法：viewport-priority；不传时为默认开启 -->
+</template>
+```
+
 ## 国际化 / 备用翻译
 
 如不想安装或使用 `vue-i18n`，本库内置了一个同步备用翻译器，覆盖常见 UI 文案（复制、预览、图片加载等）。可在应用启动时通过 `setDefaultI18nMap` 替换默认英文翻译：
