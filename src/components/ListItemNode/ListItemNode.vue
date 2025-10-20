@@ -39,4 +39,10 @@ ol > .list-item::marker{
 ul > .list-item::marker{
   color: var(--list-item-marker,#cbd5e1)
 }
+
+/* 大列表滚动到视口时，嵌套 NodeRenderer 需要立即绘制内容，避免空白 */
+.list-item :deep(.markdown-renderer) {
+  content-visibility: visible;
+  contain-intrinsic-size: auto;
+}
 </style>

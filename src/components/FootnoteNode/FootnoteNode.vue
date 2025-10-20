@@ -30,3 +30,12 @@ defineEmits(['copy'])
     </div>
   </div>
 </template>
+
+<style>
+/* 脚注中嵌套 NodeRenderer 关闭 content-visibility 占位，防止空白内容 */
+[class*="footnote-"] :deep(.markdown-renderer),
+.flex-1 :deep(.markdown-renderer) {
+  content-visibility: visible;
+  contain-intrinsic-size: auto;
+}
+</style>

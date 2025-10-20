@@ -184,6 +184,17 @@ const headerId = `admonition-${Math.random().toString(36).slice(2, 9)}`
   color: var(--admonition-warning-color);
 }
 
+/* 修复：当一次性渲染大量内容并滚动到 AdmonitionNode 时，
+   内部 NodeRenderer（.markdown-renderer）使用 content-visibility: auto
+   可能导致占位高度很高但未及时绘制。这里在告示块内部禁用该优化，
+   保证内容按时渲染，避免“空白但很高”的现象。*/
+.admonition-content :deep(.markdown-renderer) {
+  content-visibility: visible;
+  contain-intrinsic-size: auto;
+  /* 维持 layout 隔离通常没问题，如需彻底还原可改为 initial： */
+  /* contain: initial; */
+}
+
 /* 折叠按钮样式 */
 .admonition-toggle {
   margin-left: auto;

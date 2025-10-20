@@ -43,4 +43,10 @@ defineEmits<{
   margin-bottom: 1.6em;
   padding-left: 1em;
 }
+
+/* 防止内部 NodeRenderer 使用 content-visibility: auto 时在大文档滚动中出现“高但空白”的占位 */
+.blockquote :deep(.markdown-renderer) {
+  content-visibility: visible;
+  contain-intrinsic-size: auto;
+}
 </style>

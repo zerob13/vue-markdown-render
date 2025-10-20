@@ -53,4 +53,10 @@ defineEmits(['copy'])
   margin-left: 1rem;
   margin-bottom: 0.5rem;
 }
+
+/* 避免列表中嵌套 NodeRenderer 的 content-visibility 导致空白占位 */
+.definition-list :deep(.markdown-renderer) {
+  content-visibility: visible;
+  contain-intrinsic-size: auto;
+}
 </style>
