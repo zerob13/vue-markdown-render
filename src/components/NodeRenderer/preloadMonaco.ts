@@ -1,20 +1,15 @@
 import { getUseMonaco } from '../CodeBlockNode/monaco'
 
 let isPreload = false
-
+let isPreloading = false
 export function preload() {
-  if (isPreload)
+  if (isPreload || isPreloading)
     return
+  isPreloading = true
   getUseMonaco().then((m) => {
-    if (!m) {
-      // vue-use-monaco is not available, skip preload
-      isPreload = true
-      return
-    }
+    m?.preloadMonacoWorkers()
+  }).finally(() => {
     isPreload = true
-    m.preloadMonacoWorkers()
-  }).catch(() => {
-    // Silently handle any errors during preload
-    isPreload = true
+    isPreloading = false
   })
 }

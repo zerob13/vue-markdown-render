@@ -286,7 +286,7 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
           break
         }
         const linkStart = content.indexOf('[')
-        if (token.content.endsWith('undefined') && !raw.endsWith('undefined')) {
+        if (token.content.endsWith('undefined') && !raw?.endsWith('undefined')) {
           token.content = token.content.slice(0, -9)
         }
         const textNode = parseTextToken({ ...token, content })
