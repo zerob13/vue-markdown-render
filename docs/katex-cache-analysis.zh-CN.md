@@ -193,3 +193,37 @@ requestIdleCallback(() => {
 - ✅ 代码维护性好
 
 **不要删除 Cache！它是整个架构的核心价值所在。** 🎯
+
+## 组件级回退策略与差异（Inline vs Block）
+
+为保证在高并发/高压力场景下不出现“无限 Loading”，组件层实现了差异化回退策略：
+
+- MathBlock（块级公式）
+  - 优先使用 Worker 渲染。
+  - Worker 初始化失败（code: WORKER_INIT_ERROR）时，回退到主线程同步渲染（katex.renderToString，displayMode: true）。
+  - 同步渲染成功后，会通过 setKaTeXCache 预热 Worker 客户端缓存（key 区分 displayMode），以便后续同一公式命中缓存、避免重复成本。
+
+- MathInline（行内公式）
+  - 优先使用 Worker 渲染，带回压重试。
+  - 发生以下错误时会尝试主线程同步渲染（displayMode: false），避免长时间处于 Loading：
+    - WORKER_INIT_ERROR（Worker 初始化失败）
+    - WORKER_BUSY（达到并发上限，忙）
+    - WORKER_TIMEOUT（单次 Worker 渲染超时）
+  - 如果同步渲染不可用或失败，将停止 Loading 并回退展示原始文本（raw），确保用户不看到“永久转圈”。
+  - 默认不调用 setKaTeXCache 进行缓存预热（与块级不同）；这样做是出于实现简洁和收益权衡。若需要最大化命中率，可在同步回退成功后调用缓存预热（可选）。
+
+### 设计权衡
+
+- 行内公式通常更轻量、数量更多且重复度不稳定，主线程同步一次的代价较小，因此在 Worker 繁忙/超时时进行同步回退能显著改善体验。
+- 块级公式复杂度和复用度通常更高，缓存预热能带来更明显的收益，所以默认启用。
+
+### 相关错误码
+
+- WORKER_INIT_ERROR：未注入/未能初始化 Worker；需要回退到主线程。
+- WORKER_BUSY（常量：WORKER_BUSY_CODE）：达到并发上限；可等待或回退。
+- WORKER_TIMEOUT（name/code："WorkerTimeout"/"WORKER_TIMEOUT"）：单次渲染超时；可回退。
+
+### 可选增强（按需开启）
+
+- 如需让行内公式也享受回退后的缓存命中，可在同步渲染成功后调用 setKaTeXCache(content, false, html)。
+- 若极端场景中担心主线程压力，可仅对超时（WORKER_TIMEOUT）而不是忙（WORKER_BUSY）启用同步回退，或增加等待窗口后再回退。

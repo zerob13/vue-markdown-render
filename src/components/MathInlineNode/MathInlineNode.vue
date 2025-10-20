@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { renderKaTeXWithBackpressure } from '../../workers/katexWorkerClient'
+import { renderKaTeXWithBackpressure, WORKER_BUSY_CODE } from '../../workers/katexWorkerClient'
 import { getKatex } from './katex'
 
 const props = defineProps<{
@@ -56,10 +56,14 @@ function renderMath() {
         return
       if (!mathElement.value)
         return
-      // Only attempt synchronous KaTeX fallback when the worker failed to initialize.
-      // If the worker returned a render error (syntax), leave the loading state as-is
-      // and don't try to synchronously render here to avoid surfacing KaTeX errors.
-      if (katex && (err?.code === 'WORKER_INIT_ERROR' || err?.fallbackToRenderer)) {
+      // Fallback cases:
+      // 1) Worker failed to initialize -> try sync render
+      // 2) Worker is busy/timeout under heavy concurrency -> try sync render to avoid perpetual loading
+      //    (inline math is usually cheap to render on main thread)
+      const code = err?.code || err?.name
+      const isWorkerInitFailure = code === 'WORKER_INIT_ERROR' || err?.fallbackToRenderer
+      const isBusyOrTimeout = code === WORKER_BUSY_CODE || code === 'WORKER_TIMEOUT'
+      if (katex && (isWorkerInitFailure || isBusyOrTimeout)) {
         try {
           const html = katex.renderToString(props.node.content, { throwOnError: true, displayMode: false })
           renderingLoading.value = false
@@ -71,10 +75,12 @@ function renderMath() {
           // fall through to existing loading/raw behaviour
         }
       }
-
+      // If we reach here, the worker render failed and sync fallback was not possible.
+      // Stop the spinner and show raw text when we have not rendered once yet
+      // or the node isn't in loading mode.
       if (!hasRenderedOnce || !props.node.loading) {
-        renderingLoading.value = true
-        // mathElement.value.textContent = props.node.raw
+        renderingLoading.value = false
+        mathElement.value.textContent = props.node.raw
       }
     })
 }
