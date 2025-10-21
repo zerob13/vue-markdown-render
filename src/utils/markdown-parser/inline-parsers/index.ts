@@ -3,6 +3,7 @@ import { parseCheckboxInputToken, parseCheckboxToken } from './checkbox-parser'
 import { parseEmojiToken } from './emoji-parser'
 import { parseEmphasisToken } from './emphasis-parser'
 import { parseFenceToken } from './fence-parser'
+import { fixLinkToken } from './fixLinkToken'
 import { fixListItem } from './fixListItem'
 import { fixStrongTokens } from './fixStrongTokens'
 import { parseFootnoteRefToken } from './footnote-ref-parser'
@@ -31,6 +32,7 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
   let i = 0
   tokens = fixStrongTokens(tokens)
   tokens = fixListItem(tokens)
+  tokens = fixLinkToken(tokens)
 
   while (i < tokens.length) {
     const token = tokens[i] as any
@@ -47,6 +49,10 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
         if (raw?.startsWith('[') && pPreToken?.type === 'list_item_open') {
           const _content = content.slice(1)
           const w = _content.match(/[^\s\]]/)
+          if (w === null) {
+            i++
+            break
+          }
           // 如果 里面不是 w, 应该不处理
           if ((w && /x/i.test(w[0])) || !w) {
             // 转换成 checkbox_input
@@ -301,10 +307,18 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
               content: textNodeContent,
               raw: textNodeContent,
             })
+            const text = content.slice(linkStart + 1, linkEnd)
             result.push({
               type: 'link',
               href: '',
-              text: content.slice(linkStart + 1, linkEnd),
+              text,
+              children: [
+                {
+                  type: 'text',
+                  content: text,
+                  raw: text,
+                },
+              ],
               loading: true,
             } as any)
             i++
@@ -352,18 +366,21 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
           const loadingMath = new RegExp(`\\(\\s*${href}\\s*\\)`)
           const pre: any = result.length > 0 ? result[result.length - 1] : null
           const loading = !loadingMath.test(raw)
-          if (loading) {
-            const text = pre?.text || (pre as any)?.content?.slice(1, -1) || ''
-            result.splice(result.length - 1, 1, {
-              type: 'link',
-              href: '',
-              text,
-              loading,
-            } as any) // remove the pre node
-            i += 3
-            if (tokens[i]?.content === '.')
-              i++
-            break
+          if (loading && pre) {
+            const isLinkMatch = new RegExp(`\\[${pre.text}\\s*\\]\\(`)
+            if (isLinkMatch.test(raw)) {
+              const text = pre?.text || (pre as any)?.content?.slice(1, -1) || ''
+              result.splice(result.length - 1, 1, {
+                type: 'link',
+                href: '',
+                text,
+                loading,
+              } as any) // remove the pre node
+              i += 3
+              if (tokens[i]?.content === '.')
+                i++
+              break
+            }
           }
         }
         const { node, nextIndex } = parseLinkToken(tokens, i)

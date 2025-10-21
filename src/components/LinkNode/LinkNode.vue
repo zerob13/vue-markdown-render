@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import { computed, useAttrs } from 'vue'
+import EmphasisNode from '../EmphasisNode/EmphasisNode.vue'
+import StrikethroughNode from '../StrikethroughNode'
+import StrongNode from '../StrongNode'
+import TextNode from '../TextNode'
 
 // 定义链接节点
 interface LinkNode {
@@ -15,6 +19,8 @@ interface LinkNode {
 // 接收props — 把动画/颜色相关配置暴露为props，并通过CSS变量注入样式
 const props = defineProps<{
   node: LinkNode
+  indexKey: number | string
+  customId?: string
   /** link text / underline color (CSS color string) */
   color?: string
   /** underline height in px */
@@ -47,6 +53,14 @@ const cssVars = computed(() => {
   } as Record<string, string>
 })
 
+// Available node components for child rendering
+const nodeComponents = {
+  text: TextNode,
+  strong: StrongNode,
+  strikethrough: StrikethroughNode,
+  emphasis: EmphasisNode,
+}
+
 // forward any non-prop attributes (e.g. custom-id) to the rendered element
 const attrs = useAttrs()
 </script>
@@ -63,11 +77,20 @@ const attrs = useAttrs()
     v-bind="attrs"
     :style="cssVars"
   >
-    {{ node.text }}
+    <component
+      :is="nodeComponents[child.type]"
+      v-for="(child, index) in node.children"
+      :key="`${indexKey || 'emphasis'}-${index}`"
+      :node="child"
+      :custom-id="props.customId"
+      :index-key="`${indexKey || 'link-text'}-${index}`"
+    />
   </a>
   <span v-else class="link-loading inline-flex items-baseline gap-1.5" :aria-hidden="!node.loading ? 'true' : 'false'" v-bind="attrs" :style="cssVars">
     <span class="link-text-wrapper relative inline-flex">
-      <span class="leading-[normal] link-text">{{ node.text }}</span>
+      <span class="leading-[normal] link-text">
+        <span class="leading-[normal] link-text">{{ node.text }}</span>
+      </span>
       <span class="underline-anim" aria-hidden="true" />
     </span>
   </span>
