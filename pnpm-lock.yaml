@@ -11,6 +11,9 @@ importers:
       '@floating-ui/dom':
         specifier: ^1.7.4
         version: 1.7.4
+      '@vue-markdown-renderer/parser':
+        specifier: workspace:*
+        version: link:packages/parser
       katex:
         specifier: '>=0.16.22'
         version: 0.16.25

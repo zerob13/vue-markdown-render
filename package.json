@@ -96,6 +96,7 @@
   },
   "dependencies": {
     "@floating-ui/dom": "^1.7.4",
+    "@vue-markdown-renderer/parser": "workspace:*",
     "markdown-it": "^14.1.0",
     "markdown-it-container": "^4.0.0",
     "markdown-it-emoji": "^3.0.0",

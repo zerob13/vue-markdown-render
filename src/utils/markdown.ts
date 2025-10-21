@@ -12,8 +12,8 @@ import {
   parseInlineTokens,
   parseMarkdownToStructure,
   processTokens,
-} from './markdown-parser'
-import { getMarkdown as factory } from './markdown/getMarkdown'
+  getMarkdown as factory,
+} from '@vue-markdown-renderer/parser'
 
 // Re-export the node types for backward compatibility
 export * from '../types'
