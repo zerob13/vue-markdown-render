@@ -5,31 +5,31 @@ function createStart() {
     {
       type: 'table_open',
       tag: 'table',
-      attrs: null,
-      map: null,
-      children: null,
+      attrs: undefined,
+      map: undefined,
+      children: undefined,
       content: '',
       markup: '',
       info: '',
       level: 0,
       loading: true,
-      meta: null,
+      meta: undefined,
     },
     {
       type: 'thead_open',
       tag: 'thead',
-      attrs: null,
+      attrs: undefined,
       block: true,
       level: 1,
-      children: null,
+      children: undefined,
     },
     {
       type: 'tr_open',
       tag: 'tr',
-      attrs: null,
+      attrs: undefined,
       block: true,
       level: 2,
-      children: null,
+      children: undefined,
     },
 
   ]
@@ -39,30 +39,30 @@ function createEnd() {
     {
       type: 'tr_close',
       tag: 'tr',
-      attrs: null,
+      attrs: undefined,
       block: true,
       level: 2,
-      children: null,
+      children: undefined,
     },
     {
       type: 'thead_close',
       tag: 'thead',
-      attrs: null,
+      attrs: undefined,
       block: true,
       level: 1,
-      children: null,
+      children: undefined,
     },
     {
       type: 'table_close',
       tag: 'table',
-      attrs: null,
-      map: null,
-      children: null,
+      attrs: undefined,
+      map: undefined,
+      children: undefined,
       content: '',
       markup: '',
       info: '',
       level: 0,
-      meta: null,
+      meta: undefined,
     },
   ]
 }
@@ -70,10 +70,10 @@ function createTh(text: string) {
   return [{
     type: 'th_open',
     tag: 'th',
-    attrs: null,
+    attrs: undefined,
     block: true,
     level: 3,
-    children: null,
+    children: undefined,
   }, {
     type: 'inline',
     tag: '',
@@ -83,20 +83,20 @@ function createTh(text: string) {
         type: 'text',
         block: false,
         content: text,
-        children: null,
+        children: undefined,
       },
     ],
     content: text,
     level: 4,
-    attrs: null,
+    attrs: undefined,
     block: true,
   }, {
     type: 'th_close',
     tag: 'th',
-    attrs: null,
+    attrs: undefined,
     block: true,
     level: 3,
-    children: null,
+    children: undefined,
   }]
 }
 export function fixTableTokens(tokens: MarkdownToken[]): MarkdownToken[] {
@@ -107,9 +107,12 @@ export function fixTableTokens(tokens: MarkdownToken[]): MarkdownToken[] {
   const token = tokens[i]
 
   if (token.type === 'inline') {
-    if (/^\|(?:[^|\n]+\|?)+/.test(token.content)) {
+    const content = typeof token.content === 'string' ? token.content : ''
+    const child0 = token.children && token.children[0]
+    if (/^\|(?:[^|\n]+\|?)+/.test(content)) {
       // 解析 table
-      const body = token.children[0].content.slice(1).split('|').map(i => i.trim()).filter(Boolean).flatMap(i => createTh(i))
+      const rowSource = child0 && typeof child0.content === 'string' ? child0.content.slice(1) : ''
+      const body = rowSource.split('|').map(i => i.trim()).filter(Boolean).flatMap(i => createTh(i))
       const insert = [
         ...createStart(),
         ...body,
@@ -117,9 +120,10 @@ export function fixTableTokens(tokens: MarkdownToken[]): MarkdownToken[] {
       ]
       fixedTokens.splice(i - 1, 3, ...insert)
     }
-    else if (/^\|(?:[^|\n]+\|)+\n\|:?-/.test(token.content)) {
+    else if (/^\|(?:[^|\n]+\|)+\n\|:?-/.test(content)) {
       // 解析 table
-      const body = token.children[0].content.slice(1, -1).split('|').map(i => i.trim()).flatMap(i => createTh(i))
+      const rowSource = child0 && typeof child0.content === 'string' ? child0.content.slice(1, -1) : ''
+      const body = rowSource.split('|').map(i => i.trim()).flatMap(i => createTh(i))
       const insert = [
         ...createStart(),
         ...body,
@@ -127,9 +131,11 @@ export function fixTableTokens(tokens: MarkdownToken[]): MarkdownToken[] {
       ]
       fixedTokens.splice(i - 1, 3, ...insert)
     }
-    else if (/^\|(?:[^|\n:]+\|)+\n\|:?$/.test(token.content)) {
-      token.content = token.content.slice(0, -2)
-      token.children.splice(2, 1)
+    else if (/^\|(?:[^|\n:]+\|)+\n\|:?$/.test(content)) {
+      if (typeof token.content === 'string')
+        token.content = token.content.slice(0, -2)
+      if (token.children)
+        token.children.splice(2, 1)
     }
   }
 

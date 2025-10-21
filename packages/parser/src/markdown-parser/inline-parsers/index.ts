@@ -111,9 +111,8 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
             {
               type: 's_open',
               tag: 's',
-              attrs: null,
-              map: null,
-              children: null,
+              attrs: [],
+              map: undefined,
               content: '',
               markup: '*',
               info: '',
@@ -122,9 +121,8 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
             {
               type: 'text',
               tag: '',
-              attrs: null,
-              map: null,
-              children: null,
+              attrs: [],
+              map: undefined,
               content: strikethroughContent.replace(/~/g, ''),
               markup: '',
               info: '',
@@ -133,9 +131,8 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
             {
               type: 's_close',
               tag: 's',
-              attrs: null,
-              map: null,
-              children: null,
+              attrs: [],
+              map: undefined,
               content: '',
               markup: '*',
               info: '',
@@ -174,9 +171,6 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
             {
               type: 'strong_open',
               tag: 'strong',
-              attrs: null,
-              map: null,
-              children: null,
               content: '',
               markup: '*',
               info: '',
@@ -185,9 +179,6 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
             {
               type: 'text',
               tag: '',
-              attrs: null,
-              map: null,
-              children: null,
               content: strongContent.replace(/\*/g, ''),
               markup: '',
               info: '',
@@ -196,9 +187,6 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
             {
               type: 'strong_close',
               tag: 'strong',
-              attrs: null,
-              map: null,
-              children: null,
               content: '',
               markup: '*',
               info: '',
@@ -237,9 +225,6 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
             {
               type: 'em_open',
               tag: 'em',
-              attrs: null,
-              map: null,
-              children: null,
               content: '',
               markup: '*',
               info: '',
@@ -248,9 +233,6 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
             {
               type: 'text',
               tag: '',
-              attrs: null,
-              map: null,
-              children: null,
               content: emphasisContent.replace(/\*/g, ''),
               markup: '',
               info: '',
@@ -259,9 +241,6 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
             {
               type: 'em_close',
               tag: 'em',
-              attrs: null,
-              map: null,
-              children: null,
               content: '',
               markup: '*',
               info: '',
@@ -489,7 +468,7 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
         currentTextNode = null // Reset current text node
 
         const preToken = tokens[i - 1]
-        if (preToken?.type === 'text' && /\|:-+/.test(preToken.content)) {
+        if (preToken?.type === 'text' && /\|:-+/.test(preToken.content || '')) {
           // 处理表格中的 emoji，跳过
           result.push({
             type: 'text',

@@ -24,9 +24,11 @@ export default defineConfig({
   },
   plugins: [
     dts({
-      outDir: 'dist/types',
+      // Emit bundled declaration file directly into `dist` to avoid a nested `types/` folder
+      outDir: 'dist',
       tsconfigPath: './tsconfig.json',
-      rollupTypes: false,
+      // Let the plugin rollup the type declarations so we don't need a separate rollup step
+      rollupTypes: true,
     }),
   ],
 })

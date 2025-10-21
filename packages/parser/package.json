@@ -1,10 +1,28 @@
 {
-  "name": "@vue-markdown-renderer/parser",
+  "name": "stream-markdown-parser",
   "type": "module",
   "version": "0.0.1",
   "description": "Framework-agnostic markdown parser - can be used with Vue, React, or any other framework",
   "author": "Simon He",
   "license": "MIT",
+  "homepage": "https://github.com/Simon-He95/vue-markdown-render#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Simon-He95/vue-markdown-render.git",
+    "directory": "packages/parser"
+  },
+  "bugs": {
+    "url": "https://github.com/Simon-He95/vue-markdown-render/issues"
+  },
+  "keywords": [
+    "markdown",
+    "parser",
+    "stream",
+    "markdown-it",
+    "vue",
+    "react"
+  ],
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -18,17 +36,30 @@
   "files": [
     "dist"
   ],
+  "engines": {
+    "node": ">=16"
+  },
   "scripts": {
-    "build": "vite build --mode npm && pnpm run build:dts",
-    "build:dts": "rollup -c ./rollup.dts.config.mjs",
+    "build": "vite build",
     "typecheck": "tsc --noEmit"
   },
-  "dependencies": {
+  "peerDependencies": {
     "markdown-it": "^14.1.0",
     "markdown-it-container": "^4.0.0"
   },
+  "peerDependenciesMeta": {
+    "markdown-it": {
+      "optional": false
+    },
+    "markdown-it-container": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@types/markdown-it": "^14.1.2",
+    "@types/markdown-it-container": "^2.0.10",
+    "markdown-it": "^14.1.0",
+    "markdown-it-container": "^4.0.0",
     "rollup": "^3.29.5",
     "rollup-plugin-dts": "^5.3.1",
     "typescript": "^5.9.3",

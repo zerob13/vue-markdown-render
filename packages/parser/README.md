@@ -1,208 +1,95 @@
-# @vue-markdown-renderer/parser
 
-Framework-agnostic markdown parser that can be used with Vue, React, or any other framework.
+# stream-markdown-parser
 
-## Features
+Lightweight, framework-agnostic Markdown parser implemented in TypeScript. It focuses on producing a typed, structured representation of Markdown content so you can render it in Vue, React, or any other environment.
 
-- 🎯 **Framework Agnostic** - Pure TypeScript implementation, no framework dependencies
-- 🚀 **High Performance** - Optimized parsing for large documents
-- 📦 **Tree-shakeable** - Only bundle what you use
-- 🔧 **Extensible** - Built on markdown-it with plugin support
-- 💪 **TypeScript First** - Full type definitions included
+[![NPM version](https://img.shields.io/npm/v/stream-markdown-parser?color=a1b858&label=)](https://www.npmjs.com/package/stream-markdown-parser)
+[![中文版](https://img.shields.io/badge/docs-中文文档-blue)](README.zh-CN.md)
+[![NPM downloads](https://img.shields.io/npm/dm/stream-markdown-parser)](https://www.npmjs.com/package/stream-markdown-parser)
+[![Bundle size](https://img.shields.io/bundlephobia/minzip/stream-markdown-parser)](https://bundlephobia.com/package/stream-markdown-parser)
+[![License](https://img.shields.io/npm/l/stream-markdown-parser)](./LICENSE)
 
-## Installation
+## Highlights
+
+- Framework-agnostic: pure TypeScript, no runtime framework dependency
+- Typed output: full TypeScript definitions for the produced node tree
+- Extensible: built on top of markdown-it and supports plugins (math, containers, etc.)
+- Optimized for streaming / large documents
+
+## Install
 
 ```bash
-npm install @vue-markdown-renderer/parser
+npm install stream-markdown-parser
 # or
-pnpm add @vue-markdown-renderer/parser
-# or
-yarn add @vue-markdown-renderer/parser
+pnpm add stream-markdown-parser
 ```
 
-## Usage
+## Quickstart
 
-### Basic Parsing
+```ts
+import { getMarkdown, parseMarkdownToStructure } from 'stream-markdown-parser'
 
-```typescript
-import { getMarkdown, parseMarkdownToStructure } from '@vue-markdown-renderer/parser'
-
-// Create markdown-it instance
 const md = getMarkdown()
-
-// Parse markdown to structured nodes
 const nodes = parseMarkdownToStructure('# Hello World', md)
-
 console.log(nodes)
-// [
-//   {
-//     type: 'heading',
-//     level: 1,
-//     text: 'Hello World',
-//     children: [...]
-//   }
-// ]
 ```
 
-### With Math Support
+## Examples
 
-```typescript
-import { getMarkdown, parseMarkdownToStructure } from '@vue-markdown-renderer/parser'
+Basic parsing, math and custom container usage:
 
-const md = getMarkdown({
-  enableMath: true,
-  mathOptions: {
-    commands: ['text', 'frac', 'left', 'right']
-  }
-})
+```ts
+// basic
+const md = getMarkdown()
+parseMarkdownToStructure('# Title', md)
 
-const markdown = `
-## Math Example
+// enable math
+const mdWithMath = getMarkdown({ enableMath: true })
+parseMarkdownToStructure('Inline $x^2$ and block math:\n$$x^2$$', mdWithMath)
 
-Inline math: $E = mc^2$
-
-Block math:
-$$
-\\frac{a}{b}
-$$
-`
-
-const nodes = parseMarkdownToStructure(markdown, md)
+// enable custom containers
+const mdWithContainers = getMarkdown({ enableContainers: true })
+parseMarkdownToStructure('::: tip\nHi\n:::', mdWithContainers)
 ```
 
-### With Custom Containers
+You can also process tokens directly:
 
-```typescript
-import { getMarkdown, parseMarkdownToStructure } from '@vue-markdown-renderer/parser'
-
-const md = getMarkdown({
-  enableContainers: true
-})
-
-const markdown = `
-::: tip
-This is a tip
-:::
-
-::: warning
-This is a warning
-:::
-`
-
-const nodes = parseMarkdownToStructure(markdown, md)
-```
-
-### Process Tokens Directly
-
-```typescript
-import { processTokens } from '@vue-markdown-renderer/parser'
+```ts
+import { processTokens } from 'stream-markdown-parser'
 import MarkdownIt from 'markdown-it'
 
 const md = new MarkdownIt()
 const tokens = md.parse('# Hello', {})
-
-// Process tokens into structured nodes
 const nodes = processTokens(tokens)
 ```
 
-## API
+## API (overview)
 
-### `getMarkdown(options?)`
+- getMarkdown(options?): returns a configured markdown-it instance
+- parseMarkdownToStructure(markdown, md, options?): parse a markdown string into typed nodes
+- processTokens(tokens): convert markdown-it tokens into typed nodes
+- parseInlineTokens(tokens): parse inline tokens
 
-Creates a configured markdown-it instance.
+See `src/types/index.ts` for the full `ParsedNode` definitions.
 
-**Options:**
-- `markdownItOptions` - Options to pass to markdown-it constructor
-- `enableMath` - Enable math support (default: true)
-- `enableContainers` - Enable container support (default: true)
-- `mathOptions` - Math-specific options
+## Integration
 
-### `parseMarkdownToStructure(markdown, md, options?)`
+- React / Vue / Vanilla: parse to nodes, then render with your components
 
-Parses markdown string into structured nodes.
+## Build & Dev
 
-**Parameters:**
-- `markdown` - The markdown string to parse
-- `md` - markdown-it instance
-- `options` - Parse options
+This package is built using Vite and `vite-plugin-dts` for types generation. In this monorepo the package is under `packages/parser`.
 
-**Returns:** Array of `ParsedNode` objects
+Build locally:
 
-### `processTokens(tokens)`
-
-Processes markdown-it tokens into structured nodes.
-
-**Parameters:**
-- `tokens` - Array of markdown-it tokens
-
-**Returns:** Array of `ParsedNode` objects
-
-### `parseInlineTokens(tokens)`
-
-Parses inline tokens into structured nodes.
-
-## Node Types
-
-The parser produces typed nodes for all markdown elements:
-
-- `HeadingNode`
-- `ParagraphNode`
-- `TextNode`
-- `CodeBlockNode`
-- `InlineCodeNode`
-- `ListNode` / `ListItemNode`
-- `TableNode` / `TableRowNode` / `TableCellNode`
-- `LinkNode`
-- `ImageNode`
-- `BlockquoteNode`
-- `MathInlineNode` / `MathBlockNode`
-- And many more...
-
-See the [type definitions](./src/types/index.ts) for complete details.
-
-## Use with Different Frameworks
-
-### With React
-
-```typescript
-import { getMarkdown, parseMarkdownToStructure } from '@vue-markdown-renderer/parser'
-
-function MarkdownRenderer({ content }) {
-  const md = getMarkdown()
-  const nodes = parseMarkdownToStructure(content, md)
-
-  // Render nodes with your React components
-  return <div>{nodes.map(node => renderNode(node))}</div>
-}
+```bash
+pnpm --filter ./packages/parser build
 ```
 
-### With Vue
+Typecheck:
 
-```typescript
-import { getMarkdown, parseMarkdownToStructure } from '@vue-markdown-renderer/parser'
-
-export default {
-  setup(props) {
-    const md = getMarkdown()
-    const nodes = computed(() => parseMarkdownToStructure(props.content, md))
-
-    return { nodes }
-  }
-}
-```
-
-### With Vanilla JS
-
-```typescript
-import { getMarkdown, parseMarkdownToStructure } from '@vue-markdown-renderer/parser'
-
-const md = getMarkdown()
-const nodes = parseMarkdownToStructure('# Hello', md)
-
-// Convert to HTML or render with your own logic
-nodes.forEach((node) => {
-  // Your rendering logic
-})
+```bash
+pnpm --filter ./packages/parser -w -C . typecheck
 ```
 
 ## License

@@ -92,14 +92,14 @@ This repository is now organized as a monorepo with the following packages:
 
 The Vue 3 markdown renderer with all components and features. This is what you install when you want to use markdown rendering in your Vue application.
 
-### `@vue-markdown-renderer/parser` (Framework-Agnostic Parser)
+### `stream-markdown-parser` (Framework-Agnostic Parser)
 
 A standalone, framework-agnostic markdown parser that can be used with **any JavaScript framework** (Vue, React, Svelte, Angular, etc.) or vanilla JavaScript.
 
 ```bash
-pnpm add @vue-markdown-renderer/parser
+pnpm add stream-markdown-parser
 # or
-npm install @vue-markdown-renderer/parser
+npm install stream-markdown-parser
 ```
 
 **Features:**
@@ -111,7 +111,7 @@ npm install @vue-markdown-renderer/parser
 **Example with React:**
 
 ```typescript
-import { getMarkdown, parseMarkdownToStructure } from '@vue-markdown-renderer/parser'
+import { getMarkdown, parseMarkdownToStructure } from 'stream-markdown-parser'
 
 function MarkdownRenderer({ content }) {
   const md = getMarkdown()
@@ -124,7 +124,7 @@ function MarkdownRenderer({ content }) {
 **Example with Vanilla JS:**
 
 ```typescript
-import { getMarkdown, parseMarkdownToStructure } from '@vue-markdown-renderer/parser'
+import { getMarkdown, parseMarkdownToStructure } from 'stream-markdown-parser'
 
 const md = getMarkdown()
 const nodes = parseMarkdownToStructure('# Hello World', md)

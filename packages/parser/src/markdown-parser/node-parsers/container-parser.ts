@@ -54,14 +54,26 @@ export function parseContainer(
     if (tokens[j].type === 'paragraph_open') {
       const contentToken = tokens[j + 1]
       if (contentToken) {
-        const i = contentToken.children.findLastIndex(t => t.type === 'text' && /:+/.test(t.content))
-        const _children = i !== -1
+        // findLastIndex polyfill for older target libs
+        let i = -1
+        if (contentToken.children) {
+          for (let idx = contentToken.children.length - 1; idx >= 0; idx--) {
+            const t = contentToken.children[idx]
+            if (t && t.type === 'text' && /:+/.test(t.content || '')) {
+              i = idx
+              break
+            }
+          }
+        }
+        const _children = i !== -1 && contentToken.children
           ? contentToken.children.slice(0, i)
           : contentToken.children
         children.push({
           type: 'paragraph',
           children: parseInlineTokens(_children || []),
-          raw: contentToken.content.replace(/\n:+$/, '').replace(/\n\s*:::\s*$/, '') || '',
+          raw: (contentToken && typeof contentToken.content === 'string')
+            ? contentToken.content.replace(/\n:+$/, '').replace(/\n\s*:::\s*$/, '')
+            : '',
         })
       }
       j += 3

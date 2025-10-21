@@ -1,2 +1,2 @@
 export * from './languageIcon'
-export * from './markdown'
+export * from 'stream-markdown-parser'

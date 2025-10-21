@@ -11,9 +11,6 @@ importers:
       '@floating-ui/dom':
         specifier: ^1.7.4
         version: 1.7.4
-      '@vue-markdown-renderer/parser':
-        specifier: workspace:*
-        version: link:packages/parser
       katex:
         specifier: '>=0.16.22'
         version: 0.16.25
@@ -50,6 +47,9 @@ importers:
       shiki:
         specifier: ^3.13.0
         version: 3.13.0
+      stream-markdown-parser:
+        specifier: workspace:*
+        version: link:packages/parser
       stream-monaco:
         specifier: '>=0.0.2'
         version: 0.0.2(monaco-editor@0.52.2)
@@ -137,17 +137,19 @@ importers:
         version: 2.2.12(typescript@5.9.3)
 
   packages/parser:
-    dependencies:
+    devDependencies:
+      '@types/markdown-it':
+        specifier: ^14.1.2
+        version: 14.1.2
+      '@types/markdown-it-container':
+        specifier: ^2.0.10
+        version: 2.0.10
       markdown-it:
         specifier: ^14.1.0
         version: 14.1.0
       markdown-it-container:
         specifier: ^4.0.0
         version: 4.0.0
-    devDependencies:
-      '@types/markdown-it':
-        specifier: ^14.1.2
-        version: 14.1.2
       rollup:
         specifier: ^3.29.5
         version: 3.29.5
@@ -198,7 +200,7 @@ importers:
         version: 11.1.12(vue@3.5.22(typescript@5.9.3))
       vue-renderer-markdown:
         specifier: latest
-        version: 0.0.57(katex@0.16.25)(mermaid@11.12.0)(shiki@3.13.0)(vue-i18n@11.1.12(vue@3.5.22(typescript@5.9.3)))(vue-use-monaco@0.0.33(monaco-editor@0.52.2)(vue@3.5.22(typescript@5.9.3)))(vue@3.5.22(typescript@5.9.3))
+        version: 0.0.58-beta.7(katex@0.16.25)(mermaid@11.12.0)(shiki@3.13.0)(stream-monaco@0.0.2(monaco-editor@0.52.2))(vue-i18n@11.1.12(vue@3.5.22(typescript@5.9.3)))(vue@3.5.22(typescript@5.9.3))
       vue-router:
         specifier: ^4.6.3
         version: 4.6.3(vue@3.5.22(typescript@5.9.3))
@@ -1033,6 +1035,9 @@ packages:
 
   '@types/linkify-it@5.0.0':
     resolution: {integrity: sha512-sVDA58zAw4eWAffKOaQH5/5j3XeayukzDk+ewSsnv3p4yJEZHCCzMDiZM8e0OUrRvmpGZ85jf4yDHkHsgBNr9Q==}
+
+  '@types/markdown-it-container@2.0.10':
+    resolution: {integrity: sha512-zv+YxrlSYRq51e9kzm3orv4OvF4U79Ll1OyplNXr00o4ZC/8PukJk/jEWH7CnsMtrSWZlyv0czhz42jm9J4uLw==}
 
   '@types/markdown-it@14.1.2':
     resolution: {integrity: sha512-promo4eFwuiW+TfGxhi+0x3czqTYJkG8qB17ZUJiVF10Xm7NLVRSLUsfRTU/6h1e24VvRnXCx+hG7li58lkzog==}
@@ -3855,23 +3860,23 @@ packages:
     peerDependencies:
       vue: ^3.0.0
 
-  vue-renderer-markdown@0.0.57:
-    resolution: {integrity: sha512-xGlmSYYPnpwU6FsprsMbGa/MdFGq8DJi3uDNHjj9Or8KzqoW25dzI/Us/p1Xm3m0GiRPCg5+p0GoKrZ5MhKW9g==}
+  vue-renderer-markdown@0.0.58-beta.7:
+    resolution: {integrity: sha512-8hzhlTyHcXVmx6B3gXO/vE5x/9ueUIBahCQ1hn0PYVgik88VyrS+Y2c0oC+n0esIdrKANRRFYk/zmueItmrAiA==}
     peerDependencies:
       katex: '>=0.16.22'
       mermaid: '>=11'
       shiki: ^3.13.0
+      stream-monaco: '>=0.0.2'
       vue: '>=3.0.0'
       vue-i18n: '>=9'
-      vue-use-monaco: '>=0.0.33'
     peerDependenciesMeta:
       mermaid:
         optional: true
       shiki:
         optional: true
-      vue-i18n:
+      stream-monaco:
         optional: true
-      vue-use-monaco:
+      vue-i18n:
         optional: true
 
   vue-router@4.6.3:
@@ -3884,13 +3889,6 @@ packages:
     hasBin: true
     peerDependencies:
       typescript: '>=5.0.0'
-
-  vue-use-monaco@0.0.33:
-    resolution: {integrity: sha512-YVZF2+c2aZEzBzxzGmnt7L5Ap35AP+t9qPG/SSLnVhCPw2U/gxkE76Lajwz8BUWMGPCv5ULj3Z1KuL2N6cSeKg==}
-    hasBin: true
-    peerDependencies:
-      monaco-editor: ^0.52.2
-      vue: '>=3.0.0'
 
   vue@3.5.22:
     resolution: {integrity: sha512-toaZjQ3a/G/mYaLSbV+QsQhIdMo9x5rrqIpYRObsJ6T/J+RyCSFwN2LHNVH9v8uIcljDNa3QzPVdv3Y6b9hAJQ==}
@@ -4844,6 +4842,10 @@ snapshots:
   '@types/json-schema@7.0.15': {}
 
   '@types/linkify-it@5.0.0': {}
+
+  '@types/markdown-it-container@2.0.10':
+    dependencies:
+      '@types/markdown-it': 14.1.2
 
   '@types/markdown-it@14.1.2':
     dependencies:
@@ -8096,7 +8098,7 @@ snapshots:
       '@vue/devtools-api': 6.6.4
       vue: 3.5.22(typescript@5.9.3)
 
-  vue-renderer-markdown@0.0.57(katex@0.16.25)(mermaid@11.12.0)(shiki@3.13.0)(vue-i18n@11.1.12(vue@3.5.22(typescript@5.9.3)))(vue-use-monaco@0.0.33(monaco-editor@0.52.2)(vue@3.5.22(typescript@5.9.3)))(vue@3.5.22(typescript@5.9.3)):
+  vue-renderer-markdown@0.0.58-beta.7(katex@0.16.25)(mermaid@11.12.0)(shiki@3.13.0)(stream-monaco@0.0.2(monaco-editor@0.52.2))(vue-i18n@11.1.12(vue@3.5.22(typescript@5.9.3)))(vue@3.5.22(typescript@5.9.3)):
     dependencies:
       '@floating-ui/dom': 1.7.4
       katex: 0.16.25
@@ -8113,8 +8115,8 @@ snapshots:
     optionalDependencies:
       mermaid: 11.12.0
       shiki: 3.13.0
+      stream-monaco: 0.0.2(monaco-editor@0.52.2)
       vue-i18n: 11.1.12(vue@3.5.22(typescript@5.9.3))
-      vue-use-monaco: 0.0.33(monaco-editor@0.52.2)(vue@3.5.22(typescript@5.9.3))
 
   vue-router@4.6.3(vue@3.5.22(typescript@5.9.3)):
     dependencies:
@@ -8126,14 +8128,6 @@ snapshots:
       '@volar/typescript': 2.4.15
       '@vue/language-core': 2.2.12(typescript@5.9.3)
       typescript: 5.9.3
-
-  vue-use-monaco@0.0.33(monaco-editor@0.52.2)(vue@3.5.22(typescript@5.9.3)):
-    dependencies:
-      '@shikijs/monaco': 3.13.0
-      monaco-editor: 0.52.2
-      shiki: 3.13.0
-      vue: 3.5.22(typescript@5.9.3)
-    optional: true
 
   vue@3.5.22(typescript@5.9.3):
     dependencies:

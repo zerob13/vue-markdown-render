@@ -1,6 +1,6 @@
 import type { App, Component, Plugin } from 'vue'
 import type { LanguageIconResolver } from './utils/languageIcon'
-import { setDefaultMathOptions } from '@vue-markdown-renderer/parser'
+import { setDefaultMathOptions } from 'stream-markdown-parser'
 import AdmonitionNode from './components/AdmonitionNode'
 
 import BlockquoteNode from './components/BlockquoteNode'
@@ -43,9 +43,9 @@ import './workers/mermaidParser.worker?worker'
 export * from './utils'
 export * from './workers/katexWorkerClient'
 export * from './workers/mermaidWorkerClient'
-export { setDefaultMathOptions } from '@vue-markdown-renderer/parser'
-export type { MathOptions } from '@vue-markdown-renderer/parser'
-export { KATEX_COMMANDS, normalizeStandaloneBackslashT } from '@vue-markdown-renderer/parser'
+export { setDefaultMathOptions } from 'stream-markdown-parser'
+export type { MathOptions } from 'stream-markdown-parser'
+export { KATEX_COMMANDS, normalizeStandaloneBackslashT } from 'stream-markdown-parser'
 
 export {
   AdmonitionNode,

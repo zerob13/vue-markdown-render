@@ -51,14 +51,14 @@ yarn add vue-renderer-markdown vue
 
 Vue 3 Markdown 渲染器，包含所有组件和功能。这是在 Vue 应用中使用 Markdown 渲染时需要安装的包。
 
-### `@vue-markdown-renderer/parser` (框架无关的解析器)
+### `stream-markdown-parser` (框架无关的解析器)
 
 独立的、框架无关的 Markdown 解析器，可以与**任何 JavaScript 框架**（Vue、React、Svelte、Angular 等）或原生 JavaScript 一起使用。
 
 ```bash
-pnpm add @vue-markdown-renderer/parser
+pnpm add stream-markdown-parser
 # 或
-npm install @vue-markdown-renderer/parser
+npm install stream-markdown-parser
 ```
 
 **特性：**
@@ -70,7 +70,7 @@ npm install @vue-markdown-renderer/parser
 **与 React 一起使用：**
 
 ```typescript
-import { getMarkdown, parseMarkdownToStructure } from '@vue-markdown-renderer/parser'
+import { getMarkdown, parseMarkdownToStructure } from 'stream-markdown-parser'
 
 function MarkdownRenderer({ content }) {
   const md = getMarkdown()
@@ -83,7 +83,7 @@ function MarkdownRenderer({ content }) {
 **与原生 JS 一起使用：**
 
 ```typescript
-import { getMarkdown, parseMarkdownToStructure } from '@vue-markdown-renderer/parser'
+import { getMarkdown, parseMarkdownToStructure } from 'stream-markdown-parser'
 
 const md = getMarkdown()
 const nodes = parseMarkdownToStructure('# Hello World', md)
