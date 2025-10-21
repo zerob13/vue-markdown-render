@@ -47,9 +47,6 @@ importers:
       shiki:
         specifier: ^3.13.0
         version: 3.13.0
-      stream-markdown-parser:
-        specifier: workspace:*
-        version: link:packages/parser
       stream-monaco:
         specifier: '>=0.0.2'
         version: 0.0.2(monaco-editor@0.52.2)
@@ -136,36 +133,6 @@ importers:
         specifier: ^2.2.12
         version: 2.2.12(typescript@5.9.3)
 
-  packages/parser:
-    devDependencies:
-      '@types/markdown-it':
-        specifier: ^14.1.2
-        version: 14.1.2
-      '@types/markdown-it-container':
-        specifier: ^2.0.10
-        version: 2.0.10
-      markdown-it:
-        specifier: ^14.1.0
-        version: 14.1.0
-      markdown-it-container:
-        specifier: ^4.0.0
-        version: 4.0.0
-      rollup:
-        specifier: ^3.29.5
-        version: 3.29.5
-      rollup-plugin-dts:
-        specifier: ^5.3.1
-        version: 5.3.1(rollup@3.29.5)(typescript@5.9.3)
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-      vite:
-        specifier: ^7.1.11
-        version: 7.1.11(@types/node@20.19.22)(jiti@1.21.7)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1)
-      vite-plugin-dts:
-        specifier: ^4.5.4
-        version: 4.5.4(@types/node@20.19.22)(rollup@3.29.5)(typescript@5.9.3)(vite@7.1.11(@types/node@20.19.22)(jiti@1.21.7)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1))
-
   playground:
     dependencies:
       '@iconify-json/carbon':
@@ -200,7 +167,7 @@ importers:
         version: 11.1.12(vue@3.5.22(typescript@5.9.3))
       vue-renderer-markdown:
         specifier: latest
-        version: 0.0.58-beta.7(katex@0.16.25)(mermaid@11.12.0)(shiki@3.13.0)(stream-monaco@0.0.2(monaco-editor@0.52.2))(vue-i18n@11.1.12(vue@3.5.22(typescript@5.9.3)))(vue@3.5.22(typescript@5.9.3))
+        version: 0.0.57(katex@0.16.25)(mermaid@11.12.0)(shiki@3.13.0)(vue-i18n@11.1.12(vue@3.5.22(typescript@5.9.3)))(vue-use-monaco@0.0.33(monaco-editor@0.52.2)(vue@3.5.22(typescript@5.9.3)))(vue@3.5.22(typescript@5.9.3))
       vue-router:
         specifier: ^4.6.3
         version: 4.6.3(vue@3.5.22(typescript@5.9.3))
@@ -1033,20 +1000,8 @@ packages:
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
 
-  '@types/linkify-it@5.0.0':
-    resolution: {integrity: sha512-sVDA58zAw4eWAffKOaQH5/5j3XeayukzDk+ewSsnv3p4yJEZHCCzMDiZM8e0OUrRvmpGZ85jf4yDHkHsgBNr9Q==}
-
-  '@types/markdown-it-container@2.0.10':
-    resolution: {integrity: sha512-zv+YxrlSYRq51e9kzm3orv4OvF4U79Ll1OyplNXr00o4ZC/8PukJk/jEWH7CnsMtrSWZlyv0czhz42jm9J4uLw==}
-
-  '@types/markdown-it@14.1.2':
-    resolution: {integrity: sha512-promo4eFwuiW+TfGxhi+0x3czqTYJkG8qB17ZUJiVF10Xm7NLVRSLUsfRTU/6h1e24VvRnXCx+hG7li58lkzog==}
-
   '@types/mdast@4.0.4':
     resolution: {integrity: sha512-kGaNbPh1k7AFzgpud/gMdvIm5xuECykRR+JnWKQno9TAXVa6WIVCGTPvYGekIDL4uwCZQSYbUxNBSb1aUo79oA==}
-
-  '@types/mdurl@2.0.0':
-    resolution: {integrity: sha512-RGdgjQUZba5p6QEFAVx2OGb8rQDL/cPRG7GiedRzMcJ1tYnUANBncjbSB1NRGwbvjcPeikRABz2nshyPk1bhWg==}
 
   '@types/ms@2.1.0':
     resolution: {integrity: sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==}
@@ -3860,23 +3815,23 @@ packages:
     peerDependencies:
       vue: ^3.0.0
 
-  vue-renderer-markdown@0.0.58-beta.7:
-    resolution: {integrity: sha512-8hzhlTyHcXVmx6B3gXO/vE5x/9ueUIBahCQ1hn0PYVgik88VyrS+Y2c0oC+n0esIdrKANRRFYk/zmueItmrAiA==}
+  vue-renderer-markdown@0.0.57:
+    resolution: {integrity: sha512-xGlmSYYPnpwU6FsprsMbGa/MdFGq8DJi3uDNHjj9Or8KzqoW25dzI/Us/p1Xm3m0GiRPCg5+p0GoKrZ5MhKW9g==}
     peerDependencies:
       katex: '>=0.16.22'
       mermaid: '>=11'
       shiki: ^3.13.0
-      stream-monaco: '>=0.0.2'
       vue: '>=3.0.0'
       vue-i18n: '>=9'
+      vue-use-monaco: '>=0.0.33'
     peerDependenciesMeta:
       mermaid:
         optional: true
       shiki:
         optional: true
-      stream-monaco:
-        optional: true
       vue-i18n:
+        optional: true
+      vue-use-monaco:
         optional: true
 
   vue-router@4.6.3:
@@ -3889,6 +3844,13 @@ packages:
     hasBin: true
     peerDependencies:
       typescript: '>=5.0.0'
+
+  vue-use-monaco@0.0.33:
+    resolution: {integrity: sha512-YVZF2+c2aZEzBzxzGmnt7L5Ap35AP+t9qPG/SSLnVhCPw2U/gxkE76Lajwz8BUWMGPCv5ULj3Z1KuL2N6cSeKg==}
+    hasBin: true
+    peerDependencies:
+      monaco-editor: ^0.52.2
+      vue: '>=3.0.0'
 
   vue@3.5.22:
     resolution: {integrity: sha512-toaZjQ3a/G/mYaLSbV+QsQhIdMo9x5rrqIpYRObsJ6T/J+RyCSFwN2LHNVH9v8uIcljDNa3QzPVdv3Y6b9hAJQ==}
@@ -4427,14 +4389,6 @@ snapshots:
     transitivePeerDependencies:
       - '@types/node'
 
-  '@microsoft/api-extractor-model@7.30.7(@types/node@20.19.22)':
-    dependencies:
-      '@microsoft/tsdoc': 0.15.1
-      '@microsoft/tsdoc-config': 0.17.1
-      '@rushstack/node-core-library': 5.14.0(@types/node@20.19.22)
-    transitivePeerDependencies:
-      - '@types/node'
-
   '@microsoft/api-extractor@7.52.13(@types/node@18.19.130)':
     dependencies:
       '@microsoft/api-extractor-model': 7.30.7(@types/node@18.19.130)
@@ -4444,24 +4398,6 @@ snapshots:
       '@rushstack/rig-package': 0.5.3
       '@rushstack/terminal': 0.16.0(@types/node@18.19.130)
       '@rushstack/ts-command-line': 5.0.3(@types/node@18.19.130)
-      lodash: 4.17.21
-      minimatch: 10.0.3
-      resolve: 1.22.10
-      semver: 7.5.4
-      source-map: 0.6.1
-      typescript: 5.8.2
-    transitivePeerDependencies:
-      - '@types/node'
-
-  '@microsoft/api-extractor@7.52.13(@types/node@20.19.22)':
-    dependencies:
-      '@microsoft/api-extractor-model': 7.30.7(@types/node@20.19.22)
-      '@microsoft/tsdoc': 0.15.1
-      '@microsoft/tsdoc-config': 0.17.1
-      '@rushstack/node-core-library': 5.14.0(@types/node@20.19.22)
-      '@rushstack/rig-package': 0.5.3
-      '@rushstack/terminal': 0.16.0(@types/node@20.19.22)
-      '@rushstack/ts-command-line': 5.0.3(@types/node@20.19.22)
       lodash: 4.17.21
       minimatch: 10.0.3
       resolve: 1.22.10
@@ -4596,19 +4532,6 @@ snapshots:
     optionalDependencies:
       '@types/node': 18.19.130
 
-  '@rushstack/node-core-library@5.14.0(@types/node@20.19.22)':
-    dependencies:
-      ajv: 8.13.0
-      ajv-draft-04: 1.0.0(ajv@8.13.0)
-      ajv-formats: 3.0.1(ajv@8.13.0)
-      fs-extra: 11.3.2
-      import-lazy: 4.0.0
-      jju: 1.4.0
-      resolve: 1.22.10
-      semver: 7.5.4
-    optionalDependencies:
-      '@types/node': 20.19.22
-
   '@rushstack/rig-package@0.5.3':
     dependencies:
       resolve: 1.22.10
@@ -4621,25 +4544,9 @@ snapshots:
     optionalDependencies:
       '@types/node': 18.19.130
 
-  '@rushstack/terminal@0.16.0(@types/node@20.19.22)':
-    dependencies:
-      '@rushstack/node-core-library': 5.14.0(@types/node@20.19.22)
-      supports-color: 8.1.1
-    optionalDependencies:
-      '@types/node': 20.19.22
-
   '@rushstack/ts-command-line@5.0.3(@types/node@18.19.130)':
     dependencies:
       '@rushstack/terminal': 0.16.0(@types/node@18.19.130)
-      '@types/argparse': 1.0.38
-      argparse: 1.0.10
-      string-argv: 0.3.2
-    transitivePeerDependencies:
-      - '@types/node'
-
-  '@rushstack/ts-command-line@5.0.3(@types/node@20.19.22)':
-    dependencies:
-      '@rushstack/terminal': 0.16.0(@types/node@20.19.22)
       '@types/argparse': 1.0.38
       argparse: 1.0.10
       string-argv: 0.3.2
@@ -4841,22 +4748,9 @@ snapshots:
 
   '@types/json-schema@7.0.15': {}
 
-  '@types/linkify-it@5.0.0': {}
-
-  '@types/markdown-it-container@2.0.10':
-    dependencies:
-      '@types/markdown-it': 14.1.2
-
-  '@types/markdown-it@14.1.2':
-    dependencies:
-      '@types/linkify-it': 5.0.0
-      '@types/mdurl': 2.0.0
-
   '@types/mdast@4.0.4':
     dependencies:
       '@types/unist': 3.0.3
-
-  '@types/mdurl@2.0.0': {}
 
   '@types/ms@2.1.0': {}
 
@@ -7936,25 +7830,6 @@ snapshots:
       - rollup
       - supports-color
 
-  vite-plugin-dts@4.5.4(@types/node@20.19.22)(rollup@3.29.5)(typescript@5.9.3)(vite@7.1.11(@types/node@20.19.22)(jiti@1.21.7)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1)):
-    dependencies:
-      '@microsoft/api-extractor': 7.52.13(@types/node@20.19.22)
-      '@rollup/pluginutils': 5.3.0(rollup@3.29.5)
-      '@volar/typescript': 2.4.23
-      '@vue/language-core': 2.2.0(typescript@5.9.3)
-      compare-versions: 6.1.1
-      debug: 4.4.3
-      kolorist: 1.8.0
-      local-pkg: 1.1.2
-      magic-string: 0.30.19
-      typescript: 5.9.3
-    optionalDependencies:
-      vite: 7.1.11(@types/node@20.19.22)(jiti@1.21.7)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1)
-    transitivePeerDependencies:
-      - '@types/node'
-      - rollup
-      - supports-color
-
   vite-plugin-monaco-editor-esm@2.0.2(monaco-editor@0.52.2):
     dependencies:
       monaco-editor: 0.52.2
@@ -8098,7 +7973,7 @@ snapshots:
       '@vue/devtools-api': 6.6.4
       vue: 3.5.22(typescript@5.9.3)
 
-  vue-renderer-markdown@0.0.58-beta.7(katex@0.16.25)(mermaid@11.12.0)(shiki@3.13.0)(stream-monaco@0.0.2(monaco-editor@0.52.2))(vue-i18n@11.1.12(vue@3.5.22(typescript@5.9.3)))(vue@3.5.22(typescript@5.9.3)):
+  vue-renderer-markdown@0.0.57(katex@0.16.25)(mermaid@11.12.0)(shiki@3.13.0)(vue-i18n@11.1.12(vue@3.5.22(typescript@5.9.3)))(vue-use-monaco@0.0.33(monaco-editor@0.52.2)(vue@3.5.22(typescript@5.9.3)))(vue@3.5.22(typescript@5.9.3)):
     dependencies:
       '@floating-ui/dom': 1.7.4
       katex: 0.16.25
@@ -8115,8 +7990,8 @@ snapshots:
     optionalDependencies:
       mermaid: 11.12.0
       shiki: 3.13.0
-      stream-monaco: 0.0.2(monaco-editor@0.52.2)
       vue-i18n: 11.1.12(vue@3.5.22(typescript@5.9.3))
+      vue-use-monaco: 0.0.33(monaco-editor@0.52.2)(vue@3.5.22(typescript@5.9.3))
 
   vue-router@4.6.3(vue@3.5.22(typescript@5.9.3)):
     dependencies:
@@ -8128,6 +8003,14 @@ snapshots:
       '@volar/typescript': 2.4.15
       '@vue/language-core': 2.2.12(typescript@5.9.3)
       typescript: 5.9.3
+
+  vue-use-monaco@0.0.33(monaco-editor@0.52.2)(vue@3.5.22(typescript@5.9.3)):
+    dependencies:
+      '@shikijs/monaco': 3.13.0
+      monaco-editor: 0.52.2
+      shiki: 3.13.0
+      vue: 3.5.22(typescript@5.9.3)
+    optional: true
 
   vue@3.5.22(typescript@5.9.3):
     dependencies:

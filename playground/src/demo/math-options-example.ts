@@ -1,4 +1,5 @@
-import { getMarkdown, KATEX_COMMANDS } from 'stream-markdown-parser'
+import { getMarkdown } from '../../../src/utils/markdown/getMarkdown'
+import { KATEX_COMMANDS } from '../../../src/utils/markdown/plugins/math'
 
 // Example: create a MarkdownIt instance with custom math options
 export const mdWithMathOpts = getMarkdown({
