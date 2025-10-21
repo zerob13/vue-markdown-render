@@ -1,5 +1,5 @@
+import { getMarkdown } from 'stream-markdown-parser'
 import { describe, expect, it } from 'vitest'
-import { getMarkdown } from '../src/utils/markdown'
 
 describe('math inline edgecases', () => {
   it('handles nested parentheses with escaped braces and preserves backslashes', () => {

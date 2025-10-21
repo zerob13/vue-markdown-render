@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { getMarkdown, parseMarkdownToStructure, renderMarkdown } from 'stream-markdown-parser'
 import { describe, expect, it } from 'vitest'
-import { getMarkdown, parseMarkdownToStructure, renderMarkdown } from '../src/utils/markdown'
 
 const md = getMarkdown('e2e')
 

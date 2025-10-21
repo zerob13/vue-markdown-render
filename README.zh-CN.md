@@ -70,6 +70,41 @@ import 'katex/dist/katex.min.css'
 
 - 🖼️ 工具栏图标改用本地 SVG，无需额外图标库
 
+## 国际化（i18n）
+
+默认情况下，`getMarkdown` 使用英文文本作为 UI 元素（例如代码块中的 "Copy" 按钮）。你可以通过提供 `i18n` 选项来自定义这些文本：
+
+**使用翻译映射表：**
+
+```ts
+import { getMarkdown } from 'vue-renderer-markdown'
+
+const md = getMarkdown('editor-1', {
+  i18n: {
+    'common.copy': '复制',
+  }
+})
+```
+
+**使用翻译函数：**
+
+```ts
+import { useI18n } from 'vue-i18n' // 或任何 i18n 库
+import { getMarkdown } from 'vue-renderer-markdown'
+
+const { t } = useI18n()
+
+const md = getMarkdown('editor-1', {
+  i18n: (key: string) => t(key)
+})
+```
+
+**默认翻译键：**
+
+- `common.copy`: "Copy" — 用于代码块复制按钮
+
+这种设计保持了 markdown 工具函数的纯粹性，避免了全局副作用，允许你与任何 i18n 解决方案集成或提供静态翻译。
+
 ## 快速开始
 
 ```vue

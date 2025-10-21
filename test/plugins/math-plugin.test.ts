@@ -1,5 +1,5 @@
+import { getMarkdown } from 'stream-markdown-parser'
 import { describe, expect, it } from 'vitest'
-import { getMarkdown } from '../../src/utils/markdown'
 
 describe('math plugin (inline & block)', () => {
   it('parses inline $...$ and ( ... ) maths', () => {

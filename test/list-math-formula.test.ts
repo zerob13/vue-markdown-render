@@ -1,5 +1,5 @@
+import { getMarkdown } from 'stream-markdown-parser'
 import { describe, expect, it } from 'vitest'
-import { getMarkdown } from '../src/utils/markdown'
 
 describe('列表中的数学公式解析测试', () => {
   it('应该正确解析列表项中的数学公式块', () => {

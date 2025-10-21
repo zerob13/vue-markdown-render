@@ -1,5 +1,5 @@
+import { normalizeStandaloneBackslashT } from 'stream-markdown-parser'
 import { describe, expect, it } from 'vitest'
-import { normalizeStandaloneBackslashT } from '../src/utils/markdown/plugins/math'
 
 describe('normalizeStandaloneBackslashT - already escaped', () => {
   it('does not double-escape already escaped katex commands', () => {

@@ -1,5 +1,5 @@
+import { parseFenceToken } from 'stream-markdown-parser'
 import { describe, expect, it } from 'vitest'
-import { parseFenceToken } from '../src/utils/markdown-parser/inline-parsers/fence-parser'
 
 describe('fence parser trailing fence cleanup', () => {
   it('removes a trailing line that only contains backticks from token.content', () => {

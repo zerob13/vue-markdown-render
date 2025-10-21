@@ -1,5 +1,5 @@
+import { getMarkdown } from 'stream-markdown-parser'
 import { describe, expect, it } from 'vitest'
-import { getMarkdown } from '../../src/utils/markdown'
 
 describe('containers plugin', () => {
   it('renders admonition container via ::: admonition', () => {

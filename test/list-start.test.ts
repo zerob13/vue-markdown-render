@@ -1,5 +1,5 @@
+import { getMarkdown, parseMarkdownToStructure } from 'stream-markdown-parser'
 import { describe, expect, it } from 'vitest'
-import { getMarkdown, parseMarkdownToStructure } from '../src/utils/markdown'
 
 const md = getMarkdown()
 

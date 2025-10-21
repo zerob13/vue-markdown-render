@@ -1,5 +1,5 @@
+import { getMarkdown } from 'stream-markdown-parser'
 import { describe, expect, it } from 'vitest'
-import { getMarkdown } from '../src/utils/markdown'
 
 describe('数学公式解析测试', () => {
   it('应该正确解析单独方括号数学公式块', () => {

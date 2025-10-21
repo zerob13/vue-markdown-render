@@ -1,5 +1,5 @@
+import { isMathLike } from 'stream-markdown-parser'
 import { expect, it } from 'vitest'
-import { isMathLike } from '../../src/utils/markdown/plugins/isMathLike'
 
 it('recognizes \"\\boldsymbol{...}\" as math-like', () => {
   expect(isMathLike('\\boldsymbol{\\beta}')).toBe(true)

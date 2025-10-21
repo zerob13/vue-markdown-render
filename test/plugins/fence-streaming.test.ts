@@ -1,5 +1,5 @@
+import { getMarkdown } from 'stream-markdown-parser'
 import { describe, expect, it } from 'vitest'
-import { getMarkdown } from '../../src/utils/markdown'
 
 function extractFenceTokens(md: ReturnType<typeof getMarkdown>, src: string) {
   const tokens = md.parse(src, {}) as any[]

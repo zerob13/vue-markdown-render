@@ -1,5 +1,5 @@
+import { findMatchingClose } from 'stream-markdown-parser'
 import { describe, expect, it } from 'vitest'
-import findMatchingClose from '../src/utils/markdown/findMatchingClose'
 
 describe('findMatchingClose', () => {
   it('finds matching close for nested parentheses with escaped braces', () => {

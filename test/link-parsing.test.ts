@@ -1,5 +1,5 @@
+import { getMarkdown, parseMarkdownToStructure } from 'stream-markdown-parser'
 import { describe, expect, it } from 'vitest'
-import { getMarkdown, parseMarkdownToStructure } from '../src/utils/markdown'
 
 const md = getMarkdown('t')
 
@@ -21,8 +21,10 @@ describe('link parsing', () => {
     // Flatten paragraph children for assertions
     const allLinkNodes: any[] = []
     const collect = (n: any) => {
-      if (!n) return
-      if (n.type === 'link') allLinkNodes.push(n)
+      if (!n)
+        return
+      if (n.type === 'link')
+        allLinkNodes.push(n)
       if (Array.isArray(n.children)) {
         for (const c of n.children) collect(c)
       }
@@ -32,8 +34,6 @@ describe('link parsing', () => {
     }
     for (const n of nodes) collect(n)
 
-    // Expect at least the three explicit markdown link nodes
-    const hrefs = allLinkNodes.map(l => l.href || l.text || '')
     // Some links may initially be loading (href empty) but should include texts
     const texts = allLinkNodes.map(l => l.text?.toString() || '')
 
@@ -47,13 +47,21 @@ describe('link parsing', () => {
     if (!hasPlainItalic && !hasRawItalic) {
       // Look for a link node whose children include an emphasis node with a text child '斜体链接'
       const findTextInChildren = (node: any, want: string): boolean => {
-        if (!node) return false
-        if (node.type === 'text' && node.content === want) return true
+        if (!node)
+          return false
+        if (node.type === 'text' && node.content === want)
+          return true
         if (Array.isArray(node.children)) {
-          for (const c of node.children) if (findTextInChildren(c, want)) return true
+          for (const c of node.children) {
+            if (findTextInChildren(c, want))
+              return true
+          }
         }
         if (Array.isArray(node.items)) {
-          for (const it of node.items) if (findTextInChildren(it, want)) return true
+          for (const it of node.items) {
+            if (findTextInChildren(it, want))
+              return true
+          }
         }
         return false
       }

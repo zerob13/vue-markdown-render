@@ -1,5 +1,5 @@
+import { isMathLike } from 'stream-markdown-parser'
 import { describe, expect, it } from 'vitest'
-import { isMathLike } from '../src/utils/markdown/plugins/isMathLike'
 
 describe('isMathLike heuristic', () => {
   it('detects TeX commands', () => {
