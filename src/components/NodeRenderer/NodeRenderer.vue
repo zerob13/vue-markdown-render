@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BaseNode, ParsedNode, ParseOptions } from '../../utils'
+import type { BaseNode, ParsedNode, ParseOptions } from 'stream-markdown-parser'
 import { getMarkdown, parseMarkdownToStructure } from 'stream-markdown-parser'
 import { computed, defineAsyncComponent, ref } from 'vue'
 import AdmonitionNode from '../../components/AdmonitionNode'
