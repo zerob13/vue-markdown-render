@@ -113,7 +113,7 @@ async function renderMath() {
       if (!hasRenderedOnce) {
         renderingLoading.value = true
       }
-      if (!props.node.loading){
+      if (!props.node.loading) {
         renderingLoading.value = false
         mathBlockElement.value.textContent = props.node.raw
       }
@@ -202,7 +202,7 @@ onBeforeUnmount(() => {
   .math-loading-overlay {
     background-color: rgba(0, 0, 0, 0.6);
   }
-  
+
   .math-loading-spinner {
     border-color: rgba(255, 255, 255, 0.2);
     border-top-color: rgba(255, 255, 255, 0.8);

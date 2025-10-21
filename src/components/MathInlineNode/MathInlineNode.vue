@@ -53,9 +53,10 @@ async function renderMath() {
   }
 
   renderKaTeXWithBackpressure(props.node.content, false, {
+    // Inline math should not wait on worker slots; fallback to sync render immediately
     timeout: 1500,
-    waitTimeout: 1500,
-    maxRetries: 1,
+    waitTimeout: 0,
+    maxRetries: 0,
     signal: abortController.signal,
   })
     .then((html) => {
