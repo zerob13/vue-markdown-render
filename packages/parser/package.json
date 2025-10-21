@@ -1,0 +1,38 @@
+{
+  "name": "@vue-markdown-renderer/parser",
+  "type": "module",
+  "version": "0.0.1",
+  "description": "Framework-agnostic markdown parser - can be used with Vue, React, or any other framework",
+  "author": "Simon He",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build --mode npm && pnpm run build:dts",
+    "build:dts": "rollup -c ./rollup.dts.config.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "markdown-it": "^14.1.0",
+    "markdown-it-container": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/markdown-it": "^14.1.2",
+    "rollup": "^3.29.5",
+    "rollup-plugin-dts": "^5.3.1",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.11",
+    "vite-plugin-dts": "^4.5.4"
+  }
+}
