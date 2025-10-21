@@ -84,6 +84,59 @@ npm install vue-renderer-markdown
 yarn add vue-renderer-markdown
 ```
 
+## Monorepo Structure
+
+This repository is now organized as a monorepo with the following packages:
+
+### `vue-renderer-markdown` (Main Package)
+
+The Vue 3 markdown renderer with all components and features. This is what you install when you want to use markdown rendering in your Vue application.
+
+### `@vue-markdown-renderer/parser` (Framework-Agnostic Parser)
+
+A standalone, framework-agnostic markdown parser that can be used with **any JavaScript framework** (Vue, React, Svelte, Angular, etc.) or vanilla JavaScript.
+
+```bash
+pnpm add @vue-markdown-renderer/parser
+# or
+npm install @vue-markdown-renderer/parser
+```
+
+**Features:**
+- 🎯 **Framework Agnostic** - Pure TypeScript, no framework dependencies
+- 🚀 **High Performance** - Optimized parsing for large documents
+- 📦 **Tree-shakeable** - Only bundle what you use
+- 💪 **TypeScript First** - Full type definitions included
+
+**Example with React:**
+
+```typescript
+import { getMarkdown, parseMarkdownToStructure } from '@vue-markdown-renderer/parser'
+
+function MarkdownRenderer({ content }) {
+  const md = getMarkdown()
+  const nodes = parseMarkdownToStructure(content, md)
+  
+  return <div>{nodes.map(node => renderNode(node))}</div>
+}
+```
+
+**Example with Vanilla JS:**
+
+```typescript
+import { getMarkdown, parseMarkdownToStructure } from '@vue-markdown-renderer/parser'
+
+const md = getMarkdown()
+const nodes = parseMarkdownToStructure('# Hello World', md)
+
+// Process nodes to create your own rendering
+nodes.forEach(node => {
+  console.log(node.type, node)
+})
+```
+
+See the [parser package README](./packages/parser/README.md) for detailed API documentation and more examples.
+
 ### Peer Dependencies
 
 ### Custom parse hooks

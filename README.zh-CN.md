@@ -43,6 +43,59 @@ npm install vue-renderer-markdown vue
 yarn add vue-renderer-markdown vue
 ```
 
+## Monorepo 结构
+
+本仓库现在组织为 monorepo，包含以下包：
+
+### `vue-renderer-markdown` (主包)
+
+Vue 3 Markdown 渲染器，包含所有组件和功能。这是在 Vue 应用中使用 Markdown 渲染时需要安装的包。
+
+### `@vue-markdown-renderer/parser` (框架无关的解析器)
+
+独立的、框架无关的 Markdown 解析器，可以与**任何 JavaScript 框架**（Vue、React、Svelte、Angular 等）或原生 JavaScript 一起使用。
+
+```bash
+pnpm add @vue-markdown-renderer/parser
+# 或
+npm install @vue-markdown-renderer/parser
+```
+
+**特性：**
+- 🎯 **框架无关** - 纯 TypeScript 实现，无框架依赖
+- 🚀 **高性能** - 针对大文档优化的解析
+- 📦 **可 Tree-shake** - 只打包你使用的部分
+- 💪 **TypeScript 优先** - 包含完整的类型定义
+
+**与 React 一起使用：**
+
+```typescript
+import { getMarkdown, parseMarkdownToStructure } from '@vue-markdown-renderer/parser'
+
+function MarkdownRenderer({ content }) {
+  const md = getMarkdown()
+  const nodes = parseMarkdownToStructure(content, md)
+  
+  return <div>{nodes.map(node => renderNode(node))}</div>
+}
+```
+
+**与原生 JS 一起使用：**
+
+```typescript
+import { getMarkdown, parseMarkdownToStructure } from '@vue-markdown-renderer/parser'
+
+const md = getMarkdown()
+const nodes = parseMarkdownToStructure('# Hello World', md)
+
+// 处理节点以创建自己的渲染
+nodes.forEach(node => {
+  console.log(node.type, node)
+})
+```
+
+详细的 API 文档和更多示例请参阅 [parser 包 README](./packages/parser/README.md)。
+
 ### 可选 peer 依赖
 
 如需开启高级功能，可按需安装：
