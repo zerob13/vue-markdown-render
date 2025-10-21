@@ -315,6 +315,20 @@ export default {
 ```
 
 > 注意：如仅需渲染 Monaco 编辑器（用于代码编辑或预览），可直接集成 `stream-monaco`，无需本库的完整 Markdown 渲染管线。
+
+### 小提示（提高首次 Code Block 渲染流畅度）
+
+如果你的应用使用 Monaco 来渲染可编辑的代码块，建议在应用初始化或页面挂载阶段主动调用 `getUseMonaco()` 来预加载 `stream-monaco` 与相关的 worker 文件。这样可以避免在首次渲染 `code_block` 时因为 Worker 延迟而出现的卡顿或闪烁，提升首屏交互体验。示例：
+
+```ts
+// 应用初始化或页面挂载时调用（示例路径基于本仓库）
+import { getUseMonaco } from './src/components/CodeBlockNode/monaco'
+
+// 触发动态导入并 preload（内部会捕获错误并优雅降级）
+getUseMonaco()
+```
+
+`getUseMonaco()` 会尝试动态导入 `stream-monaco` 并调用内部的 preload helper 来注册/加载 Monaco 的 worker；如果模块不存在（未安装或在 SSR 环境），该函数会返回 `null` 并保持安全的回退行为。
 ### Mermaid 不渲染
 
 **现象**：标记为 ` ```mermaid` 的代码块仍然显示原始文本。

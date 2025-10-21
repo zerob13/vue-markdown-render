@@ -1045,6 +1045,20 @@ export default {
 }
 ```
 
+### Tip: Preload Monaco workers for smoother first code-block rendering
+
+If your application uses the Monaco editor for editable code blocks, you can call `getUseMonaco()` during app initialization or on page mount to proactively import `stream-monaco` and preload the required workers. This helps avoid a noticeable delay or flicker when the first `code_block` renders. Example:
+
+```ts
+// Call during app init or on page mount
+import { getUseMonaco } from './src/components/CodeBlockNode/monaco'
+
+// Trigger dynamic import + preload (failures are handled gracefully)
+getUseMonaco()
+```
+
+Internally, `getUseMonaco()` will attempt to dynamically import `stream-monaco` and call the library's preload helper to register/load Monaco workers; if the module is unavailable (not installed or during SSR) the function returns `null` and the renderer falls back safely.
+
 ### Internationalization / Fallback translations
 
 If you don't want to install or use `vue-i18n`, the library ships with a small synchronous fallback translator used for common UI strings (copy, preview, image loading, etc.). You can replace the default English fallback map with your preferred language by calling `setDefaultI18nMap` at app startup:
