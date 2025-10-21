@@ -170,7 +170,7 @@ import { getMarkdown, parseMarkdownToStructure } from '@vue-markdown-renderer/pa
 function MarkdownRenderer({ content }) {
   const md = getMarkdown()
   const nodes = parseMarkdownToStructure(content, md)
-  
+
   // Render nodes with your React components
   return <div>{nodes.map(node => renderNode(node))}</div>
 }
@@ -185,7 +185,7 @@ export default {
   setup(props) {
     const md = getMarkdown()
     const nodes = computed(() => parseMarkdownToStructure(props.content, md))
-    
+
     return { nodes }
   }
 }
@@ -200,7 +200,7 @@ const md = getMarkdown()
 const nodes = parseMarkdownToStructure('# Hello', md)
 
 // Convert to HTML or render with your own logic
-nodes.forEach(node => {
+nodes.forEach((node) => {
   // Your rendering logic
 })
 ```

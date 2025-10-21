@@ -5,6 +5,9 @@ export default simon(
     ignores: [
       '**/**/*.d.ts',
       'test/fixtures/unclosed-fence.md',
+      'README.md',
+      'README.zh-CN.md',
+      'packages/parser/README.md',
     ],
   },
   {

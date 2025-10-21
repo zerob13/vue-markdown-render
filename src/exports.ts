@@ -1,8 +1,9 @@
 import type { App, Component, Plugin } from 'vue'
 import type { LanguageIconResolver } from './utils/languageIcon'
+import { setDefaultMathOptions } from '@vue-markdown-renderer/parser'
 import AdmonitionNode from './components/AdmonitionNode'
-import BlockquoteNode from './components/BlockquoteNode'
 
+import BlockquoteNode from './components/BlockquoteNode'
 import CheckboxNode from './components/CheckboxNode'
 import CodeBlockNode from './components/CodeBlockNode'
 import DefinitionListNode from './components/DefinitionListNode'
@@ -34,18 +35,17 @@ import TableNode from './components/TableNode'
 import TextNode from './components/TextNode'
 import ThematicBreakNode from './components/ThematicBreakNode'
 import { setLanguageIconResolver } from './utils/languageIcon'
-import { setDefaultMathOptions } from '@vue-markdown-renderer/parser'
 import { clearGlobalCustomComponents, getCustomNodeComponents, removeCustomComponents, setCustomComponents } from './utils/nodeComponents'
 import './index.css'
 import './workers/katexRenderer.worker?worker'
 import './workers/mermaidParser.worker?worker'
 
 export * from './utils'
+export * from './workers/katexWorkerClient'
+export * from './workers/mermaidWorkerClient'
 export { setDefaultMathOptions } from '@vue-markdown-renderer/parser'
 export type { MathOptions } from '@vue-markdown-renderer/parser'
 export { KATEX_COMMANDS, normalizeStandaloneBackslashT } from '@vue-markdown-renderer/parser'
-export * from './workers/katexWorkerClient'
-export * from './workers/mermaidWorkerClient'
 
 export {
   AdmonitionNode,

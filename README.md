@@ -116,7 +116,7 @@ import { getMarkdown, parseMarkdownToStructure } from '@vue-markdown-renderer/pa
 function MarkdownRenderer({ content }) {
   const md = getMarkdown()
   const nodes = parseMarkdownToStructure(content, md)
-  
+
   return <div>{nodes.map(node => renderNode(node))}</div>
 }
 ```
@@ -130,7 +130,7 @@ const md = getMarkdown()
 const nodes = parseMarkdownToStructure('# Hello World', md)
 
 // Process nodes to create your own rendering
-nodes.forEach(node => {
+nodes.forEach((node) => {
   console.log(node.type, node)
 })
 ```

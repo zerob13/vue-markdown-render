@@ -75,7 +75,7 @@ import { getMarkdown, parseMarkdownToStructure } from '@vue-markdown-renderer/pa
 function MarkdownRenderer({ content }) {
   const md = getMarkdown()
   const nodes = parseMarkdownToStructure(content, md)
-  
+
   return <div>{nodes.map(node => renderNode(node))}</div>
 }
 ```
@@ -89,7 +89,7 @@ const md = getMarkdown()
 const nodes = parseMarkdownToStructure('# Hello World', md)
 
 // 处理节点以创建自己的渲染
-nodes.forEach(node => {
+nodes.forEach((node) => {
   console.log(node.type, node)
 })
 ```

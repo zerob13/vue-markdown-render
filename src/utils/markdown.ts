@@ -1,3 +1,9 @@
+import {
+  getMarkdown as factory,
+  parseInlineTokens,
+  parseMarkdownToStructure,
+  processTokens,
+} from '@vue-markdown-renderer/parser'
 import MarkdownIt from 'markdown-it'
 import { full as markdownItEmoji } from 'markdown-it-emoji'
 import markdownItFootnote from 'markdown-it-footnote'
@@ -6,14 +12,8 @@ import markdownItMark from 'markdown-it-mark'
 import markdownItSub from 'markdown-it-sub'
 import markdownItSup from 'markdown-it-sup'
 import * as markdownItCheckbox from 'markdown-it-task-checkbox'
-import { useSafeI18n } from '../composables/useSafeI18n'
 
-import {
-  parseInlineTokens,
-  parseMarkdownToStructure,
-  processTokens,
-  getMarkdown as factory,
-} from '@vue-markdown-renderer/parser'
+import { useSafeI18n } from '../composables/useSafeI18n'
 
 // Re-export the node types for backward compatibility
 export * from '../types'
