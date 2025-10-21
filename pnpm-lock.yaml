@@ -47,12 +47,12 @@ importers:
       shiki:
         specifier: ^3.13.0
         version: 3.13.0
+      stream-monaco:
+        specifier: '>=0.0.2'
+        version: 0.0.2(monaco-editor@0.52.2)
       vue-i18n:
         specifier: '>=9'
         version: 11.1.12(vue@3.5.22(typescript@5.9.3))
-      vue-use-monaco:
-        specifier: '>=0.0.33'
-        version: 0.0.33(monaco-editor@0.52.2)(vue@3.5.22(typescript@5.9.3))
     devDependencies:
       '@antfu/eslint-config':
         specifier: ^5.4.1
@@ -153,6 +153,9 @@ importers:
       monaco-editor:
         specifier: ^0.52.2
         version: 0.52.2
+      stream-monaco:
+        specifier: ^0.0.2
+        version: 0.0.2(monaco-editor@0.52.2)
       vite:
         specifier: ^7.1.11
         version: 7.1.11(@types/node@20.19.22)(jiti@1.21.7)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1)
@@ -168,9 +171,6 @@ importers:
       vue-router:
         specifier: ^4.6.3
         version: 4.6.3(vue@3.5.22(typescript@5.9.3))
-      vue-use-monaco:
-        specifier: ^0.0.33
-        version: 0.0.33(monaco-editor@0.52.2)(vue@3.5.22(typescript@5.9.3))
     devDependencies:
       '@types/node':
         specifier: ^20.19.22
@@ -1290,6 +1290,9 @@ packages:
 
   alien-signals@1.0.13:
     resolution: {integrity: sha512-OGj9yyTnJEttvzhTUWuscOvtqxq5vrhF7vL9oS0xJ2mK0ItPYP1/y+vCFebfxoEyAz0++1AIwJ5CMr+Fk3nDmg==}
+
+  alien-signals@2.0.8:
+    resolution: {integrity: sha512-844G1VLkk0Pe2SJjY0J8vp8ADI73IM4KliNu2OGlYzWpO28NexEUvjHTcFjFX3VXoiUtwTbHxLNI9ImkcoBqzA==}
 
   ansi-escapes@5.0.0:
     resolution: {integrity: sha512-5GFMVX8HqE/TB+FuBJGuO5XG0WrsA6ptUqoODaT/n9mmUaZFkqnBueB4leqGBCmrUHnCnC4PCZTCd0E7QQ83bA==}
@@ -3324,6 +3327,12 @@ packages:
   std-env@3.9.0:
     resolution: {integrity: sha512-UGvjygr6F6tpH7o2qyqR6QYpwraIjKSdtzyBdyytFOHmPZY917kwdwLG0RbOjWOnKmnm3PeHjaoLLMie7kPLQw==}
 
+  stream-monaco@0.0.2:
+    resolution: {integrity: sha512-vf7mWmVMvIdEgLPUiaF9riIxSHt5Vd/J+RRxT8R7OUgPBHo0CsBjWMCmUE4L4MMZednpY+MUY9fwfmA3pQm0Xg==}
+    hasBin: true
+    peerDependencies:
+      monaco-editor: ^0.52.2
+
   string-argv@0.3.2:
     resolution: {integrity: sha512-aqD2Q0144Z+/RqG52NeHEkZauTAUWJO8c6yTftGJKO3Tja5tUgIfmIl6kExvhtxSDP7fXB6DvzkfMpCd/F3G+Q==}
     engines: {node: '>=0.6.19'}
@@ -5130,6 +5139,8 @@ snapshots:
   alien-signals@0.4.14: {}
 
   alien-signals@1.0.13: {}
+
+  alien-signals@2.0.8: {}
 
   ansi-escapes@5.0.0:
     dependencies:
@@ -7411,6 +7422,13 @@ snapshots:
 
   std-env@3.9.0: {}
 
+  stream-monaco@0.0.2(monaco-editor@0.52.2):
+    dependencies:
+      '@shikijs/monaco': 3.13.0
+      alien-signals: 2.0.8
+      monaco-editor: 0.52.2
+      shiki: 3.13.0
+
   string-argv@0.3.2: {}
 
   string-width@4.2.3:
@@ -7992,6 +8010,7 @@ snapshots:
       monaco-editor: 0.52.2
       shiki: 3.13.0
       vue: 3.5.22(typescript@5.9.3)
+    optional: true
 
   vue@3.5.22(typescript@5.9.3):
     dependencies:

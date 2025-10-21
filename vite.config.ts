@@ -83,7 +83,7 @@ export default defineConfig(({ mode }) => {
             'markdown-it-task-checkbox',
             'vue-i18n',
             'katex',
-            'vue-use-monaco',
+            'stream-monaco',
             'monaco-editor',
             'shiki',
           ].includes(id)

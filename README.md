@@ -158,13 +158,13 @@ Install these to enable advanced features. The library will gracefully degrade i
 
 ```bash
 # pnpm
-pnpm add mermaid vue-use-monaco shiki
+pnpm add mermaid stream-monaco shiki
 
 # npm
-npm install mermaid vue-use-monaco shiki
+npm install mermaid stream-monaco shiki
 
 # yarn
-yarn add mermaid vue-use-monaco shiki
+yarn add mermaid stream-monaco shiki
 ```
 
 **Individual optional features:**
@@ -172,7 +172,7 @@ yarn add mermaid vue-use-monaco shiki
 | Peer Dependency | Version | Enables | Fallback if missing |
 |----------------|---------|---------|---------------------|
 | `mermaid` | >=11 | Progressive Mermaid diagram rendering | Shows code block source |
-| `vue-use-monaco` | >=0.0.33 | Monaco Editor for interactive code editing | Plain text display |
+| `stream-monaco` | >=0.0.33 | Monaco Editor for interactive code editing | Plain text display |
 | `shiki` | ^3.13.0 | Syntax highlighting for `MarkdownCodeBlockNode` | Plain text display |
 | `vue-i18n` | >=9 | Internationalization support | Built-in fallback translator |
 
@@ -435,7 +435,7 @@ pnpm add mermaid
 
 **Monaco Editor (Interactive Code Editing):**
 ```bash
-pnpm add vue-use-monaco
+pnpm add stream-monaco
 # Also configure vite-plugin-monaco-editor-esm (see Monaco section)
 ```
 
@@ -450,14 +450,14 @@ The library offers flexible code block rendering:
 
 | Mode | Component | Best for | Dependencies |
 |------|-----------|----------|---------------|
-| **Monaco Editor (default)** | `CodeBlockNode` | Rich editing, streaming diffs, toolbar actions | `vue-use-monaco` |
+| **Monaco Editor (default)** | `CodeBlockNode` | Rich editing, streaming diffs, toolbar actions | `stream-monaco` |
 | **Shiki Syntax Highlighting** | `MarkdownCodeBlockNode` | Lightweight read-only views, SSR friendly output | `shiki` |
 | **Plain Text** | `PreCodeNode` | Minimal dependencies, AI reasoning traces, logging output | _None_ |
 
 **Default: Monaco Editor Integration** (full-featured)
 - Interactive editing
 - Advanced features (copy, expand, preview)
-- Requires `vue-use-monaco` peer dependency
+- Requires `stream-monaco` peer dependency
 
 **Alternative: Shiki Syntax Highlighting** (lightweight)
 ```vue
@@ -655,7 +655,7 @@ Description:
 
 Notes:
 - When `renderCodeBlocksAsPre: true`, props passed to `CodeBlockNode` such as `codeBlockDarkTheme`, `codeBlockMonacoOptions`, `themes`, `minWidth`, `maxWidth`, etc. will not take effect because `CodeBlockNode` is not used.
-- If you need the full code block feature set (syntax highlighting, folding, copy button, etc.), keep the default `false` and install the optional peers (`mermaid`, `vue-use-monaco`).
+- If you need the full code block feature set (syntax highlighting, folding, copy button, etc.), keep the default `false` and install the optional peers (`mermaid`, `stream-monaco`).
 
 Example (Vue usage):
 ```vue
@@ -1003,7 +1003,7 @@ Notes:
 
 If you are using Monaco Editor in your project, configure `vite-plugin-monaco-editor-esm` to handle global injection of workers. Our renderer is optimized for streaming updates to large code blocks—when content changes incrementally, only the necessary parts are updated for smooth, responsive rendering. On Windows, you may encounter issues during the build process. To resolve this, configure `customDistPath` to ensure successful packaging.
 
-> Note: If you only need to render a Monaco editor (for editing or previewing code) and don't require this library's full Markdown rendering pipeline, you can integrate Monaco directly using `vue-use-monaco` for a lighter, more direct integration.
+> Note: If you only need to render a Monaco editor (for editing or previewing code) and don't require this library's full Markdown rendering pipeline, you can integrate Monaco directly using `stream-monaco` for a lighter, more direct integration.
 
 ```bash
 pnpm add vite-plugin-monaco-editor-esm monaco-editor -d
@@ -1452,7 +1452,7 @@ See the [Tailwind section](#tailwind-eg-shadcn--fix-style-ordering-issues) for m
 
 This project is built with the help of these awesome libraries:
 
-- [vue-use-monaco](https://github.com/vueuse/vue-use-monaco) — Monaco Editor integration for Vue
+- [stream-monaco](https://github.com/Simon-He95/stream-monaco) — A framework-agnostic library for integrating Monaco Editor with Shiki highlighting, optimized for streaming updates
 - [shiki](https://github.com/shikijs/shiki) — Syntax highlighter powered by TextMate grammars and VS Code themes
 
 Thanks to the authors and contributors of these projects!

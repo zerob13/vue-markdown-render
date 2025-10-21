@@ -16,12 +16,12 @@
     "@vueuse/core": "^13.9.0",
     "katex": "^0.16.25",
     "monaco-editor": "^0.52.2",
+    "stream-monaco": "^0.0.2",
     "vite": "^7.1.11",
     "vue": "^3.5.22",
     "vue-i18n": "^11.1.12",
     "vue-renderer-markdown": "latest",
-    "vue-router": "^4.6.3",
-    "vue-use-monaco": "^0.0.33"
+    "vue-router": "^4.6.3"
   },
   "devDependencies": {
     "@types/node": "^20.19.22",

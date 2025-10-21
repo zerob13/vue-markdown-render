@@ -50,7 +50,7 @@ yarn add vue-renderer-markdown vue
 | 依赖 | 版本 | 作用 | 缺失时退化行为 |
 |------|------|------|----------------|
 | `mermaid` | >=11 | Mermaid 图表 | 展示源代码 |
-| `vue-use-monaco` | >=0.0.33 | Monaco 编辑器 | 仅显示纯文本 |
+| `stream-monaco` | >=0.0.2 | Monaco 编辑器 | 仅显示纯文本 |
 | `shiki` | ^3.13.0 | MarkdownCodeBlockNode 语法高亮 | 仅显示纯文本 |
 | `vue-i18n` | >=9 | 国际化 | 内置同步翻译器 |
 
@@ -98,7 +98,7 @@ console.log('流式渲染!')
 
 | 模式 | 组件 | 适用场景 | 依赖 |
 |------|------|----------|------|
-| 默认 Monaco | `CodeBlockNode` | 交互、折叠、复制等完整功能 | `vue-use-monaco` |
+| 默认 Monaco | `CodeBlockNode` | 交互、折叠、复制等完整功能 | `stream-monaco` |
 | Shiki 高亮 | `MarkdownCodeBlockNode` | 轻量展示、SSR 友好 | `shiki` |
 | 纯文本 | `PreCodeNode` | 最小依赖、AI "思考" 输出 | 无 |
 
@@ -314,7 +314,7 @@ export default {
 }
 ```
 
-> 注意：如仅需渲染 Monaco 编辑器（用于代码编辑或预览），可直接集成 `vue-use-monaco`，无需本库的完整 Markdown 渲染管线。
+> 注意：如仅需渲染 Monaco 编辑器（用于代码编辑或预览），可直接集成 `stream-monaco`，无需本库的完整 Markdown 渲染管线。
 ### Mermaid 不渲染
 
 **现象**：标记为 ` ```mermaid` 的代码块仍然显示原始文本。

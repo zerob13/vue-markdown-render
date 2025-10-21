@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
+import { getUseMonaco } from '../../../src/components/CodeBlockNode/monaco'
 import MarkdownRender from '../../../src/components/NodeRenderer'
 import { removeCustomComponents, setCustomComponents } from '../../../src/utils/nodeComponents'
 import KatexWorker from '../../../src/workers/katexRenderer.worker?worker&inline'
@@ -9,6 +10,7 @@ import { setMermaidWorker } from '../../../src/workers/mermaidWorkerClient'
 import ThinkingNode from '../components/ThinkingNode.vue'
 import { streamContent } from '../const/markdown'
 import 'katex/dist/katex.min.css'
+// import MarkdownCodeBlockNode from '../../../src/components/MarkdownCodeBlockNode'
 
 // 每隔 10 毫秒输出一部分内容
 const content = ref<string>('')
@@ -16,6 +18,8 @@ const streamDelay = useLocalStorage<number>('vmr-settings-stream-delay', 16)
 const streamChunkSize = useLocalStorage<number>('vmr-settings-stream-chunk-size', 1)
 const normalizedChunkSize = computed(() => Math.max(1, Math.floor(streamChunkSize.value) || 1))
 
+// 预加载 Monaco 编辑器
+getUseMonaco()
 setKaTeXWorker(new KatexWorker())
 setMermaidWorker(new MermaidWorker())
 
@@ -985,12 +989,5 @@ watch(content, () => {
 :deep(.is-rendering) {
   position: relative;
   animation: renderingGlow 2s ease-in-out infinite;
-}
-:deep(.prose .markdown-renderer p) {
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-}
-.prose{
-  max-width: 100% !important;
 }
 </style>

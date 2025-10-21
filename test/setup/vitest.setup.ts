@@ -30,7 +30,7 @@ if (!(globalThis as any).atob) {
   ;(globalThis as any).atob = (input: string) => Buffer.from(input, 'base64').toString('utf-8')
 }
 
-vi.mock('vue-use-monaco', () => ({
+vi.mock('stream-monaco', () => ({
   useMonaco: () => ({
     createEditor: () => {},
     createDiffEditor: () => {},

@@ -10,10 +10,10 @@ Install the peers you need in your Nuxt app. For example, to enable Mermaid and 
 
 ```bash
 # pnpm (recommended)
-pnpm add mermaid vue-use-monaco
+pnpm add mermaid stream-monaco
 
 # npm
-npm install mermaid vue-use-monaco
+npm install mermaid stream-monaco
 ```
 
 Do NOT import these peers from server-only code paths during SSR.

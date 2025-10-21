@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// Avoid static import of `vue-use-monaco` for types so the runtime bundle
+// Avoid static import of `stream-monaco` for types so the runtime bundle
 // doesn't get a reference. Define minimal local types we need here.
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { useSafeI18n } from '../../composables/useSafeI18n'
@@ -7,7 +7,6 @@ import { useSafeI18n } from '../../composables/useSafeI18n'
 import { hideTooltip, showTooltipForAnchor } from '../../composables/useSingletonTooltip'
 import { getLanguageIcon, languageMap } from '../../utils'
 import { safeCancelRaf, safeRaf } from '../../utils/safeRaf'
-import { preload } from '../NodeRenderer/preloadMonaco'
 import PreCodeNode from '../PreCodeNode'
 import { getUseMonaco } from './monaco'
 
@@ -82,8 +81,8 @@ let expandRafId: number | null = null
 const heightBeforeCollapse = ref<number | null>(null)
 let resumeGuardFrames = 0
 
-// Lazy-load `vue-use-monaco` helpers at runtime so consumers who don't install
-// `vue-use-monaco` won't have the editor code bundled. We provide safe no-op
+// Lazy-load `stream-monaco` helpers at runtime so consumers who don't install
+// `stream-monaco` won't have the editor code bundled. We provide safe no-op
 // fallbacks for the minimal API we use.
 let createEditor: ((el: HTMLElement, code: string, lang: string) => void) | null = null
 let createDiffEditor: ((el: HTMLElement, original: string, modified: string, lang: string) => void) | null = null
@@ -103,16 +102,15 @@ if (typeof window !== 'undefined') {
   ;(async () => {
     try {
       const mod = await getUseMonaco()
-      // If mod is null, vue-use-monaco is not available
+      // If mod is null, stream-monaco is not available
       if (!mod) {
         // Only log warning in development mode
         if (import.meta.env?.DEV) {
-          console.warn('[vue-renderer-markdown] vue-use-monaco is not installed. Code blocks will use basic rendering. Install vue-use-monaco for enhanced code editor features.')
+          console.warn('[vue-renderer-markdown] stream-monaco is not installed. Code blocks will use basic rendering. Install stream-monaco for enhanced code editor features.')
         }
         usePreCodeRender.value = true
         return
       }
-      await preload(mod)
       // `useMonaco` and `detectLanguage` should be available
       const useMonaco = (mod as any).useMonaco
       const det = (mod as any).detectLanguage

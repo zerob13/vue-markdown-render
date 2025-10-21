@@ -1,3 +1,5 @@
+import { preload } from '../NodeRenderer/preloadMonaco'
+
 let mod: any = null
 let importAttempted = false
 
@@ -8,7 +10,8 @@ export async function getUseMonaco() {
     return null
 
   try {
-    mod = await import('vue-use-monaco')
+    mod = await import('stream-monaco')
+    await preload(mod)
     return mod
   }
   catch {

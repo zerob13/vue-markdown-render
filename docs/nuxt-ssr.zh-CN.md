@@ -10,10 +10,10 @@
 
 ```bash
 # pnpm（推荐）
-pnpm add mermaid vue-use-monaco
+pnpm add mermaid stream-monaco
 
 # npm
-npm install mermaid vue-use-monaco
+npm install mermaid stream-monaco
 ```
 
 **请勿**在 SSR 的服务端上下文中直接导入这些依赖。
