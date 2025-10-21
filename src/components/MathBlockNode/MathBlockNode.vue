@@ -24,6 +24,7 @@ let isUnmounted = false
 let currentAbortController: AbortController | null = null
 const registerVisibility = useViewportPriority()
 let visibilityHandle: ReturnType<typeof registerVisibility> | null = null
+const renderingLoading = ref(true)
 
 // Function to render math using KaTeX
 async function renderMath() {
@@ -68,6 +69,7 @@ async function renderMath() {
         return
       mathBlockElement.value.innerHTML = html
       hasRenderedOnce = true
+      renderingLoading.value = false
     })
     .catch(async (err: any) => {
       // ignore if a newer render was requested or component unmounted
@@ -99,6 +101,7 @@ async function renderMath() {
           })
           mathBlockElement.value.innerHTML = html
           hasRenderedOnce = true
+          renderingLoading.value = false
           // populate worker client cache so future calls hit cache
           setKaTeXCache(props.node.content, true, html)
           return
@@ -106,7 +109,12 @@ async function renderMath() {
       }
 
       // show raw fallback when we never successfully rendered before or when loading flag is false
-      if (!hasRenderedOnce || !props.node.loading) {
+
+      if (!hasRenderedOnce) {
+        renderingLoading.value = true
+      }
+      if (!props.node.loading){
+        renderingLoading.value = false
         mathBlockElement.value.textContent = props.node.raw
       }
     })
@@ -135,7 +143,69 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="containerEl" class="math-block text-center overflow-x-auto">
-    <div ref="mathBlockElement" />
+  <div ref="containerEl" class="math-block text-center overflow-x-auto relative">
+    <Transition name="math-fade">
+      <div v-if="renderingLoading" class="math-loading-overlay">
+        <div class="math-loading-spinner" />
+      </div>
+    </Transition>
+    <div ref="mathBlockElement" :class="{ 'math-rendering': renderingLoading }" />
   </div>
 </template>
+
+<style scoped>
+.math-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(2px);
+  min-height: 40px;
+}
+
+.math-loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-top-color: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  animation: math-spin 0.8s linear infinite;
+}
+
+@keyframes math-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.math-rendering {
+  opacity: 0.3;
+  transition: opacity 0.2s ease;
+}
+
+.math-fade-enter-active,
+.math-fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.math-fade-enter-from,
+.math-fade-leave-to {
+  opacity: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .math-loading-overlay {
+    background-color: rgba(0, 0, 0, 0.6);
+  }
+  
+  .math-loading-spinner {
+    border-color: rgba(255, 255, 255, 0.2);
+    border-top-color: rgba(255, 255, 255, 0.8);
+  }
+}
+</style>

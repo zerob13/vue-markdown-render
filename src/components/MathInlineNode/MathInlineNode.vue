@@ -99,8 +99,10 @@ async function renderMath() {
       if (!hasRenderedOnce) {
         renderingLoading.value = true
       }
-      if (!props.node.loading)
+      if (!props.node.loading) {
+        renderingLoading.value = false
         mathElement.value.textContent = props.node.raw
+      }
     })
 }
 
