@@ -45,7 +45,7 @@ const colWidths = computed(() => {
   const base = Math.floor(100 / n)
   // 为了保证总和为100%，最后一个列占剩余的百分比
   return Array.from({ length: n }).map((_, i) =>
-    i === n - 1 ? `${100 - base * (n - 1)}%` : `${base}%`,
+    i === n - 1 ? `${100 - base * (n - 1)}%` : `${base}%`
   )
 })
 
@@ -61,7 +61,7 @@ const bodyRows = computed(() => props.node.rows ?? [])
       :aria-busy="isLoading"
     >
       <colgroup>
-        <col v-for="(w, i) in colWidths" :key="`col-${i}`" :style="{ width: w }">
+        <col v-for="(w, i) in colWidths" :key="`col-${i}`" :style="{ width: w }" />
       </colgroup>
       <thead class="border-[var(--table-border,#cbd5e1)]">
         <tr class="border-b">
@@ -90,7 +90,6 @@ const bodyRows = computed(() => props.node.rows ?? [])
             v-for="(cell, cellIndex) in row.cells"
             :key="`cell-${rowIndex}-${cellIndex}`"
             class="text-left truncate p-[calc(4/7*1em)]"
-            :class="[cellIndex === 0 ? '!pl-0' : '']"
             dir="auto"
           >
             <NodeRenderer
