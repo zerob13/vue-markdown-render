@@ -32,7 +32,7 @@ export function parseFenceToken(token: MarkdownToken): CodeBlockNode {
   const meta = (token as any).meta
   const closed = typeof meta?.closed === 'boolean' ? meta.closed : undefined
   const diff = token.info?.startsWith('diff') || false
-  const language = diff ? token.info.split(' ')[1] || '' : token.info || ''
+  const language = diff ? token.info?.split(' ')[1] || '' : token.info || ''
 
   // Defensive sanitization: sometimes a closing fence line (e.g. ``` or ``)
   // can accidentally end up inside `token.content` (for example when

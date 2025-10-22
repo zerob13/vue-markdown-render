@@ -4,19 +4,19 @@ export function fixLinkToken(tokens: MarkdownToken[]): MarkdownToken[] {
   if (tokens.length < 5)
     return tokens
   const first = tokens[tokens.length - 5]
-  if (first.type !== 'text' && !first.content.endsWith('['))
+  if (first.type !== 'text' && !first.content!.endsWith('['))
     return fixLinkTokens2(tokens)
   const second = tokens[tokens.length - 4]
   if (second.tag !== 'em')
     return fixLinkTokens2(tokens)
   const last = tokens[tokens.length - 1]
-  if (!last.content.startsWith(']'))
+  if (!last.content!.startsWith(']'))
     return fixLinkTokens2(tokens)
 
   const third = tokens[tokens.length - 3]
-  const href = last.content.replace(/^\]\(*/, '')
-  const loading = !last.content.includes(')')
-  first.content = first.content.replace(/\[$/, '')
+  const href = last.content!.replace(/^\]\(*/, '')
+  const loading = !last.content!.includes(')')
+  first.content = first.content!.replace(/\[$/, '')
   tokens.splice(tokens.length - 3, 1, {
     type: 'link',
     href,
@@ -55,13 +55,13 @@ export function fixLinkTokens2(tokens: MarkdownToken[]): MarkdownToken[] {
   let count = 4
   if (length !== tokens.length) {
     // 合并 last 到 href
-    href += last.content
+    href += last.content || ''
     count++
   }
   tokens.splice(length - 4, count)
   const content = third.content
   length -= 4
-  first.content = first.content.replace(/\[$/, '')
+  first.content = first.content!.replace(/\[$/, '')
   tokens.splice(length - 2, 1, {
     type: 'link',
     href,

@@ -1,4 +1,4 @@
-import type { AdmonitionNode, MarkdownToken, ParsedNode } from '../../types'
+import type { AdmonitionNode, MarkdownToken, ParsedNode, TextNode } from '../../types'
 import { parseInlineTokens } from '../inline-parsers'
 import { parseList } from './list-parser'
 
@@ -54,14 +54,14 @@ export function parseContainer(
     if (tokens[j].type === 'paragraph_open') {
       const contentToken = tokens[j + 1]
       if (contentToken) {
-        const i = contentToken.children.findLastIndex(t => t.type === 'text' && /:+/.test(t.content))
+        const i = (contentToken.children as any).findLastIndex((t: TextNode) => t.type === 'text' && /:+/.test(t.content))
         const _children = i !== -1
-          ? contentToken.children.slice(0, i)
+          ? contentToken.children?.slice(0, i)
           : contentToken.children
         children.push({
           type: 'paragraph',
           children: parseInlineTokens(_children || []),
-          raw: contentToken.content.replace(/\n:+$/, '').replace(/\n\s*:::\s*$/, '') || '',
+          raw: contentToken.content?.replace(/\n:+$/, '').replace(/\n\s*:::\s*$/, '') || '',
         })
       }
       j += 3

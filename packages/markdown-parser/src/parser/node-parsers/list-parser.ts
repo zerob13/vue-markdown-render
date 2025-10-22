@@ -41,9 +41,9 @@ export function parseList(
         if (tokens[k].type === 'paragraph_open') {
           const contentToken = tokens[k + 1]
           const preToken = tokens[k - 1]
-          if (/\n\d+$/.test(contentToken.content)) {
-            contentToken.content = contentToken.content.replace(/\n\d+$/, '')
-            contentToken.children.splice(-1, 1)
+          if (/\n\d+$/.test(contentToken.content || '')) {
+            contentToken.content = contentToken.content?.replace(/\n\d+$/, '')
+            contentToken.children?.splice(-1, 1)
           }
           itemChildren.push({
             type: 'paragraph',
