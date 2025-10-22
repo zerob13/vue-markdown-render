@@ -5,6 +5,7 @@
     "lib": ["DOM", "ESNext"],
     "module": "ESNext",
     "moduleResolution": "node",
+    "types": ["vite/client"],
     "resolveJsonModule": true,
     "declaration": true,
     "emitDeclarationOnly": true,

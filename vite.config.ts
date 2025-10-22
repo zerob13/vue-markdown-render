@@ -26,6 +26,10 @@ export default defineConfig(({ mode }) => {
       Vue(),
       dts({
         outDir: 'dist/types',
+        // Use a build-only tsconfig without path aliases to avoid rewriting
+        // imports like "stream-markdown-parser" into relative workspace paths
+        // in the emitted .d.ts (which breaks type bundling).
+        tsconfigPath: './tsconfig.build.json',
       }),
       UnpluginClassExtractor({
         output: 'dist/tailwind.ts',
@@ -111,6 +115,15 @@ export default defineConfig(({ mode }) => {
     }
   }
 
+  // Alias resolution: during dev/test, point workspace dep to source to avoid needing its dist build
+  const alias: Record<string, string> = {
+    '@': '/src',
+  }
+  if (mode !== 'npm') {
+    alias['stream-markdown-parser'] = '/packages/markdown-parser/src/index.ts'
+    alias['stream-markdown-parser/*'] = '/packages/markdown-parser/src/*'
+  }
+
   return {
     base,
     plugins,
@@ -137,10 +150,6 @@ export default defineConfig(({ mode }) => {
     css: {
       postcss: './postcss.config.cjs',
     },
-    resolve: {
-      alias: {
-        '@': '/src',
-      },
-    },
+    resolve: { alias },
   }
 })
