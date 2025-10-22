@@ -3,7 +3,7 @@ import type { Highlighter, ThemeInput } from 'shiki'
 import { Icon } from '@iconify/vue'
 import katex from 'katex'
 import { defaultLanguages, registerHighlight } from 'stream-markdown'
-import { getMarkdown } from '../../../packages/markdown-parser'
+import { getMarkdown } from 'stream-markdown-parser'
 import { languageMap } from '../../../src/utils'
 import { streamContent } from '../const/markdown'
 // 每隔 10 毫秒输出一部分内容
