@@ -15,7 +15,6 @@
     "@tailwindcss/typography": "^0.5.19",
     "@vueuse/core": "^13.9.0",
     "katex": "^0.16.25",
-    "monaco-editor": "^0.52.2",
     "stream-monaco": "^0.0.2",
     "vite": "^7.1.11",
     "vue": "^3.5.22",
@@ -24,6 +23,7 @@
     "vue-router": "^4.6.3"
   },
   "devDependencies": {
+    "monaco-editor": "^0.52.2",
     "@types/node": "^20.19.23",
     "@unocss/reset": "^0.61.9",
     "@vue/test-utils": "^2.4.6",
