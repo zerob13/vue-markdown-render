@@ -6,8 +6,6 @@
     "baseUrl": ".",
     "module": "ESNext",
     "moduleResolution": "Node",
-  "allowSyntheticDefaultImports": true,
-  "esModuleInterop": true,
     "paths": {
       "@/*": ["src/*"],
       // Ensure TypeScript can resolve the local workspace package without a build step in CI
@@ -20,6 +18,8 @@
     "declaration": true,
     "declarationMap": true,
     "emitDeclarationOnly": false,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "isolatedModules": true,
     "skipLibCheck": true
   },

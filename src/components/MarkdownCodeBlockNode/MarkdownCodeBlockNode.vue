@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import type { Highlighter } from 'shiki'
-import { computed, nextTick, ref, watch } from 'vue'
+import { createShikiStreamRenderer } from 'stream-markdown'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useSafeI18n } from '../../composables/useSafeI18n'
 import { hideTooltip, showTooltipForAnchor } from '../../composables/useSingletonTooltip'
 import { getLanguageIcon, languageMap } from '../../utils'
 import MermaidBlockNode from '../MermaidBlockNode'
-import { registerHighlight } from './highlight'
 
 const props = withDefaults(
   defineProps<{
@@ -125,33 +124,50 @@ const contentStyle = computed(() => {
   }
 })
 
-const highlighter = ref<Highlighter | null>(null)
-const highlightedCode = ref<string>('')
-if (typeof window !== 'undefined') {
-  watch(() => props.themes, async (newThemes) => {
-    // Ensure singleton highlighter exists and optionally loads requested themes
-    highlighter.value = await registerHighlight({
-      themes: newThemes as any,
-    })
-    if (!props.loading && highlighter.value) {
-      const theme = props.themes && props.themes.length > 0 ? (props.isDark ? props.themes[0] : props.themes[1] || props.themes[0]) : (props.isDark ? props.darkTheme || 'vitesse-dark' : props.lightTheme || 'vitesse-light')
-      const lang = props.node.language.split(':')[0] // 支持 language:variant 形式
-      highlightedCode.value = await highlighter.value.codeToHtml(props.node.code, { lang, theme })
-    }
-  }, { immediate: true })
+function getPreferredColorScheme() {
+  return props.isDark ? props.darkTheme : props.lightTheme
 }
+let renderer: ReturnType<typeof createShikiStreamRenderer>
+function initRenderer() {
+  if (!codeBlockContent.value)
+    return
+  renderer = createShikiStreamRenderer(codeBlockContent.value, {
+    lang: codeLanguage.value,
+    theme: getPreferredColorScheme(),
+    themes: props.themes,
+  })
+}
+onMounted(() => {
+  initRenderer()
+})
 
 watch(() => [props.node.code, props.node.language], async ([code, lang]) => {
   if (lang !== codeLanguage.value)
     codeLanguage.value = lang
-  if (!highlighter.value)
+  if (!codeBlockContent.value)
     return
+
+  if (!renderer)
+    initRenderer()
   if (!code)
     return
-  const theme = props.themes && props.themes.length > 0 ? (props.isDark ? props.themes[0] : props.themes[1] || props.themes[0]) : (props.isDark ? props.darkTheme || 'vitesse-dark' : props.lightTheme || 'vitesse-light')
   lang = lang.split(':')[0] // 支持 language:variant 形式
-  highlightedCode.value = await highlighter.value.codeToHtml(code, { lang, theme })
+  renderer.updateCode(code, lang)
 })
+
+const watchTheme = watch(
+  () => [props.darkTheme, props.lightTheme],
+  () => {
+    if (!codeBlockContent.value)
+      return
+    if (!renderer)
+      initRenderer()
+    if (isMermaid.value) {
+      return watchTheme()
+    }
+    renderer.setTheme(getPreferredColorScheme())
+  },
+)
 
 // Auto-scroll to bottom when content changes (if not expanded and auto-scroll is enabled)
 watch(() => props.node.code, async () => {
@@ -433,7 +449,6 @@ function previewCode() {
       class="code-block-content"
       :style="contentStyle"
       @scroll="handleScroll"
-      v-html="highlightedCode"
     />
   </div>
 </template>

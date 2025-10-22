@@ -173,6 +173,7 @@ yarn add mermaid stream-monaco shiki
 |----------------|---------|---------|---------------------|
 | `mermaid` | >=11 | Progressive Mermaid diagram rendering | Shows code block source |
 | `stream-monaco` | >=0.0.33 | Monaco Editor for interactive code editing | Plain text display |
+| `stream-markdown` | >=0.0.2 | Streaming renderer used by `MarkdownCodeBlockNode` | Plain text display |
 | `shiki` | ^3.13.0 | Syntax highlighting for `MarkdownCodeBlockNode` | Plain text display |
 | `vue-i18n` | >=9 | Internationalization support | Built-in fallback translator |
 
@@ -793,6 +794,24 @@ The library now includes `MarkdownCodeBlockNode` - an alternative code block com
 - **CodeBlockNode** (default): Full-featured code blocks with Monaco Editor integration, copy buttons, expand/collapse, and advanced features
 - **MarkdownCodeBlockNode**: Lightweight markdown-style rendering with syntax highlighting using Shiki
 
+Required peers when using MarkdownCodeBlockNode:
+
+- `stream-markdown` (>=0.0.2)
+- `shiki` (^3.13.0)
+
+Install examples:
+
+```bash
+# pnpm
+pnpm add stream-markdown shiki
+
+# npm
+npm install stream-markdown shiki
+
+# yarn
+yarn add stream-markdown shiki
+```
+
 **When to use MarkdownCodeBlockNode:**
 - You want syntax-highlighted code blocks without Monaco Editor dependencies
 - You prefer a lighter-weight solution for code display
@@ -1342,10 +1361,10 @@ See the [Monaco Editor Integration](#monaco-editor-integration) section for more
 
 **Symptom:** Code blocks show plain text without syntax highlighting when using `MarkdownCodeBlockNode`.
 
-**Solution:** Install the `shiki` peer dependency:
+**Solution:** Install the required peers for `MarkdownCodeBlockNode`:
 
 ```bash
-pnpm add shiki
+pnpm add stream-markdown shiki
 ```
 
 ### TypeScript errors about missing types

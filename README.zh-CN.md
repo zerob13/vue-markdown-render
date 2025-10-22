@@ -51,6 +51,7 @@ yarn add vue-renderer-markdown vue
 |------|------|------|----------------|
 | `mermaid` | >=11 | Mermaid 图表 | 展示源代码 |
 | `stream-monaco` | >=0.0.2 | Monaco 编辑器 | 仅显示纯文本 |
+| `stream-markdown` | >=0.0.2 | `MarkdownCodeBlockNode` 所用的流式高亮渲染器 | 仅显示纯文本 |
 | `shiki` | ^3.13.0 | MarkdownCodeBlockNode 语法高亮 | 仅显示纯文本 |
 | `vue-i18n` | >=9 | 国际化 | 内置同步翻译器 |
 
@@ -145,6 +146,24 @@ import { MarkdownCodeBlockNode, setCustomComponents } from 'vue-renderer-markdow
 setCustomComponents({
   code_block: MarkdownCodeBlockNode,
 })
+```
+
+使用 MarkdownCodeBlockNode 时需要安装以下 peer 依赖：
+
+- `stream-markdown` (>=0.0.2)
+- `shiki` (^3.13.0)
+
+安装示例：
+
+```bash
+# pnpm
+pnpm add stream-markdown shiki
+
+# npm
+npm install stream-markdown shiki
+
+# yarn
+yarn add stream-markdown shiki
 ```
 
 或在实例级启用纯文本：
@@ -387,10 +406,10 @@ getUseMonaco()
 
 **现象**：使用 `MarkdownCodeBlockNode` 时代码块仅显示纯文本。
 
-**解决方案**：安装 `shiki` 依赖：
+**解决方案**：安装 `MarkdownCodeBlockNode` 所需依赖：
 
 ```bash
-pnpm add shiki
+pnpm add stream-markdown shiki
 ```
 
 并确保在渲染器中启用了该组件：

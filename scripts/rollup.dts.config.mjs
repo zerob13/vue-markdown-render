@@ -14,7 +14,7 @@ export default [
       }),
     ],
     external: [
-      /^(?:stream-markdown-parser)(?:\/.*)?$/,
+      /^stream-markdown-parser(?:\/.*)?$/,
     ],
     output: [
       {
