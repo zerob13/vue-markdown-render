@@ -56,7 +56,7 @@ const bodyRows = computed(() => props.node.rows ?? [])
 <template>
   <div class="table-node-wrapper">
     <table
-      class="table-node table-fixed text-left my-8 text-sm w-full"
+      class="w-full my-8 text-sm text-left table-fixed table-node"
       :class="{ 'table-node--loading': isLoading }"
       :aria-busy="isLoading"
     >
@@ -69,8 +69,7 @@ const bodyRows = computed(() => props.node.rows ?? [])
             v-for="(cell, index) in node.header.cells"
             :key="`header-${index}`"
             dir="auto"
-            class="text-left font-semibold  dark:text-white truncate p-[calc(4/7*1em)]"
-            :class="[index === 0 ? '!pl-0' : '']"
+            class="text-left font-semibold dark:text-white truncate p-[calc(4/7*1em)]"
           >
             <NodeRenderer
               :nodes="cell.children"
@@ -85,11 +84,7 @@ const bodyRows = computed(() => props.node.rows ?? [])
           v-for="(row, rowIndex) in bodyRows"
           :key="`row-${rowIndex}`"
           class="border-[var(--table-border,#cbd5e1)]"
-          :class="[
-            rowIndex < bodyRows.length - 1
-              ? 'border-b'
-              : '',
-          ]"
+          :class="[rowIndex < bodyRows.length - 1 ? 'border-b' : '']"
         >
           <td
             v-for="(cell, cellIndex) in row.cells"
@@ -108,12 +103,7 @@ const bodyRows = computed(() => props.node.rows ?? [])
       </tbody>
     </table>
     <transition name="table-node-fade">
-      <div
-        v-if="isLoading"
-        class="table-node__loading"
-        role="status"
-        aria-live="polite"
-      >
+      <div v-if="isLoading" class="table-node__loading" role="status" aria-live="polite">
         <slot name="loading" :is-loading="isLoading">
           <span class="table-node__spinner animate-spin" aria-hidden="true" />
           <span class="sr-only">Loading</span>
