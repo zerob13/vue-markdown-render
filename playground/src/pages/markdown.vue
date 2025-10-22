@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { Highlighter } from 'shiki'
+import type { Highlighter, ThemeInput } from 'shiki'
 import { Icon } from '@iconify/vue'
 import katex from 'katex'
-import { disposeHighlighter, registerHighlight } from '../../../src/components/MarkdownCodeBlockNode/highlight'
+import { defaultLanguages, registerHighlight } from 'stream-markdown'
+import { getMarkdown } from '../../../packages/markdown-parser'
 import { languageMap } from '../../../src/utils'
-import { getMarkdown } from '../../../src/utils/markdown/getMarkdown'
 import { streamContent } from '../const/markdown'
 // 每隔 10 毫秒输出一部分内容
 const content = ref<string>('')
@@ -25,7 +25,8 @@ useInterval(16, {
 
 const highlighter = ref<Highlighter | null>(null)
 const selectedTheme = ref('vitesse-dark')
-const md = getMarkdown({
+
+const md = getMarkdown('hi', {
   markdownItOptions: {
     highlight: (str: string, lang: string) => {
       const _lang = lang.split(':')[0] || 'plaintext'
@@ -38,16 +39,25 @@ const md = getMarkdown({
   },
 })
 md.renderer.rules.math_inline = (tokens: any[], index: number) => {
-  const rendered = katex.renderToString(tokens[index].content, { throwOnError: false })
+  const rendered = katex.renderToString(tokens[index].content, { throwOnError: false, strict: 'ignore' })
   if (rendered)
     return `<span class="math-inline">${rendered}</span>`
   return `<span class="math-inline">${tokens[index].content}</span>`
 }
 md.renderer.rules.math_block = (tokens: any[], index: number) => {
-  const rendered = katex.renderToString(tokens[index].content, { throwOnError: false, displayMode: true })
+  const rendered = katex.renderToString(tokens[index].content, { throwOnError: false, displayMode: true, strict: 'ignore' })
   if (rendered)
     return `<div class="math-block my-4">${rendered}</div>`
   return `<div class="math-block my-4">${tokens[index].content}</div>`
+}
+md.renderer.rules.fence = (tokens, idx) => {
+  const token = tokens[idx]
+  const langInfo = token.info ? token.info.trim() : ''
+  const lang = langInfo.split(':')[0] || 'plaintext'
+  if (highlighter.value) {
+    return highlighter.value.codeToHtml(token.content, { lang: defaultLanguages.includes(lang) ? lang : 'plaintext', theme: selectedTheme.value })
+  }
+  return `<pre><code class="language-${lang}">${token.content}</code></pre>`
 }
 
 const html = computed(() => md.render(content.value))
@@ -120,10 +130,12 @@ const themes = [
 
 if (typeof window !== 'undefined') {
   watch(() => selectedTheme.value, async (newThemes) => {
-    disposeHighlighter()
-    highlighter.value = await registerHighlight({
-      themes: [newThemes] as any,
-    })
+    if (!highlighter.value) {
+      highlighter.value = await registerHighlight({
+        themes: themes as ThemeInput[],
+      })
+    }
+    highlighter.value?.loadTheme(newThemes as ThemeInput)
   }, { immediate: true })
 }
 // 格式化主题名称显示

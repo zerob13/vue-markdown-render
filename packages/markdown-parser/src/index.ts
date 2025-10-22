@@ -1,3 +1,4 @@
+import type { FactoryOptions } from './factory'
 import MarkdownIt from 'markdown-it'
 import { full as markdownItEmoji } from 'markdown-it-emoji'
 import markdownItFootnote from 'markdown-it-footnote'
@@ -5,9 +6,9 @@ import markdownItIns from 'markdown-it-ins'
 import markdownItMark from 'markdown-it-mark'
 import markdownItSub from 'markdown-it-sub'
 import markdownItSup from 'markdown-it-sup'
-import * as markdownItCheckbox from 'markdown-it-task-checkbox'
 
-import { getMarkdown as factory } from './getMarkdown'
+import * as markdownItCheckbox from 'markdown-it-task-checkbox'
+import { factory } from './factory'
 import {
   parseInlineTokens,
   parseMarkdownToStructure,
@@ -33,7 +34,7 @@ export { applyMath, KATEX_COMMANDS, normalizeStandaloneBackslashT } from './plug
 // Re-export the node types for backward compatibility
 export * from './types'
 
-export interface GetMarkdownOptions {
+export interface GetMarkdownOptions extends FactoryOptions {
   plugin?: Array<any>
   apply?: Array<(md: MarkdownIt) => void>
   /**
@@ -45,7 +46,7 @@ export interface GetMarkdownOptions {
 
 export function getMarkdown(msgId: string = `editor-${Date.now()}`, options: GetMarkdownOptions = {}) {
   // keep legacy behaviour but delegate to new factory and reapply project-specific rules
-  const md = factory({})
+  const md = factory(options)
 
   // Setup i18n translator function
   const defaultTranslations: Record<string, string> = {

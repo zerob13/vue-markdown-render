@@ -5,14 +5,14 @@ import { applyContainers } from './plugins/containers'
 import { applyMath } from './plugins/math'
 import { applyRenderRules } from './renderers'
 
-export interface GetMarkdownOptions extends Record<string, any> {
+export interface FactoryOptions extends Record<string, any> {
   markdownItOptions?: Record<string, any>
   enableMath?: boolean
   enableContainers?: boolean
   mathOptions?: { commands?: string[], escapeExclamation?: boolean }
 }
 
-export function getMarkdown(opts: GetMarkdownOptions = {}): MarkdownIt {
+export function factory(opts: FactoryOptions = {}): MarkdownIt {
   const md = new MarkdownIt({
     html: true,
     linkify: true,
