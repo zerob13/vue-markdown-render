@@ -1521,6 +1521,8 @@ See the [Tailwind section](#tailwind-eg-shadcn--fix-style-ordering-issues) for m
 This project is built with the help of these awesome libraries:
 
 - [stream-monaco](https://github.com/Simon-He95/stream-monaco) — A framework-agnostic library for integrating Monaco Editor with Shiki highlighting, optimized for streaming updates
+- [stream-markdown](https://github.com/Simon-He95/stream-markdown) — Streaming code/markdown highlighter utilities (Shiki-based)
+- [mermaid](https://mermaid-js.github.io/mermaid) — Diagramming and charting tool that uses Markdown-inspired syntax
 - [shiki](https://github.com/shikijs/shiki) — Syntax highlighter powered by TextMate grammars and VS Code themes
 
 Thanks to the authors and contributors of these projects!
