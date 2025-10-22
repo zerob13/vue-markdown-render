@@ -6,8 +6,13 @@
     "baseUrl": ".",
     "module": "ESNext",
     "moduleResolution": "Node",
+  "allowSyntheticDefaultImports": true,
+  "esModuleInterop": true,
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      // Ensure TypeScript can resolve the local workspace package without a build step in CI
+      "stream-markdown-parser": ["packages/markdown-parser/src/index.ts"],
+      "stream-markdown-parser/*": ["packages/markdown-parser/src/*"]
     },
     "resolveJsonModule": true,
     "types": ["vite/client", "vue"],

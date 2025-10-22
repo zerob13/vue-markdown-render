@@ -275,27 +275,30 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
           const textNodeContent = content.slice(0, linkStart)
           const linkEnd = content.indexOf('](', linkStart)
           if (linkEnd !== -1) {
-            result.push({
-              type: 'text',
-              content: textNodeContent,
-              raw: textNodeContent,
-            })
             const text = content.slice(linkStart + 1, linkEnd)
-            result.push({
-              type: 'link',
-              href: '',
-              text,
-              children: [
-                {
-                  type: 'text',
-                  content: text,
-                  raw: text,
-                },
-              ],
-              loading: true,
-            } as any)
-            i++
-            break
+            // 过滤一些奇怪的情况
+            if (!/[[\]()]/.test(text)) {
+              result.push({
+                type: 'text',
+                content: textNodeContent,
+                raw: textNodeContent,
+              })
+              result.push({
+                type: 'link',
+                href: '',
+                text,
+                children: [
+                  {
+                    type: 'text',
+                    content: text,
+                    raw: text,
+                  },
+                ],
+                loading: true,
+              } as any)
+              i++
+              break
+            }
           }
         }
         const preToken = tokens[i - 1]
