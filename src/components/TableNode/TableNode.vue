@@ -1,56 +1,56 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import NodeRenderer from "../NodeRenderer";
+import { computed } from 'vue'
+import NodeRenderer from '../NodeRenderer'
 
 // 定义单元格节点
 interface TableCellNode {
-  type: "table_cell";
-  header: boolean;
+  type: 'table_cell'
+  header: boolean
   children: {
-    type: string;
-    raw: string;
-  }[];
-  raw: string;
+    type: string
+    raw: string
+  }[]
+  raw: string
 }
 
 // 定义行节点
 interface TableRowNode {
-  type: "table_row";
-  cells: TableCellNode[];
-  raw: string;
+  type: 'table_row'
+  cells: TableCellNode[]
+  raw: string
 }
 
 // 定义表格节点
 interface TableNode {
-  type: "table";
-  header: TableRowNode;
-  rows: TableRowNode[];
-  raw: string;
-  loading: boolean;
+  type: 'table'
+  header: TableRowNode
+  rows: TableRowNode[]
+  raw: string
+  loading: boolean
 }
 
 // 接收props
 const props = defineProps<{
-  node: TableNode;
-  indexKey: string | number;
-}>();
+  node: TableNode
+  indexKey: string | number
+}>()
 
 // 定义事件
-defineEmits(["copy"]);
+defineEmits(['copy'])
 
 // 计算列宽，平均分配。如果需要更复杂的策略，可以在此扩展
-const colCount = computed(() => props.node?.header?.cells?.length ?? 0);
+const colCount = computed(() => props.node?.header?.cells?.length ?? 0)
 const colWidths = computed(() => {
-  const n = colCount.value || 1;
-  const base = Math.floor(100 / n);
+  const n = colCount.value || 1
+  const base = Math.floor(100 / n)
   // 为了保证总和为100%，最后一个列占剩余的百分比
   return Array.from({ length: n }).map((_, i) =>
-    i === n - 1 ? `${100 - base * (n - 1)}%` : `${base}%`
-  );
-});
+    i === n - 1 ? `${100 - base * (n - 1)}%` : `${base}%`,
+  )
+})
 
-const isLoading = computed(() => props.node.loading ?? false);
-const bodyRows = computed(() => props.node.rows ?? []);
+const isLoading = computed(() => props.node.loading ?? false)
+const bodyRows = computed(() => props.node.rows ?? [])
 </script>
 
 <template>
@@ -61,11 +61,7 @@ const bodyRows = computed(() => props.node.rows ?? []);
       :aria-busy="isLoading"
     >
       <colgroup>
-        <col
-          v-for="(w, i) in colWidths"
-          :key="`col-${i}`"
-          :style="{ width: w }"
-        />
+        <col v-for="(w, i) in colWidths" :key="`col-${i}`" :style="{ width: w }">
       </colgroup>
       <thead class="border-[var(--table-border,#cbd5e1)]">
         <tr class="border-b">
@@ -107,12 +103,7 @@ const bodyRows = computed(() => props.node.rows ?? []);
       </tbody>
     </table>
     <transition name="table-node-fade">
-      <div
-        v-if="isLoading"
-        class="table-node__loading"
-        role="status"
-        aria-live="polite"
-      >
+      <div v-if="isLoading" class="table-node__loading" role="status" aria-live="polite">
         <slot name="loading" :is-loading="isLoading">
           <span class="table-node__spinner animate-spin" aria-hidden="true" />
           <span class="sr-only">Loading</span>
@@ -137,7 +128,7 @@ const bodyRows = computed(() => props.node.rows ?? []);
 }
 
 .table-node--loading tbody td::after {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
   border-radius: 0.25rem;
