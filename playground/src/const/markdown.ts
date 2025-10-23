@@ -4,6 +4,9 @@ export const streamContent = `
 
 [Star on GitHub](https://github.com/Simon-He95/vue-markdown-render)
 
+[【Author: Simon】](https://simonhe.me/)
+
+
 ![Vue Markdown Icon](/vue-markdown-icon.svg "Vue Markdown Icon")
 *Figure: Vue Markdown Icon (served from /vue-markdown-icon.svg)*
 
