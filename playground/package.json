@@ -16,7 +16,7 @@
     "@vueuse/core": "^13.9.0",
     "katex": "^0.16.25",
     "stream-monaco": "^0.0.2",
-    "vite": "^7.1.11",
+    "vite": "^7.1.12",
     "vue": "^3.5.22",
     "vue-i18n": "^11.1.12",
     "vue-renderer-markdown": "latest",
