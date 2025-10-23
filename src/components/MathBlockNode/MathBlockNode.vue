@@ -143,7 +143,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="containerEl" class="math-block text-center overflow-x-auto relative">
+  <div ref="containerEl" class="math-block text-center overflow-x-auto relative min-h-[40px]">
     <Transition name="math-fade">
       <div v-if="renderingLoading" class="math-loading-overlay">
         <div class="math-loading-spinner" />
@@ -163,7 +163,6 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(2px);
   min-height: 40px;
 }

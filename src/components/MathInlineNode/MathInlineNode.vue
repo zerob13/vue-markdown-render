@@ -64,8 +64,8 @@ async function renderMath() {
         return
       if (!mathElement.value)
         return
-      renderingLoading.value = false
       mathElement.value.innerHTML = html
+      renderingLoading.value = false
       hasRenderedOnce = true
     })
     .catch(async (err: any) => {
