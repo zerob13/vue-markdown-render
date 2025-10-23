@@ -10,7 +10,7 @@ export function fixLinkToken(tokens: MarkdownToken[]): MarkdownToken[] {
   if (second.tag !== 'em')
     return fixLinkTokens2(tokens)
   const last = tokens[tokens.length - 1]
-  if (!last.content!.startsWith(']'))
+  if (last!.type === 'text' && !last.content!.startsWith(']'))
     return fixLinkTokens2(tokens)
 
   const third = tokens[tokens.length - 3]
@@ -50,6 +50,9 @@ export function fixLinkTokens2(tokens: MarkdownToken[]): MarkdownToken[] {
     return tokens
   const third = tokens[length - 6]
   const first = tokens[length - 8]
+  if (first.type !== 'text') {
+    return tokens
+  }
 
   let href = tokens[length - 2].content
   let count = 4

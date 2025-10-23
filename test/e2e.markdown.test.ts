@@ -34,7 +34,6 @@ describe('e2e markdown parsing (fixtures)', () => {
       expect(nodes).toBeInstanceOf(Array)
       // Ensure we have at least one top-level node
       expect(nodes.length).toBeGreaterThan(0)
-
       // Create a stable, minimal serialization for snapshot
       // Helper to find first descendant text for a node
       const findFirstText = (node: any): string | undefined => {
@@ -92,7 +91,7 @@ describe('e2e markdown parsing (fixtures)', () => {
         }
         else {
           // generic: record if has children
-          out.children = (n as any).children ? (n as any).children.length : undefined
+          out.children = (n as any).children ? (n as any).children.map(item => item.type) : undefined
         }
         // Tolerate environment differences for escaped backslash in a specific fixture
         if (f === 'escaped-brackets.md' && typeof out.firstText === 'string') {

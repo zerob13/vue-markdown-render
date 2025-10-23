@@ -3,7 +3,9 @@
 exports[`e2e markdown parsing (fixtures) > parses fixture admonition.md > admonition.md 1`] = `
 [
   {
-    "children": 1,
+    "children": [
+      "paragraph",
+    ],
     "firstText": "This is a warning admonition with ",
     "type": "admonition",
   },
@@ -19,7 +21,9 @@ exports[`e2e markdown parsing (fixtures) > parses fixture checkbox.md > checkbox
     "type": "list",
   },
   {
-    "children": 1,
+    "children": [
+      "text",
+    ],
     "firstText": "Regular list item",
     "type": "paragraph",
   },
@@ -51,12 +55,16 @@ exports[`e2e markdown parsing (fixtures) > parses fixture code-diff.md > code-di
 exports[`e2e markdown parsing (fixtures) > parses fixture escaped-brackets.md > escaped-brackets.md 1`] = `
 [
   {
-    "children": 1,
+    "children": [
+      "text",
+    ],
     "firstText": "A line with an escaped bracket: [not a link]",
     "type": "paragraph",
   },
   {
-    "children": 1,
+    "children": [
+      "text",
+    ],
     "firstText": "And a literal backslash  and more text.",
     "type": "paragraph",
   },
@@ -89,7 +97,11 @@ print('ok')
 exports[`e2e markdown parsing (fixtures) > parses fixture footnotes.md > footnotes.md 1`] = `
 [
   {
-    "children": 3,
+    "children": [
+      "text",
+      "footnote_reference",
+      "text",
+    ],
     "firstText": "This is a sentence with a footnote",
     "type": "paragraph",
   },
@@ -112,7 +124,9 @@ exports[`e2e markdown parsing (fixtures) > parses fixture headings.md > headings
     "type": "heading",
   },
   {
-    "children": 1,
+    "children": [
+      "text",
+    ],
     "firstText": "A short paragraph under heading 1.",
     "type": "paragraph",
   },
@@ -125,7 +139,13 @@ exports[`e2e markdown parsing (fixtures) > parses fixture headings.md > headings
     "type": "heading",
   },
   {
-    "children": 5,
+    "children": [
+      "text",
+      "strong",
+      "text",
+      "emphasis",
+      "text",
+    ],
     "firstText": "Another paragraph with ",
     "type": "paragraph",
   },
@@ -135,12 +155,18 @@ exports[`e2e markdown parsing (fixtures) > parses fixture headings.md > headings
 exports[`e2e markdown parsing (fixtures) > parses fixture image-link.md > image-link.md 1`] = `
 [
   {
-    "children": 2,
+    "children": [
+      "text",
+      "image",
+    ],
     "firstText": "Here is an image: ",
     "type": "paragraph",
   },
   {
-    "children": 2,
+    "children": [
+      "text",
+      "link",
+    ],
     "firstText": "And a link: ",
     "type": "paragraph",
   },
@@ -150,7 +176,13 @@ exports[`e2e markdown parsing (fixtures) > parses fixture image-link.md > image-
 exports[`e2e markdown parsing (fixtures) > parses fixture math.md > math.md 1`] = `
 [
   {
-    "children": 5,
+    "children": [
+      "text",
+      "math_inline",
+      "text",
+      "math_inline",
+      "text",
+    ],
     "firstText": "Inline math ",
     "type": "paragraph",
   },
@@ -160,7 +192,10 @@ exports[`e2e markdown parsing (fixtures) > parses fixture math.md > math.md 1`] 
     "type": "math_block",
   },
   {
-    "children": 2,
+    "children": [
+      "text",
+      "math_inline",
+    ],
     "firstText": "A line with parentheses that should not break: ",
     "type": "paragraph",
   },
@@ -207,7 +242,9 @@ exports[`e2e markdown parsing (fixtures) > parses fixture table.md > table.md 1`
     "type": "table",
   },
   {
-    "children": 1,
+    "children": [
+      "text",
+    ],
     "firstText": "A paragraph after the table.",
     "type": "paragraph",
   },
@@ -225,12 +262,16 @@ exports[`e2e markdown parsing (fixtures) > parses fixture trailing-backticks.md 
     "type": "code_block",
   },
   {
-    "children": 1,
+    "children": [
+      "inline_code",
+    ],
     "firstText": undefined,
     "type": "paragraph",
   },
   {
-    "children": 1,
+    "children": [
+      "text",
+    ],
     "firstText": "Some text after an extra backtick line.",
     "type": "paragraph",
   },
@@ -255,17 +296,23 @@ exports[`e2e markdown parsing (fixtures) > parses fixture unclosed-fence.md > un
 exports[`e2e markdown parsing (fixtures) > parses fixture unmatched-brackets.md > unmatched-brackets.md 1`] = `
 [
   {
-    "children": 1,
+    "children": [
+      "text",
+    ],
     "firstText": "This line has an opening bracket [ without a closing.",
     "type": "paragraph",
   },
   {
-    "children": 2,
-    "firstText": "Another line with a link-like ",
+    "children": [
+      "link",
+    ],
+    "firstText": "text",
     "type": "paragraph",
   },
   {
-    "children": 1,
+    "children": [
+      "text",
+    ],
     "firstText": "And a normal line.",
     "type": "paragraph",
   },

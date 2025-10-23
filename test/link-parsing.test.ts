@@ -76,4 +76,40 @@ describe('link parsing', () => {
     })
     expect(containsBare).toBe(true)
   })
+
+  it('parses link with parentheses and CJK brackets as a single link', () => {
+    const special = '[【名称】(test).mp4](https://github.com/Simon-He95/vue-markdown-renderer)'
+    const nodes = parseMarkdownToStructure(special, md)
+
+    // Flatten and collect link nodes
+    const links: any[] = []
+    const walk = (n: any) => {
+      if (!n)
+        return
+      if (n.type === 'link')
+        links.push(n)
+      if (Array.isArray(n.children))
+        n.children.forEach(walk)
+      if (Array.isArray(n.items))
+        n.items.forEach(walk)
+    }
+    nodes.forEach(walk)
+    // Expect only a single link node in the paragraph without stray text nodes
+    expect(links.length).toBe(1)
+    expect(links[0].href).toBe('https://github.com/Simon-He95/vue-markdown-renderer')
+    // Ensure the full visible text is preserved inside the link
+    // Accept either direct text aggregation or nested children text
+    const text = links[0].text || ''
+    const childText = (links[0].children || [])
+      .map((c: any) => (c.content ?? c.text ?? ''))
+      .join('')
+    expect(text || childText).toBe('【名称】(test).mp4')
+
+    // Also assert the paragraph has exactly one child which is the link
+    const para = nodes.find((n: any) => n.type === 'paragraph') as any
+    expect(para).toBeTruthy()
+    expect(Array.isArray(para.children)).toBe(true)
+    expect(para.children.length).toBe(1)
+    expect(para.children[0].type).toBe('link')
+  })
 })

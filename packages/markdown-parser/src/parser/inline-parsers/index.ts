@@ -36,14 +36,33 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
 
   while (i < tokens.length) {
     const token = tokens[i] as any
+    handleToken(token)
+  }
+
+  function handleToken(token: any) {
     switch (token.type) {
       case 'text': {
+        // 合并连续的 text 节点
+        let index = result.length - 1
         let content = token.content.replace(/\\/g, '') || ''
+        for (index; index >= 0; index--) {
+          const item = result[index]
+          if (item.type === 'text') {
+            currentTextNode = null
+            content = item.content + content
+            continue
+          }
+          break
+        }
+        if (index < result.length - 1)
+          result.splice(index + 1)
+
+        const nextToken = tokens[i + 1]
         if (content === '`' || content === '|' || content === '$' || content === '1' || /^\*+$/.test(content) || /^\d$/.test(content)) {
           i++
           break
         }
-        if (/[^\]]\s*\(\s*$/.test(content)) {
+        if (!nextToken && /[^\]]\s*\(\s*$/.test(content)) {
           content = content.replace(/\(\s*$/, '')
         }
         if (raw?.startsWith('[') && pPreToken?.type === 'list_item_open') {
@@ -67,13 +86,24 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
           }
         }
         if (/`[^`]*/.test(content)) {
-          // 包含了 `， 需要特殊处理 code
           currentTextNode = null // Reset current text node
+          const index = content.indexOf('`')
+          const _text = content.slice(0, index)
+          const codeContent = content.slice(index)
+          if (_text) {
+            result.push({
+              type: 'text',
+              content: _text || '',
+              raw: _text || '',
+            })
+          }
+
+          // 包含了 `， 需要特殊处理 code
 
           result.push({
             type: 'inline_code',
-            code: content.replace(/`/g, ''),
-            raw: content || '',
+            code: codeContent.replace(/`/g, ''),
+            raw: codeContent || '',
           })
           i++
           break
@@ -275,17 +305,52 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
           const textNodeContent = content.slice(0, linkStart)
           const linkEnd = content.indexOf('](', linkStart)
           if (linkEnd !== -1) {
+            const textToken = tokens[i + 2]
             const text = content.slice(linkStart + 1, linkEnd)
-            // 过滤一些奇怪的情况
-            if (!/[[\]()]/.test(text)) {
-              result.push({
-                type: 'text',
-                content: textNodeContent,
-                raw: textNodeContent,
-              })
+            if (!/[[\]]/.test(text)) {
+              if (content.endsWith('](') && nextToken?.type === 'link_open' && textToken) {
+                // 特殊处理，把当前内容塞到后面link_open 后的 text，并且跳过当前的 text 处理
+                const last = tokens[i + 4]
+                let index = 4
+                let loading = true
+                if (last?.type === 'text' && last.content === ')') {
+                  index++
+                  loading = false
+                }
+                else if (last?.type === 'text' && last.content === '.') {
+                  i++
+                }
+                result.push({
+                  type: 'link',
+                  href: textToken.content || '',
+                  text,
+                  children: [
+                    {
+                      type: 'text',
+                      content: text,
+                      raw: text,
+                    },
+                  ],
+                  loading,
+                } as any)
+                i += index
+                break
+              }
+              const linkContentEnd = content.indexOf(')', linkEnd)
+              const href = linkContentEnd !== -1 ? content.slice(linkEnd + 2, linkContentEnd) : ''
+              const loading = linkContentEnd === -1
+              // 过滤一些奇怪的情况
+
+              if (textNodeContent) {
+                result.push({
+                  type: 'text',
+                  content: textNodeContent,
+                  raw: textNodeContent,
+                })
+              }
               result.push({
                 type: 'link',
-                href: '',
+                href,
                 text,
                 children: [
                   {
@@ -294,8 +359,18 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
                     raw: text,
                   },
                 ],
-                loading: true,
+                loading,
               } as any)
+
+              const afterText = linkContentEnd !== -1 ? content.slice(linkContentEnd + 1) : ''
+              if (afterText) {
+                handleToken({
+                  type: 'text',
+                  content: afterText,
+                  raw: afterText,
+                })
+                i--
+              }
               i++
               break
             }
@@ -310,7 +385,10 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
         else {
           const maybeMath = preToken?.tag === 'br' && tokens[i - 2]?.content === '['
           // Start a new text node
-          textNode.content = textNode.content.replace(/(\*+|\(|\\)$/, '')
+          const nextToken = tokens[i + 1]
+          if (!nextToken)
+            textNode.content = textNode.content.replace(/(\*+|\(|\\)$/, '')
+
           currentTextNode = textNode
           currentTextNode.center = maybeMath
           result.push(currentTextNode)
@@ -338,6 +416,20 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
       case 'link_open': {
         currentTextNode = null // Reset current text node
         const href = token.attrs?.find((attr: any) => attr[0] === 'href')?.[1]
+        // 如果 text 不在[]里说明，它不是一个link， 当 text 处理
+        if (raw && tokens[i + 1].type === 'text') {
+          const text = tokens[i + 1]?.content || ''
+          const reg = new RegExp(`\\[${text}\\s*\\]`)
+          if (!reg.test(raw)) {
+            result.push({
+              type: 'text',
+              content: text,
+              raw: text,
+            })
+            i += 3
+            break
+          }
+        }
         if (raw && href) {
           const loadingMath = new RegExp(`\\(\\s*${href}\\s*\\)`)
           const pre: any = result.length > 0 ? result[result.length - 1] : null
@@ -518,7 +610,10 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
 
       case 'reference': {
         currentTextNode = null // Reset current text node
-        result.push(parseReferenceToken(token))
+        const nextToken = tokens[i + 1]
+        if (!nextToken?.content?.startsWith('(')) {
+          result.push(parseReferenceToken(token))
+        }
         i++
         break
       }

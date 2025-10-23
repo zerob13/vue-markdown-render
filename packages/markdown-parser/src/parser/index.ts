@@ -45,7 +45,6 @@ export function parseMarkdownToStructure(
   // Allow consumers to transform tokens before processing
   const pre = options.preTransformTokens
   const post = options.postTransformTokens
-
   let transformedTokens = tokens
   if (pre && typeof pre === 'function') {
     transformedTokens = pre(tokens) || tokens
