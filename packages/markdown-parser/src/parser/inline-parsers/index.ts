@@ -611,8 +611,11 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
       case 'reference': {
         currentTextNode = null // Reset current text node
         const nextToken = tokens[i + 1]
-        if (!nextToken?.content?.startsWith('(')) {
+        if ((nextToken?.type === 'text' && !nextToken.content?.startsWith('(')) || (tokens[i - 1].type === 'text' && !tokens[i - 1].content?.endsWith('('))) {
           result.push(parseReferenceToken(token))
+        }
+        else if (nextToken && nextToken.type === 'text') {
+          nextToken.content = token.markup + nextToken.content
         }
         i++
         break
