@@ -132,7 +132,6 @@ function initRenderer() {
   if (!codeBlockContent.value)
     return
   renderer = createShikiStreamRenderer(codeBlockContent.value, {
-    lang: codeLanguage.value,
     theme: getPreferredColorScheme(),
     themes: props.themes,
   })
