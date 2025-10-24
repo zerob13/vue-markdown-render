@@ -88,6 +88,7 @@ export default defineConfig(({ mode }) => {
             'vue-i18n',
             'katex',
             'stream-monaco',
+            'stream-markdown',
             'monaco-editor',
             'shiki',
           ].includes(id)

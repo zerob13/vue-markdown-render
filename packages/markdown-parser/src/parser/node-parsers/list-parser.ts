@@ -30,10 +30,10 @@ export function parseList(
     && tokens[j].type !== 'ordered_list_close'
   ) {
     if (tokens[j].type === 'list_item_open') {
-      if (tokens[j].markup === '*') {
-        j++
-        continue
-      }
+      // if (tokens[j].markup === '*') {
+      //   j++
+      //   continue
+      // }
       const itemChildren: ParsedNode[] = []
       let k = j + 1
       while (k < tokens.length && tokens[k].type !== 'list_item_close') {
@@ -184,10 +184,6 @@ function parseNestedList(
     && tokens[j].type !== 'ordered_list_close'
   ) {
     if (tokens[j].type === 'list_item_open') {
-      if (tokens[j].markup === '*') {
-        j++
-        continue
-      }
       const itemChildren: ParsedNode[] = []
       let k = j + 1
 

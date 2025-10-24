@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { createShikiStreamRenderer } from 'stream-markdown'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useSafeI18n } from '../../composables/useSafeI18n'
 import { hideTooltip, showTooltipForAnchor } from '../../composables/useSingletonTooltip'
@@ -127,17 +126,45 @@ const contentStyle = computed(() => {
 function getPreferredColorScheme() {
   return props.isDark ? props.darkTheme : props.lightTheme
 }
-let renderer: ReturnType<typeof createShikiStreamRenderer>
-function initRenderer() {
+// Lazy-load stream-markdown (and thus shiki) only when needed
+interface ShikiRenderer {
+  updateCode: (code: string, lang?: string) => void
+  setTheme: (theme?: string) => void
+}
+let renderer: ShikiRenderer | undefined
+let createShikiRenderer:
+  | ((el: HTMLElement, opts: { theme?: string | undefined, themes?: string[] | undefined }) => ShikiRenderer)
+  | undefined
+
+async function ensureStreamMarkdownLoaded() {
+  if (createShikiRenderer)
+    return
+  try {
+    const mod = await import('stream-markdown')
+    createShikiRenderer = mod.createShikiStreamRenderer
+  }
+  catch (e) {
+    // stream-markdown is an optional peer; if missing, silently skip highlighting
+    console.warn('[MarkdownCodeBlockNode] stream-markdown not available:', e)
+  }
+}
+
+async function initRenderer() {
+  // Do not initialize Shiki renderer for Mermaid blocks
+  if (isMermaid.value)
+    return
   if (!codeBlockContent.value)
     return
-  renderer = createShikiStreamRenderer(codeBlockContent.value, {
+  await ensureStreamMarkdownLoaded()
+  if (!createShikiRenderer)
+    return
+  renderer = createShikiRenderer(codeBlockContent.value, {
     theme: getPreferredColorScheme(),
     themes: props.themes,
   })
 }
-onMounted(() => {
-  initRenderer()
+onMounted(async () => {
+  await initRenderer()
 })
 
 watch(() => [props.node.code, props.node.language], async ([code, lang]) => {
@@ -145,10 +172,12 @@ watch(() => [props.node.code, props.node.language], async ([code, lang]) => {
     codeLanguage.value = lang
   if (!codeBlockContent.value)
     return
+  if (isMermaid.value)
+    return
 
   if (!renderer)
-    initRenderer()
-  if (!code)
+    await initRenderer()
+  if (!renderer || !code)
     return
   lang = lang.split(':')[0] // 支持 language:variant 形式
   renderer.updateCode(code, lang)
@@ -156,15 +185,18 @@ watch(() => [props.node.code, props.node.language], async ([code, lang]) => {
 
 const watchTheme = watch(
   () => [props.darkTheme, props.lightTheme],
-  () => {
+  async () => {
     if (!codeBlockContent.value)
       return
-    if (!renderer)
-      initRenderer()
     if (isMermaid.value) {
       return watchTheme()
     }
-    renderer.setTheme(getPreferredColorScheme())
+    if (!renderer)
+      await initRenderer()
+    if (isMermaid.value) {
+      return watchTheme()
+    }
+    renderer?.setTheme(getPreferredColorScheme())
   },
 )
 
