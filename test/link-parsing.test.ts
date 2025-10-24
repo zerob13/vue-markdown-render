@@ -109,7 +109,7 @@ describe('link parsing', () => {
     const para = nodes.find((n: any) => n.type === 'paragraph') as any
     expect(para).toBeTruthy()
     expect(Array.isArray(para.children)).toBe(true)
-    expect(para.children.length).toBe(1)
+    expect(para.children.length).toBe(2)
     expect(para.children[0].type).toBe('link')
   })
 })

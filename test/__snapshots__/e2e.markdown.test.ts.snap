@@ -304,9 +304,10 @@ exports[`e2e markdown parsing (fixtures) > parses fixture unmatched-brackets.md 
   },
   {
     "children": [
+      "text",
       "link",
     ],
-    "firstText": "text",
+    "firstText": "Another line with a link-like ",
     "type": "paragraph",
   },
   {

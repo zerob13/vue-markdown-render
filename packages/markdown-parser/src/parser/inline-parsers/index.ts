@@ -45,6 +45,9 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
         // 合并连续的 text 节点
         let index = result.length - 1
         let content = token.content.replace(/\\/g, '') || ''
+        if (content.startsWith(')') && result[result.length - 1]?.type === 'link') {
+          content = content.slice(1)
+        }
         for (index; index >= 0; index--) {
           const item = result[index]
           if (item.type === 'text') {
@@ -326,6 +329,14 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
               else if (last?.type === 'text' && last.content === '.') {
                 i++
               }
+
+              if (textNodeContent) {
+                result.push({
+                  type: 'text',
+                  content: textNodeContent,
+                  raw: textNodeContent,
+                })
+              }
               result.push({
                 type: 'link',
                 href: textToken.content || '',
@@ -560,7 +571,6 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
 
       case 'emoji': {
         currentTextNode = null // Reset current text node
-
         const preToken = tokens[i - 1]
         if (preToken?.type === 'text' && /\|:-+/.test(preToken.content || '')) {
           // 处理表格中的 emoji，跳过
