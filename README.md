@@ -674,6 +674,7 @@ The streaming-optimized engine delivers:
 | `content`          | `string`              | ✓        | Markdown string to render                          |
 | `nodes`            | `BaseNode[]`          |          | Parsed markdown AST nodes (alternative to content) |
 | `renderCodeBlocksAsPre` | `boolean` | | When true, render all `code_block` nodes as simple `<pre><code>` blocks (uses `PreCodeNode`) instead of the full `CodeBlockNode`. Useful for lightweight, dependency-free rendering of multi-line text such as AI "thinking" outputs. Defaults to `false`. |
+| `codeBlockStream`  | `boolean`             |          | Controls streaming behavior for `code_block` nodes. When `true` (default), code blocks update progressively as content streams in. When `false`, code blocks stay in a lightweight loading state and render only once when the final code is ready (defers Monaco creation). |
 | `viewportPriority` | `boolean`             |          | When enabled (default), heavy nodes (e.g. Mermaid, Monaco) prioritize rendering for content within or near the viewport, deferring offscreen work to improve responsiveness. Set to `false` to render everything eagerly (useful for print/export or when you need immediate layout for all nodes). Defaults to `true`. |
 
 > Either `content` or `nodes` must be provided.
@@ -704,6 +705,23 @@ const markdown = `Here is an AI thinking output:\n\n\`\`\`text\nStep 1...\nStep 
 <template>
   <MarkdownRender :content="markdown" :render-code-blocks-as-pre="true" />
 </template>
+```
+
+## New prop: `codeBlockStream`
+
+- Type: `boolean`
+- Default: `true`
+
+Description:
+- When set to `false`, `code_block` nodes won't stream intermediate updates. Instead, they remain in a loading state and render once when the final code is available. This can reduce layout churn and avoid initializing Monaco repeatedly for partially complete content, which may improve performance in certain scenarios.
+
+Notes:
+- This option only applies when `CodeBlockNode` is used (i.e., `renderCodeBlocksAsPre` is `false`).
+- While loading, the component shows a lightweight placeholder to keep layout stable. Monaco editor initialization is deferred until loading becomes `false`.
+
+Example (Vue usage):
+```vue
+<MarkdownRender :content="markdown" :code-block-stream="false" />
 ```
 
 ## New prop: `viewportPriority`
@@ -1159,6 +1177,7 @@ Slots
 
 - `header-left` — Replace the left side of the header (language icon + label by default).
 - `header-right` — Replace the right side of the header (built-in action buttons by default).
+- `loading` — Customize the loading placeholder shown when `stream={false}` and `loading={true}`. Receives slot props: `{ loading: boolean, stream: boolean }`.
 
 Example: hide the header
 
@@ -1189,6 +1208,23 @@ Example: custom header via slots
     <div class="flex items-center space-x-2">
       <button class="px-2 py-1 bg-blue-600 text-white rounded">Run</button>
       <button class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">Inspect</button>
+    </div>
+  </template>
+</CodeBlockNode>
+```
+
+Example: custom loading placeholder
+
+```vue
+<CodeBlockNode
+  :node="{ type: 'code_block', language: 'python', code: code, raw: code }"
+  :stream="false"
+  :loading="isLoading"
+>
+  <template #loading="{ loading, stream }">
+    <div v-if="loading && !stream" class="p-4 text-center">
+      <div class="animate-spin inline-block w-6 h-6 border-2 border-current border-t-transparent rounded-full" />
+      <p class="mt-2 text-sm text-gray-500">Initializing editor...</p>
     </div>
   </template>
 </CodeBlockNode>

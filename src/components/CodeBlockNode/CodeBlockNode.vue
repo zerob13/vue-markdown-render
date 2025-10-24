@@ -30,6 +30,11 @@ const props = withDefaults(
     }
     isDark?: boolean
     loading?: boolean
+    /**
+     * If true, update and render code content as it streams in.
+     * If false, keep a lightweight loading state and create the editor only when loading becomes false.
+     */
+    stream?: boolean
     darkTheme?: MonacoTheme
     lightTheme?: MonacoTheme
     isShowPreview?: boolean
@@ -53,6 +58,7 @@ const props = withDefaults(
     darkTheme: undefined,
     lightTheme: undefined,
     loading: true,
+    stream: true,
     enableFontSizeControl: true,
     minWidth: undefined,
     maxWidth: undefined,
@@ -518,6 +524,8 @@ watch(
 watch(
   () => props.node.code,
   (newCode) => {
+    if (props.stream === false)
+      return
     if (!codeLanguage.value)
       codeLanguage.value = detectLanguage(newCode)
 
@@ -711,9 +719,13 @@ function setAutomaticLayout(expanded: boolean) {
 
 // 延迟创建编辑器：仅当不是 Mermaid 时才创建，避免无意义的初始化
 const stopCreateEditorWatch = watch(
-  () => [codeEditor.value, isMermaid.value, isDiff.value] as const,
-  async ([el]) => {
+  () => [codeEditor.value, isMermaid.value, isDiff.value, props.stream, props.loading] as const,
+  async ([el, _isMermaid, _isDiff, stream, loading]) => {
     if (!el || !createEditor)
+      return
+
+    // If streaming is disabled, defer editor creation until loading is finished
+    if (stream === false && loading !== false)
       return
 
     if (isMermaid.value) {
@@ -992,7 +1004,17 @@ onUnmounted(() => {
         </div>
       </slot>
     </div>
-    <div v-show="!isCollapsed" ref="codeEditor" class="code-editor-container" />
+    <div v-show="!isCollapsed && (stream ? true : !loading)" ref="codeEditor" class="code-editor-container" />
+    <!-- Loading placeholder (non-streaming mode) can be overridden via slot -->
+    <div v-show="!stream && loading" class="code-loading-placeholder">
+      <slot name="loading" :loading="loading" :stream="stream">
+        <div class="loading-skeleton">
+          <div class="skeleton-line" />
+          <div class="skeleton-line" />
+          <div class="skeleton-line short" />
+        </div>
+      </slot>
+    </div>
     <!-- Teleported tooltip removed: using singleton composable instead -->
     <!-- Copy status for screen readers -->
     <span class="sr-only" aria-live="polite" role="status">{{ copyText ? t('common.copied') || 'Copied' : '' }}</span>
@@ -1009,6 +1031,47 @@ onUnmounted(() => {
 
 .code-editor-container {
   transition: height 180ms ease, max-height 180ms ease;
+}
+
+.code-block-container.is-rendering .code-editor-container {
+  min-height: 120px;
+  background: linear-gradient(90deg, rgba(0,0,0,0.04) 25%, rgba(0,0,0,0.08) 37%, rgba(0,0,0,0.04) 63%);
+  background-size: 400% 100%;
+  animation: code-skeleton-shimmer 1.2s ease-in-out infinite;
+}
+
+/* Loading placeholder styles */
+.code-loading-placeholder {
+  padding: 1rem;
+  min-height: 120px;
+}
+
+.loading-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.skeleton-line {
+  height: 1rem;
+  background: linear-gradient(90deg, rgba(0,0,0,0.06) 25%, rgba(0,0,0,0.12) 37%, rgba(0,0,0,0.06) 63%);
+  background-size: 400% 100%;
+  animation: code-skeleton-shimmer 1.2s ease-in-out infinite;
+  border-radius: 0.25rem;
+}
+
+.dark .skeleton-line {
+  background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.12) 37%, rgba(255,255,255,0.06) 63%);
+  background-size: 400% 100%;
+}
+
+.skeleton-line.short {
+  width: 60%;
+}
+
+@keyframes code-skeleton-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: 0 0; }
 }
 
 .code-action-btn {

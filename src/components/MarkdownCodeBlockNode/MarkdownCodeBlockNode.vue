@@ -17,6 +17,11 @@ const props = withDefaults(
       updatedCode?: string
     }
     loading?: boolean
+    /**
+     * If true, update and render code content as it streams in.
+     * If false, keep a lightweight loading state and create the editor only when loading becomes false.
+     */
+    stream?: boolean
     darkTheme?: string
     lightTheme?: string
     isDark?: boolean
@@ -39,6 +44,7 @@ const props = withDefaults(
     darkTheme: undefined,
     lightTheme: undefined,
     loading: true,
+    stream: true,
     enableFontSizeControl: true,
     minWidth: undefined,
     maxWidth: undefined,
@@ -179,6 +185,10 @@ watch(() => [props.node.code, props.node.language], async ([code, lang]) => {
     await initRenderer()
   if (!renderer || !code)
     return
+
+  if (props.stream === false && props.loading)
+    return
+
   lang = lang.split(':')[0] // 支持 language:variant 形式
   renderer.updateCode(code, lang)
 })
@@ -475,12 +485,22 @@ function previewCode() {
       </slot>
     </div>
     <div
-      v-show="!isCollapsed"
+      v-show="!isCollapsed && (stream ? true : !loading)"
       ref="codeBlockContent"
       class="code-block-content"
       :style="contentStyle"
       @scroll="handleScroll"
     />
+    <!-- Loading placeholder can be overridden via slot -->
+    <div v-show="!stream && loading" class="code-loading-placeholder">
+      <slot name="loading" :loading="loading" :stream="stream">
+        <div class="loading-skeleton">
+          <div class="skeleton-line" />
+          <div class="skeleton-line" />
+          <div class="skeleton-line short" />
+        </div>
+      </slot>
+    </div>
   </div>
 </template>
 
@@ -515,5 +535,39 @@ function previewCode() {
 .code-action-btn:disabled {
   opacity: 0.3;
   cursor: not-allowed;
+}
+
+/* Loading placeholder styles */
+.code-loading-placeholder {
+  padding: 1rem;
+  min-height: 120px;
+}
+
+.loading-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.skeleton-line {
+  height: 1rem;
+  background: linear-gradient(90deg, rgba(0,0,0,0.06) 25%, rgba(0,0,0,0.12) 37%, rgba(0,0,0,0.06) 63%);
+  background-size: 400% 100%;
+  animation: code-skeleton-shimmer 1.2s ease-in-out infinite;
+  border-radius: 0.25rem;
+}
+
+.dark .skeleton-line {
+  background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.12) 37%, rgba(255,255,255,0.06) 63%);
+  background-size: 400% 100%;
+}
+
+.skeleton-line.short {
+  width: 60%;
+}
+
+@keyframes code-skeleton-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: 0 0; }
 }
 </style>

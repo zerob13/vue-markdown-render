@@ -172,6 +172,33 @@ yarn add stream-markdown shiki
 <MarkdownRender :content="content" :render-code-blocks-as-pre="true" />
 ```
 
+### 代码块插槽（Slots）
+
+`CodeBlockNode` 和 `MarkdownCodeBlockNode` 都支持以下插槽，用于自定义渲染：
+
+- `header-left` — 替换头部左侧内容（默认为语言图标 + 标签）
+- `header-right` — 替换头部右侧内容（默认为操作按钮）
+- `loading` — 自定义加载占位符，仅在非流式模式且加载中时显示。接收插槽 props：`{ loading: boolean, stream: boolean }`
+
+**示例：自定义加载占位符**
+
+```vue
+<CodeBlockNode
+  :node="{ type: 'code_block', language: 'python', code: code, raw: code }"
+  :stream="false"
+  :loading="isLoading"
+>
+  <template #loading="{ loading, stream }">
+    <div v-if="loading && !stream" class="p-4 text-center">
+      <div class="animate-spin inline-block w-6 h-6 border-2 border-current border-t-transparent rounded-full" />
+      <p class="mt-2 text-sm text-gray-500">正在初始化编辑器...</p>
+    </div>
+  </template>
+</CodeBlockNode>
+```
+
+默认情况下，loading 插槽会显示一个带动画的骨架屏。你可以通过插槽完全自定义加载状态的 UI。
+
 ## TypeScript 使用
 
 ### 渲染类型化 AST

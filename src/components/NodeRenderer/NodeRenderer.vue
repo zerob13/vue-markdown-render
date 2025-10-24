@@ -45,6 +45,12 @@ const props = defineProps<
     parseOptions?: ParseOptions
     /** Enable priority rendering for visible viewport area */
     viewportPriority?: boolean
+    /**
+     * Whether code_block renders should stream updates.
+     * When false, code blocks stay in a loading state and render once when final content is ready.
+     * Default: true
+     */
+    codeBlockStream?: boolean
     // 全局传递到每个 CodeBlockNode 的主题（monaco theme 对象）
     codeBlockDarkTheme?: any
     codeBlockLightTheme?: any
@@ -69,6 +75,12 @@ const props = defineProps<
     parseOptions?: ParseOptions
     /** Enable priority rendering for visible viewport area */
     viewportPriority?: boolean
+    /**
+     * Whether code_block renders should stream updates.
+     * When false, code blocks stay in a loading state and render once when final content is ready.
+     * Default: true
+     */
+    codeBlockStream?: boolean
     codeBlockDarkTheme?: any
     codeBlockLightTheme?: any
     codeBlockMonacoOptions?: Record<string, any>
@@ -178,6 +190,8 @@ function getBindingsFor(node: ParsedNode) {
 
   return node.type === 'code_block'
     ? {
+        // streaming behavior control for CodeBlockNode
+        stream: props.codeBlockStream !== false,
         darkTheme: props.codeBlockDarkTheme,
         lightTheme: props.codeBlockLightTheme,
         monacoOptions: props.codeBlockMonacoOptions,

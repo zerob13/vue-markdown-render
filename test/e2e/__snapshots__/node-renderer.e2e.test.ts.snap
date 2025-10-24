@@ -86,7 +86,7 @@ exports[`markdownRender node e2e coverage > renders checkbox nodes 1`] = `
 exports[`markdownRender node e2e coverage > renders code block node 1`] = `
 "<div data-v-8dfe8a80="" class="markdown-renderer">
   <div data-v-8dfe8a80="">
-    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals --><pre data-v-8dfe8a80="" class="language-ts" aria-busy="false" aria-label="Code block: ts" data-language="ts" tabindex="0" loading="false" index-key="markdown-renderer-0" is-dark="false">    <code translate="no">export const sum = (a: number, b: number) =&gt; a + b
+    <!-- Skip wrapping code_block nodes in transitions to avoid touching Monaco editor internals --><pre data-v-8dfe8a80="" class="language-ts" aria-busy="false" aria-label="Code block: ts" data-language="ts" tabindex="0" loading="false" index-key="markdown-renderer-0" stream="false" is-dark="false">    <code translate="no">export const sum = (a: number, b: number) =&gt; a + b
 </code>
   </pre>
   </div>
