@@ -294,7 +294,7 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
           i++
           break
         }
-        const linkStart = content.indexOf('[')
+        let linkStart = content.indexOf('[')
 
         if (content.endsWith('undefined') && !raw?.endsWith('undefined')) {
           content = content.slice(0, -9)
@@ -302,55 +302,33 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
         const textNode = parseTextToken({ ...token, content })
 
         if (linkStart !== -1) {
-          const textNodeContent = content.slice(0, linkStart)
+          let textNodeContent = content.slice(0, linkStart)
           const linkEnd = content.indexOf('](', linkStart)
           if (linkEnd !== -1) {
             const textToken = tokens[i + 2]
-            const text = content.slice(linkStart + 1, linkEnd)
-            if (!/[[\]]/.test(text)) {
-              if (content.endsWith('](') && nextToken?.type === 'link_open' && textToken) {
-                // 特殊处理，把当前内容塞到后面link_open 后的 text，并且跳过当前的 text 处理
-                const last = tokens[i + 4]
-                let index = 4
-                let loading = true
-                if (last?.type === 'text' && last.content === ')') {
-                  index++
-                  loading = false
-                }
-                else if (last?.type === 'text' && last.content === '.') {
-                  i++
-                }
-                result.push({
-                  type: 'link',
-                  href: textToken.content || '',
-                  text,
-                  children: [
-                    {
-                      type: 'text',
-                      content: text,
-                      raw: text,
-                    },
-                  ],
-                  loading,
-                } as any)
-                i += index
-                break
+            let text = content.slice(linkStart + 1, linkEnd)
+            if (text.includes('[')) {
+              // 前面的[应该被处理成 text,真正的 linkStart 是后面的[
+              const secondLinkStart = text.indexOf('[')
+              linkStart = linkStart + secondLinkStart + 1
+              textNodeContent += content.slice(0, linkStart)
+              text = content.slice(linkStart + 1, linkEnd)
+            }
+            if (content.endsWith('](') && nextToken?.type === 'link_open' && textToken) {
+              // 特殊处理，把当前内容塞到后面link_open 后的 text，并且跳过当前的 text 处理
+              const last = tokens[i + 4]
+              let index = 4
+              let loading = true
+              if (last?.type === 'text' && last.content === ')') {
+                index++
+                loading = false
               }
-              const linkContentEnd = content.indexOf(')', linkEnd)
-              const href = linkContentEnd !== -1 ? content.slice(linkEnd + 2, linkContentEnd) : ''
-              const loading = linkContentEnd === -1
-              // 过滤一些奇怪的情况
-
-              if (textNodeContent) {
-                result.push({
-                  type: 'text',
-                  content: textNodeContent,
-                  raw: textNodeContent,
-                })
+              else if (last?.type === 'text' && last.content === '.') {
+                i++
               }
               result.push({
                 type: 'link',
-                href,
+                href: textToken.content || '',
                 text,
                 children: [
                   {
@@ -361,19 +339,46 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
                 ],
                 loading,
               } as any)
-
-              const afterText = linkContentEnd !== -1 ? content.slice(linkContentEnd + 1) : ''
-              if (afterText) {
-                handleToken({
-                  type: 'text',
-                  content: afterText,
-                  raw: afterText,
-                })
-                i--
-              }
-              i++
+              i += index
               break
             }
+            const linkContentEnd = content.indexOf(')', linkEnd)
+            const href = linkContentEnd !== -1 ? content.slice(linkEnd + 2, linkContentEnd) : ''
+            const loading = linkContentEnd === -1
+            // 过滤一些奇怪的情况
+
+            if (textNodeContent) {
+              result.push({
+                type: 'text',
+                content: textNodeContent,
+                raw: textNodeContent,
+              })
+            }
+            result.push({
+              type: 'link',
+              href,
+              text,
+              children: [
+                {
+                  type: 'text',
+                  content: text,
+                  raw: text,
+                },
+              ],
+              loading,
+            } as any)
+
+            const afterText = linkContentEnd !== -1 ? content.slice(linkContentEnd + 1) : ''
+            if (afterText) {
+              handleToken({
+                type: 'text',
+                content: afterText,
+                raw: afterText,
+              })
+              i--
+            }
+            i++
+            break
           }
         }
         const preToken = tokens[i - 1]
@@ -611,11 +616,17 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
       case 'reference': {
         currentTextNode = null // Reset current text node
         const nextToken = tokens[i + 1]
-        if ((nextToken?.type === 'text' && !nextToken.content?.startsWith('(')) || (tokens[i - 1].type === 'text' && !tokens[i - 1].content?.endsWith('('))) {
+        const preToken = tokens[i - 1]
+        const preResult = result[result.length - 1]
+        if ((nextToken?.type === 'text' && !nextToken.content?.startsWith('(')) || (preToken.type === 'text' && /\]$|^\s*$/.test(preToken.content || ''))) {
           result.push(parseReferenceToken(token))
         }
         else if (nextToken && nextToken.type === 'text') {
           nextToken.content = token.markup + nextToken.content
+        }
+        else if (preResult.type === 'text') {
+          preResult.content = preResult.content + token.markup
+          preResult.raw = preResult.raw + token.markup
         }
         i++
         break
