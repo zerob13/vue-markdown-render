@@ -68,7 +68,7 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
         if (!nextToken && /[^\]]\s*\(\s*$/.test(content)) {
           content = content.replace(/\(\s*$/, '')
         }
-        if (raw?.startsWith('[') && pPreToken?.type === 'list_item_open') {
+        if (content?.startsWith('[') && pPreToken?.type === 'list_item_open') {
           const _content = content.slice(1)
           const w = _content.match(/[^\s\]]/)
           if (w === null) {
