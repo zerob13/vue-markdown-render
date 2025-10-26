@@ -1,5 +1,6 @@
 import { getMarkdown, parseMarkdownToStructure } from 'stream-markdown-parser'
 import { describe, expect, it } from 'vitest'
+import { textIncludes } from './utils/midstate-utils'
 
 const md = getMarkdown('t')
 
@@ -42,37 +43,16 @@ describe('link parsing', () => {
     expect(texts).toContain('Google')
     // The parser may keep emphasis markup in link.text (e.g. "*斜体链接*"),
     // so accept either the raw form or verify the nested emphasis child contains the plain text.
-    const hasPlainItalic = texts.includes('斜体链接')
-    const hasRawItalic = texts.includes('*斜体链接*') || texts.includes('_斜体链接_')
-    if (!hasPlainItalic && !hasRawItalic) {
-      // Look for a link node whose children include an emphasis node with a text child '斜体链接'
-      const findTextInChildren = (node: any, want: string): boolean => {
-        if (!node)
-          return false
-        if (node.type === 'text' && node.content === want)
-          return true
-        if (Array.isArray(node.children)) {
-          for (const c of node.children) {
-            if (findTextInChildren(c, want))
-              return true
-          }
-        }
-        if (Array.isArray(node.items)) {
-          for (const it of node.items) {
-            if (findTextInChildren(it, want))
-              return true
-          }
-        }
-        return false
-      }
-      const found = allLinkNodes.some(l => findTextInChildren(l, '斜体链接'))
-      expect(found).toBe(true)
-    }
+    // The parser may keep emphasis markup in link.text or emit nested emphasis nodes.
+    // Accept any of these by inspecting the link nodes with the tolerant helper.
+    const foundItalic = allLinkNodes.some(l =>
+      textIncludes(l, '斜体链接') || textIncludes(l, '*斜体链接*') || textIncludes(l, '_斜体链接_'),
+    )
+    expect(foundItalic).toBe(true)
 
     // Check for bare URLs rendered as text nodes inside paragraphs
     const containsBare = nodes.some((n: any) => {
-      const s = JSON.stringify(n)
-      return s.includes('https://www.wikipedia.org') || s.includes('http://example.com/path?query=test') || s.includes('https://markdown-guide.readthedocs.io')
+      return textIncludes(n, 'https://www.wikipedia.org') || textIncludes(n, 'http://example.com/path?query=test') || textIncludes(n, 'https://markdown-guide.readthedocs.io')
     })
     expect(containsBare).toBe(true)
   })
