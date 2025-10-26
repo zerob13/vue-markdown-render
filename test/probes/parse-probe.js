@@ -21,6 +21,6 @@ for (const p of probes) {
     console.log(JSON.stringify(nodes, null, 2))
   }
   catch (e) {
-    console.error('ERROR for input', p, e && e.stack || e)
+    console.error('ERROR for input', p, (e && e.stack) || e)
   }
 }

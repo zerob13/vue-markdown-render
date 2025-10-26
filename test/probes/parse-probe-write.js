@@ -26,7 +26,7 @@ for (const p of probes) {
     out.push({ input: p, nodes })
   }
   catch (e) {
-    out.push({ input: p, error: String(e && e.stack || e) })
+    out.push({ input: p, error: String((e && e.stack) || e) })
   }
 }
 fs.writeFileSync('test/probes/parse-output.json', JSON.stringify(out, null, 2), 'utf8')

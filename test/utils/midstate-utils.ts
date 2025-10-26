@@ -108,7 +108,7 @@ export function textIncludes(nodes: any[], s: string | RegExp) {
   try {
     return walk(nodes as any)
   }
-  catch (e) {
+  catch {
     return false
   }
 }
