@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { BaseNode, ParsedNode, ParseOptions } from 'stream-markdown-parser'
 import { getMarkdown, parseMarkdownToStructure } from 'stream-markdown-parser'
-import { computed, defineAsyncComponent, ref } from 'vue'
+import { computed, defineAsyncComponent, ref, withDefaults } from 'vue'
 import AdmonitionNode from '../../components/AdmonitionNode'
 import BlockquoteNode from '../../components/BlockquoteNode'
 import CheckboxNode from '../../components/CheckboxNode'
@@ -37,7 +37,7 @@ import FallbackComponent from './FallbackComponent.vue'
 
 // 组件接收的 props
 // 增加用于统一设置所有 code_block 主题和 Monaco 选项的外部 API
-const props = defineProps<
+const props = withDefaults(defineProps<
   | {
     content: string
     nodes?: undefined
@@ -97,7 +97,7 @@ const props = defineProps<
     customId?: string
     indexKey?: number | string
   }
->()
+>(), { codeBlockStream: true })
 
 // 定义事件
 defineEmits(['copy', 'handleArtifactClick', 'click', 'mouseover', 'mouseout'])
@@ -191,7 +191,7 @@ function getBindingsFor(node: ParsedNode) {
   return node.type === 'code_block'
     ? {
         // streaming behavior control for CodeBlockNode
-        stream: props.codeBlockStream !== false,
+        stream: props.codeBlockStream,
         darkTheme: props.codeBlockDarkTheme,
         lightTheme: props.codeBlockLightTheme,
         monacoOptions: props.codeBlockMonacoOptions,

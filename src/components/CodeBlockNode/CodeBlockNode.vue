@@ -1004,7 +1004,7 @@ onUnmounted(() => {
         </div>
       </slot>
     </div>
-    <div v-show="!isCollapsed && (stream ? true : !loading)" ref="codeEditor" class="code-editor-container" />
+    <div v-show="!isCollapsed && (stream ? true : !loading)" ref="codeEditor" class="code-editor-container" :class="[stream ? '' : 'code-height-placeholder']" />
     <!-- Loading placeholder (non-streaming mode) can be overridden via slot -->
     <div v-show="!stream && loading" class="code-loading-placeholder">
       <slot name="loading" :loading="loading" :stream="stream">
@@ -1033,11 +1033,11 @@ onUnmounted(() => {
   transition: height 180ms ease, max-height 180ms ease;
 }
 
-.code-block-container.is-rendering .code-editor-container {
-  min-height: 120px;
-  background: linear-gradient(90deg, rgba(0,0,0,0.04) 25%, rgba(0,0,0,0.08) 37%, rgba(0,0,0,0.04) 63%);
+.code-block-container.is-rendering .code-height-placeholder{
   background-size: 400% 100%;
   animation: code-skeleton-shimmer 1.2s ease-in-out infinite;
+  min-height: 120px;
+  background: linear-gradient(90deg, rgba(0,0,0,0.04) 25%, rgba(0,0,0,0.08) 37%, rgba(0,0,0,0.04) 63%);
 }
 
 /* Loading placeholder styles */

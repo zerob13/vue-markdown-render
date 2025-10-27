@@ -73,29 +73,46 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
     }
 
     // strong (**)
-    if (/[^*]*\*\*[^*]+/.test(content)) {
-      let idx = content.indexOf('*')
-      if (idx === -1)
-        idx = 0
-      const _text = content.slice(0, idx)
-      if (_text) {
-        if (currentTextNode) {
-          currentTextNode.content += _text
-          currentTextNode.raw += _text
-        }
-        else {
-          currentTextNode = { type: 'text', content: String(_text ?? ''), raw: String(token.content ?? '') }
-          result.push(currentTextNode)
-        }
+    if (/\*\*/.test(content)) {
+      const openIdx = content.indexOf('**')
+      const beforeText = openIdx > -1 ? content.slice(0, openIdx) : ''
+      if (beforeText) {
+        pushText(beforeText, beforeText)
       }
-      const strongContent = content.slice(idx)
+
+      if (openIdx === -1) {
+        i++
+        return true
+      }
+
+      // find the first matching closing ** pair in the content
+      const re = /\*\*([\s\S]*?)\*\*/
+      const exec = re.exec(content)
+      let inner = ''
+      let after = ''
+      if (exec && typeof exec.index === 'number') {
+        inner = exec[1]
+        after = content.slice(exec.index + exec[0].length)
+      }
+      else {
+        // no closing pair found: mid-state, take rest as inner
+        inner = content.slice(openIdx + 2)
+        after = ''
+      }
+
       const { node } = parseStrongToken([
         { type: 'strong_open', tag: 'strong', content: '', markup: '*', info: '', meta: null },
-        { type: 'text', tag: '', content: strongContent.replace(/\*/g, ''), markup: '', info: '', meta: null },
+        { type: 'text', tag: '', content: inner, markup: '', info: '', meta: null },
         { type: 'strong_close', tag: 'strong', content: '', markup: '*', info: '', meta: null },
       ], 0, raw)
+
       resetCurrentTextNode()
       pushNode(node)
+
+      if (after) {
+        pushText(after, after)
+      }
+
       i++
       return true
     }
@@ -137,19 +154,56 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
 
     // Close any current text node and handle inline code
     resetCurrentTextNode()
-    const index = content.indexOf('`')
-    const _text = content.slice(0, index)
-    const codeContent = content.slice(index)
+    const code_start = content.indexOf('`')
+    const code_end = content.indexOf('`', code_start + 1)
+    const _text = content.slice(0, code_start)
+    const codeContent = code_end === -1 ? content.slice(code_start) : content.slice(code_start, code_end)
+    const after = code_end === -1 ? '' : content.slice(code_end + 1)
     if (_text) {
-      pushText(_text, _text)
+      // Try to re-run emphasis/strong parsing on the fragment before the code span
+      // but avoid mutating the outer token index `i` (handlers sometimes increment it).
+      const handled = handleEmphasisAndStrikethrough(_text, _token)
+      // restore index so we don't skip tokens in the outer loop
+      if (!handled) {
+        pushText(_text, _text)
+      }
+      else {
+        i--
+      }
     }
 
-    // 包含了 `， 需要特殊处理 code
+    const code = codeContent.replace(/`/g, '')
     pushParsed({
       type: 'inline_code',
-      code: codeContent.replace(/`/g, ''),
-      raw: String(codeContent ?? ''),
+      code,
+      raw: String(code ?? ''),
     } as ParsedNode)
+
+    // afterCode 可能也存在很多情况包括多个 code，我们递归处理 --- IGNORE ---
+    if (after) {
+      handleToken({
+        type: 'text',
+        content: after,
+        raw: String(after ?? ''),
+      })
+      i--
+    }
+    else if (code_end === -1) {
+      // 要把下一个 token 也合并进来，把类型变成 text
+      const nextToken = tokens[i + 1]
+      if (nextToken) {
+        let fixedAfter = after
+        for (let j = i + 1; j < tokens.length; j++) {
+          fixedAfter += String(((tokens[j].content ?? '') + (tokens[j].markup ?? '')))
+        }
+        i = tokens.length - 1
+        handleToken({
+          type: 'text',
+          content: fixedAfter,
+          raw: String(fixedAfter ?? ''),
+        })
+      }
+    }
     i++
     return true
   }
@@ -382,6 +436,10 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
     if (content.startsWith(')') && result[result.length - 1]?.type === 'link') {
       content = content.slice(1)
     }
+
+    if (content.endsWith('undefined') && !raw?.endsWith('undefined')) {
+      content = content.slice(0, -9)
+    }
     for (index; index >= 0; index--) {
       const item = result[index]
       if (item.type === 'text') {
@@ -391,6 +449,7 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
       }
       break
     }
+
     if (index < result.length - 1)
       result.splice(index + 1)
 
@@ -414,11 +473,7 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
       return
     if (handleInlineImageContent(content, token))
       return
-    // (linkStart was previously computed here but unused)
 
-    if (content.endsWith('undefined') && !raw?.endsWith('undefined')) {
-      content = content.slice(0, -9)
-    }
     const textNode = parseTextToken({ ...token, content })
 
     if (handleInlineLinkContent(content, token))
