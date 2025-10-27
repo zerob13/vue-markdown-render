@@ -21,10 +21,7 @@ defineProps<{
 
 <style scoped>
 .checkbox-node {
-  display: inline-flex;
-  align-items: center;
   margin-right: 0.5rem;
-  height: 1.2rem;
   vertical-align: middle;
 }
 
