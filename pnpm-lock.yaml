@@ -24,8 +24,8 @@ importers:
         specifier: '>=0.0.5'
         version: 0.0.5(shiki@3.13.0)
       stream-markdown-parser:
-        specifier: ^0.0.7
-        version: 0.0.7
+        specifier: ^0.0.8
+        version: 0.0.8
       stream-monaco:
         specifier: '>=0.0.2'
         version: 0.0.2(monaco-editor@0.52.2)
@@ -3612,6 +3612,9 @@ packages:
 
   stream-markdown-parser@0.0.7:
     resolution: {integrity: sha512-ykik9gfdWQqb369xQPQYy3ff7GN39PHjytNhAsJRpiB+Zpx23txSvqO4hKHy26OLW6d447/tZ0jyBnJjBTDLxQ==}
+
+  stream-markdown-parser@0.0.8:
+    resolution: {integrity: sha512-ckhKhOAqOs6qnB8kkhNoHE5ESOZhnjhKg4NZSsFpILrsatPpUL6W5+Gdwez8WTkhoG5+XKQZCfhPHrqjT7uHgw==}
 
   stream-markdown@0.0.5:
     resolution: {integrity: sha512-+MMqckBs6BlmJrCi47bseuuIEZOuHfeeQf12bkySlf2POz8KJk73pbqUfdmgJL4+sfZITG9WAoApiNiIsNrhRw==}
@@ -8114,6 +8117,18 @@ snapshots:
   std-env@3.9.0: {}
 
   stream-markdown-parser@0.0.7:
+    dependencies:
+      markdown-it: 14.1.0
+      markdown-it-container: 4.0.0
+      markdown-it-emoji: 3.0.0
+      markdown-it-footnote: 4.0.0
+      markdown-it-ins: 4.0.0
+      markdown-it-mark: 4.0.0
+      markdown-it-sub: 2.0.0
+      markdown-it-sup: 2.0.0
+      markdown-it-task-checkbox: 1.0.6
+
+  stream-markdown-parser@0.0.8:
     dependencies:
       markdown-it: 14.1.0
       markdown-it-container: 4.0.0
