@@ -228,7 +228,7 @@ export interface MarkdownToken {
   children?: MarkdownToken[]
   attrs?: [string, string][]
   markup?: string
-  meta?: any
+  meta?: unknown
   map?: [number, number]
   raw?: string
 }
@@ -267,38 +267,38 @@ export type ParsedNode
     | MathInlineNode
     | MathBlockNode
     | ReferenceNode
-    | Record<string, any>
+    | Record<string, unknown>
 export interface CustomComponents {
-  text: any
-  paragraph: any
-  heading: any
-  code_block: any
-  list: any
-  blockquote: any
-  table: any
-  definition_list: any
-  footnote: any
-  footnote_reference: any
-  admonition: any
-  hardbreak: any
-  link: any
-  image: any
-  thematic_break: any
-  math_inline: any
-  math_block: any
-  strong: any
-  emphasis: any
-  strikethrough: any
-  highlight: any
-  insert: any
-  subscript: any
-  superscript: any
-  emoji: any
-  checkbox: any
-  inline_code: any
-  reference: any
-  mermaid: any
-  [key: string]: any
+  text: unknown
+  paragraph: unknown
+  heading: unknown
+  code_block: unknown
+  list: unknown
+  blockquote: unknown
+  table: unknown
+  definition_list: unknown
+  footnote: unknown
+  footnote_reference: unknown
+  admonition: unknown
+  hardbreak: unknown
+  link: unknown
+  image: unknown
+  thematic_break: unknown
+  math_inline: unknown
+  math_block: unknown
+  strong: unknown
+  emphasis: unknown
+  strikethrough: unknown
+  highlight: unknown
+  insert: unknown
+  subscript: unknown
+  superscript: unknown
+  emoji: unknown
+  checkbox: unknown
+  inline_code: unknown
+  reference: unknown
+  mermaid: unknown
+  [key: string]: unknown
 }
 
 // Function to parse markdown into a structured representation

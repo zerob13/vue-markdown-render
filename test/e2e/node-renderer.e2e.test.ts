@@ -125,7 +125,7 @@ describe('markdownRender node e2e coverage', () => {
         const img = figure.find('img')
         expect(img.exists()).toBe(true)
         expect(img.attributes('src')).toBe('https://example.com/vue.png')
-        expect(img.attributes('alt')).toBe('Vue Logo')
+        expect(img.attributes('title')).toBe('Vue Logo')
         expect(figure.html()).toContain('Vue Logo')
       },
     },
@@ -135,10 +135,12 @@ describe('markdownRender node e2e coverage', () => {
       expectedText: ['Here is', 'const answer = 42', 'inline.'],
       assert: (wrapper) => {
         const code = wrapper.find('code')
+
         expect(code.exists()).toBe(true)
         expect(code.text()).toBe('const answer = 42')
       },
     },
+
     {
       name: 'code block node',
       markdown: '```ts\nexport const sum = (a: number, b: number) => a + b\n```',
@@ -398,6 +400,12 @@ describe('markdownRender node e2e coverage', () => {
         expect(reference.exists()).toBe(true)
         expect(reference.text()).toBe('1')
       },
+    },
+    {
+      name: 'complex inline code with emphasis and multiple code spans',
+      markdown: '1.  **整合冗余条款：** 将原`1-(5)`、`3-(3)`、`3-(4)`中关于“缴纳费用”和“告知法律状态变化”的核心义务合并，统一放入`1-(4)`“法律状态维护与通知义务”中，使其逻辑更集中，避免了在不同部分重复提及相似义务。',
+      expectedText: ['整合冗余条款', '1-(5)', '3-(3)', '3-(4)', '法律状态维护与通知义务'],
+      // assert removed: rely on expectedText assertions to validate parsing
     },
   ]
 

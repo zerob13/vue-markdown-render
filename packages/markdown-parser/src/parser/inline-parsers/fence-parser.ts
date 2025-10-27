@@ -29,10 +29,11 @@ function splitUnifiedDiff(content: string) {
 
 export function parseFenceToken(token: MarkdownToken): CodeBlockNode {
   const hasMap = Array.isArray(token.map) && token.map.length === 2
-  const meta = (token as any).meta
-  const closed = typeof meta?.closed === 'boolean' ? meta.closed : undefined
-  const diff = token.info?.startsWith('diff') || false
-  const language = diff ? token.info?.split(' ')[1] || '' : token.info || ''
+  const tokenMeta = (token.meta ?? {}) as unknown as { closed?: boolean }
+  const closed = typeof tokenMeta.closed === 'boolean' ? tokenMeta.closed : undefined
+  const info = String(token.info ?? '')
+  const diff = info.startsWith('diff')
+  const language = diff ? String(info.split(' ')[1] ?? '') : info
 
   // Defensive sanitization: sometimes a closing fence line (e.g. ``` or ``)
   // can accidentally end up inside `token.content` (for example when
@@ -42,7 +43,7 @@ export function parseFenceToken(token: MarkdownToken): CodeBlockNode {
   // conservative cleanup and only strips a final line that looks like a
   // fence marker (starts with optional spaces then one or more ` and
   // only whitespace until end-of-string).
-  let content = token.content || ''
+  let content = String(token.content ?? '')
   const trailingFenceLine = /\r?\n[ \t]*`+\s*$/
   if (trailingFenceLine.test(content))
     content = content.replace(trailingFenceLine, '')
@@ -53,8 +54,8 @@ export function parseFenceToken(token: MarkdownToken): CodeBlockNode {
     return {
       type: 'code_block',
       language,
-      code: updated || '',
-      raw: content,
+      code: String(updated ?? ''),
+      raw: String(content ?? ''),
       diff,
       loading: closed === true ? false : closed === false ? true : !hasMap,
       originalCode: original,
@@ -65,8 +66,8 @@ export function parseFenceToken(token: MarkdownToken): CodeBlockNode {
   return {
     type: 'code_block',
     language,
-    code: content || '',
-    raw: content || '',
+    code: String(content ?? ''),
+    raw: String(content ?? ''),
     diff,
     loading: closed === true ? false : closed === false ? true : !hasMap,
   }

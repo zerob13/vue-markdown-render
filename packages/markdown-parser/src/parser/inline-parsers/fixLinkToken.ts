@@ -6,43 +6,52 @@ function isTextToken(t?: MarkdownToken): t is MarkdownToken & { type: 'text', co
 }
 
 export function fixLinkToken(tokens: MarkdownToken[]): MarkdownToken[] {
+  const tokensAny = tokens as unknown as import('../../types').MarkdownToken[]
   tokens = fixLinkToken4(fixLinkToken3(tokens))
   if (tokens.length < 5)
     return tokens
   const first = tokens[tokens.length - 5]
+  const firstAny = first as unknown as { content?: string }
+  const firstContent = String(firstAny.content ?? '')
   // use OR and optional chaining to avoid unsafe access
-  if (first.type !== 'text' || !(first as any).content?.endsWith('['))
+  if (first.type !== 'text' || !firstContent.endsWith('['))
     return fixLinkTokens2(tokens)
   const second = tokens[tokens.length - 4]
-  if ((second as any).tag !== 'em')
+  const secondAny = second as unknown as { tag?: string }
+  const secondTag = secondAny.tag
+  if (secondTag !== 'em')
     return fixLinkTokens2(tokens)
   const last = tokens[tokens.length - 1]
-  if (last?.type === 'text' && !(last as any).content?.startsWith(']'))
+  const lastAny = last as unknown as { content?: string, type?: string }
+  const lastContent = String(lastAny.content ?? '')
+  if (last?.type === 'text' && !lastContent.startsWith(']'))
     return fixLinkTokens2(tokens)
 
   const third = tokens[tokens.length - 3]
-  const lastContent = (last as any).content ?? ''
+  const thirdAny = third as unknown as { content?: string }
+  const thirdContent = String(thirdAny.content ?? '')
   const href = lastContent.replace(/^\]\(*/, '')
   const loading = !lastContent.includes(')')
-  ;(first as any).content = (first as any).content?.replace(/\[$/, '')
+  tokensAny[tokens.length - 5].content = firstContent.replace(/\[$/, '')
   tokens.splice(tokens.length - 3, 1, {
     type: 'link',
     href,
-    text: (third as any).content,
+    text: thirdContent,
     children: [
       {
         type: 'text',
-        content: (third as any).content,
-        raw: (third as any).content,
+        content: thirdContent,
+        raw: thirdContent,
       },
     ],
     loading,
-  } as any)
+  } as MarkdownToken)
   tokens.splice(tokens.length - 1, 1)
   return tokens
 }
 
 export function fixLinkTokens2(tokens: MarkdownToken[]): MarkdownToken[] {
+  const tokensAny = tokens as unknown as import('../../types').MarkdownToken[]
   if (tokens.length < 8)
     return tokens
   let length = tokens.length
@@ -60,18 +69,19 @@ export function fixLinkTokens2(tokens: MarkdownToken[]): MarkdownToken[] {
   const first = tokens[length - 8]
   if (first.type !== 'text')
     return tokens
-
-  let href = (tokens[length - 2] as any).content ?? ''
+  let href = String(tokensAny[length - 2]?.content ?? '')
   let count = 4
   if (length !== tokens.length) {
     // 合并 last 到 href
-    href += (last as any).content || ''
+    href += String(last.content ?? '')
     count++
   }
   tokens.splice(length - 4, count)
-  const content = (third as any).content
+  const thirdAny = third as unknown as { content?: string }
+  const content = String(thirdAny.content ?? '')
   length -= 4
-  ;(first as any).content = (first as any).content?.replace(/\[$/, '')
+  const firstAny = first as unknown as { content?: string }
+  tokensAny[length - 8].content = String(firstAny.content ?? '').replace(/\[$/, '')
   tokens.splice(length - 2, 1, {
     type: 'link',
     href,
@@ -84,22 +94,25 @@ export function fixLinkTokens2(tokens: MarkdownToken[]): MarkdownToken[] {
       },
     ],
     loading: true,
-  } as any)
+  } as MarkdownToken)
   return tokens
 }
 
 export function fixLinkToken3(tokens: MarkdownToken[]): MarkdownToken[] {
+  const tokensAny = tokens as unknown as import('../../types').MarkdownToken[]
   const last = tokens[tokens.length - 1]
   const preLast = tokens[tokens.length - 2]
   const fixedTokens = [...tokens]
-  if (last.type !== 'text' || !(last as any).content?.startsWith(')')) {
+  if (last.type !== 'text' || !(last as unknown as { content?: string }).content?.startsWith(')')) {
     return tokens
   }
   if (preLast.type !== 'link_close')
     return tokens
 
-  if (isTextToken(tokens[tokens.length - 5]) && (tokens[tokens.length - 5] as any).content?.endsWith('(')) {
-    const content = (tokens[tokens.length - 5] as any).content + (tokens[tokens.length - 3] as any).content + (last as any).content
+  if (isTextToken(tokens[tokens.length - 5]) && String(((tokens[tokens.length - 5]) as unknown as { content?: string }).content ?? '').endsWith('(')) {
+    const a = tokensAny[tokens.length - 5] as unknown as { content?: string }
+    const b = tokensAny[tokens.length - 3] as unknown as { content?: string }
+    const content = String(a.content ?? '') + String(b.content ?? '') + String(last.content ?? '')
     // delete exactly 5 tokens starting at length - 5
     fixedTokens.splice(tokens.length - 5, 5, {
       type: 'text',
@@ -109,13 +122,14 @@ export function fixLinkToken3(tokens: MarkdownToken[]): MarkdownToken[] {
   }
   else {
     // avoid mutating the original array, update the copy
-    const lc = ((last as any).content ?? '').slice(1)
-    fixedTokens[fixedTokens.length - 1] = { ...(last as any), content: lc }
+    const lc = ((last.content ?? '')).slice(1)
+    fixedTokens[fixedTokens.length - 1] = { ...last, content: lc }
   }
   return fixedTokens
 }
 
 export function fixLinkToken4(tokens: MarkdownToken[]): MarkdownToken[] {
+  const tokensAny = tokens as unknown as import('../../types').MarkdownToken[]
   const fixedTokens = [...tokens]
   for (let i = tokens.length - 1; i >= 3; i--) {
     const token = tokens[i]
@@ -124,7 +138,10 @@ export function fixLinkToken4(tokens: MarkdownToken[]): MarkdownToken[] {
         const nextToken = tokens[i + 1]
         if (nextToken?.type === 'text') {
           if (tokens[i - 1].type === 'text' && tokens[i - 3].type === 'text') {
-            const content = (tokens[i - 3] as any).content + (tokens[i - 1] as any).content + (nextToken as any).content
+            const nextTokenContent = String((nextToken as unknown as { content?: string }).content ?? '')
+            const a = tokensAny[i - 3] as unknown as { content?: string }
+            const b = tokensAny[i - 1] as unknown as { content?: string }
+            const content = String(a.content ?? '') + String(b.content ?? '') + nextTokenContent
             fixedTokens.splice(i - 3, 5, {
               type: 'text',
               content,
@@ -135,7 +152,9 @@ export function fixLinkToken4(tokens: MarkdownToken[]): MarkdownToken[] {
         }
         else {
           if (tokens[i - 1].type === 'text' && tokens[i - 3].type === 'text') {
-            const content = (tokens[i - 3] as any).content + (tokens[i - 1] as any).content
+            const a = tokensAny[i - 3] as unknown as { content?: string }
+            const b = tokensAny[i - 1] as unknown as { content?: string }
+            const content = String(a.content ?? '') + String(b.content ?? '')
             fixedTokens.splice(i - 3, 4, {
               type: 'text',
               content,

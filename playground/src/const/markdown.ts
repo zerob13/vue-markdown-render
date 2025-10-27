@@ -385,4 +385,6 @@ graph TD
    - 在这种情况下，\(\boldsymbol{\alpha}^T \boldsymbol{\beta} = 0\) 可以看作 \(\boldsymbol{\beta}\) 与 \(W\) 正交的一个特例（当 \(W\) 只由 \(\boldsymbol{\alpha}\) 张成时）。
 
 总之，\(\boldsymbol{\alpha}^T \boldsymbol{\beta} = 0\) 直接体现了正交补空间的关系：它表明一个向量属于另一个向量张成子空间的正交补空间。如果你有更多向量或子空间，这种联系可以进一步深化。
+
+**示例：** emm\`1-(5)\`、\`3-(3)\`、\`3-(4)\` complex test \`1-(4)\`“heiheihei”中，hello world。
 `

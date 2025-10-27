@@ -60,7 +60,7 @@ const props = withDefaults(
 const emits = defineEmits(['previewCode', 'copy'])
 const { t } = useSafeI18n()
 
-const codeLanguage = ref<string>(props.node.language || '')
+const codeLanguage = ref<string>(String(props.node.language ?? ''))
 const copyText = ref(false)
 const isExpanded = ref(false)
 const isCollapsed = ref(false)

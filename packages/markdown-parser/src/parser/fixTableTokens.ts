@@ -105,30 +105,32 @@ export function fixTableTokens(tokens: MarkdownToken[]): MarkdownToken[] {
     return fixedTokens
   const i = tokens.length - 2
   const token = tokens[i]
-
   if (token.type === 'inline') {
-    if (/^\|(?:[^|\n]+\|?)+/.test(token.content!)) {
+    const tcontent = String(token.content ?? '')
+    const childContent = String(token.children?.[0]?.content ?? '')
+
+    if (/^\|(?:[^|\n]+\|?)+/.test(tcontent)) {
       // 解析 table
-      const body = token.children![0].content!.slice(1).split('|').map(i => i.trim()).filter(Boolean).flatMap(i => createTh(i))
-      const insert = [
+      const body = childContent.slice(1).split('|').map(i => i.trim()).filter(Boolean).flatMap(i => createTh(i))
+      const insert = ([
         ...createStart(),
         ...body,
         ...createEnd(),
-      ] as any
+      ] as unknown) as MarkdownToken[]
       fixedTokens.splice(i - 1, 3, ...insert)
     }
-    else if (/^\|(?:[^|\n]+\|)+\n\|:?-/.test(token.content!)) {
+    else if (/^\|(?:[^|\n]+\|)+\n\|:?-/.test(tcontent)) {
       // 解析 table
-      const body = token.children![0].content!.slice(1, -1).split('|').map(i => i.trim()).flatMap(i => createTh(i))
-      const insert = [
+      const body = childContent.slice(1, -1).split('|').map(i => i.trim()).flatMap(i => createTh(i))
+      const insert = ([
         ...createStart(),
         ...body,
         ...createEnd(),
-      ] as any
+      ] as unknown) as MarkdownToken[]
       fixedTokens.splice(i - 1, 3, ...insert)
     }
-    else if (/^\|(?:[^|\n:]+\|)+\n\|:?$/.test(token.content!)) {
-      token.content = token.content!.slice(0, -2)
+    else if (/^\|(?:[^|\n:]+\|)+\n\|:?$/.test(tcontent)) {
+      token.content = tcontent.slice(0, -2)
       token.children!.splice(2, 1)
     }
   }

@@ -13,9 +13,13 @@ export function applyContainers(md: MarkdownIt) {
     'caution',
   ].forEach((name) => {
     md.use(markdownItContainer, name, {
-      render(tokens: any, idx: number) {
-        const token = tokens[idx]
-        if (token.nesting === 1) {
+      render(tokens: unknown, idx: number) {
+        const tokensAny = tokens as unknown as import('../types').MarkdownToken[]
+        const token = tokensAny[idx]
+        // `nesting` is a runtime-only property present on MarkdownIt tokens.
+        // Narrow the shape with `unknown` -> specific minimal interface to avoid `as any`.
+        const tokenShape = token as unknown as { nesting?: number }
+        if (tokenShape.nesting === 1) {
           return `<div class="vmr-container vmr-container-${name}">`
         }
         else {
@@ -29,10 +33,20 @@ export function applyContainers(md: MarkdownIt) {
   md.block.ruler.before(
     'fence',
     'vmr_container_fallback',
-    (state: any, startLine: number, endLine: number, silent: boolean) => {
-      const startPos = state.bMarks[startLine] + state.tShift[startLine]
-      const lineMax = state.eMarks[startLine]
-      const markerMatch = state.src
+    (state: unknown, startLine: number, endLine: number, silent: boolean) => {
+      interface ParserState {
+        bMarks: number[]
+        tShift: number[]
+        eMarks: number[]
+        src: string
+        push: (type: string, tag?: string, nesting?: number) => any
+        md: any
+        line: number
+      }
+      const s = state as unknown as ParserState
+      const startPos = s.bMarks[startLine] + s.tShift[startLine]
+      const lineMax = s.eMarks[startLine]
+      const markerMatch = s.src
         .slice(startPos, lineMax)
         .match(/^:::\s*(\w+)/)
       if (!markerMatch)
@@ -44,9 +58,9 @@ export function applyContainers(md: MarkdownIt) {
       let nextLine = startLine + 1
       let found = false
       while (nextLine <= endLine) {
-        const sPos = state.bMarks[nextLine] + state.tShift[nextLine]
-        const ePos = state.eMarks[nextLine]
-        if (state.src.slice(sPos, ePos).trim() === ':::') {
+        const sPos = s.bMarks[nextLine] + s.tShift[nextLine]
+        const ePos = s.eMarks[nextLine]
+        if (s.src.slice(sPos, ePos).trim() === ':::') {
           found = true
           break
         }
@@ -55,30 +69,31 @@ export function applyContainers(md: MarkdownIt) {
       if (!found)
         return false
 
-      const tokenOpen = state.push('vmr_container_open', 'div', 1)
+      const tokenOpen = s.push('vmr_container_open', 'div', 1)
+      // `tokenOpen` is runtime token object; keep using runtime helpers but avoid casting `s` to `any`.
       tokenOpen.attrSet('class', `vmr-container vmr-container-${name}`)
 
       const contentLines: string[] = []
       for (let i = startLine + 1; i < nextLine; i++) {
-        const sPos = state.bMarks[i] + state.tShift[i]
-        const ePos = state.eMarks[i]
-        contentLines.push(state.src.slice(sPos, ePos))
+        const sPos = s.bMarks[i] + s.tShift[i]
+        const ePos = s.eMarks[i]
+        contentLines.push(s.src.slice(sPos, ePos))
       }
 
       // Open a paragraph, push inline content and then close paragraph
-      state.push('paragraph_open', 'p', 1)
-      const inlineToken = state.push('inline', '', 0)
+      s.push('paragraph_open', 'p', 1)
+      const inlineToken = s.push('inline', '', 0)
       inlineToken.content = contentLines.join('\n')
       inlineToken.map = [startLine + 1, nextLine]
       // Ensure children exist and parse the inline content into them so the renderer
       // won't encounter a null children array (which causes .length read errors).
       inlineToken.children = []
-      state.md.inline.parse(inlineToken.content, state.md, state.env, inlineToken.children)
-      state.push('paragraph_close', 'p', -1)
+      s.md.inline.parse(inlineToken.content, s.md, (s as any).env, inlineToken.children)
+      s.push('paragraph_close', 'p', -1)
 
-      state.push('vmr_container_close', 'div', -1)
+      s.push('vmr_container_close', 'div', -1)
 
-      state.line = nextLine + 1
+      s.line = nextLine + 1
       return true
     },
   )

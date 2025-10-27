@@ -41,14 +41,15 @@ export function parseList(
         if (tokens[k].type === 'paragraph_open') {
           const contentToken = tokens[k + 1]
           const preToken = tokens[k - 1]
-          if (/\n\d+$/.test(contentToken.content || '')) {
-            contentToken.content = contentToken.content?.replace(/\n\d+$/, '')
+          const contentStr = String(contentToken.content ?? '')
+          if (/\n\d+$/.test(contentStr)) {
+            contentToken.content = contentStr.replace(/\n\d+$/, '')
             contentToken.children?.splice(-1, 1)
           }
           itemChildren.push({
             type: 'paragraph',
-            children: parseInlineTokens(contentToken.children || [], contentToken.content || '', preToken),
-            raw: contentToken.content || '',
+            children: parseInlineTokens(contentToken.children || [], String(contentToken.content ?? ''), preToken),
+            raw: String(contentToken.content ?? ''),
           })
           k += 3 // Skip paragraph_open, inline, paragraph_close
         }
@@ -119,7 +120,7 @@ export function parseList(
           // Handle admonition containers (warning, info, note, tip, danger, caution)
           const match
             = /^::: ?(warning|info|note|tip|danger|caution) ?(.*)$/.exec(
-              tokens[k].info || '',
+              String(tokens[k].info ?? ''),
             )
           if (match) {
             const [admonitionNode, newIndex] = parseAdmonition(tokens, k, match)
@@ -155,8 +156,10 @@ export function parseList(
     start: (() => {
       if (token.attrs && token.attrs.length) {
         const found = token.attrs.find(a => a[0] === 'start')
-        if (found)
-          return Number(found[1]) || 1
+        if (found) {
+          const parsed = Number(found[1])
+          return Number.isFinite(parsed) && parsed !== 0 ? parsed : 1
+        }
       }
       return undefined
     })(),
@@ -194,8 +197,8 @@ function parseNestedList(
           const preToken = tokens[k - 1]
           itemChildren.push({
             type: 'paragraph',
-            children: parseInlineTokens(contentToken.children || [], contentToken.content || '', preToken),
-            raw: contentToken.content || '',
+            children: parseInlineTokens(contentToken.children || [], String(contentToken.content ?? ''), preToken),
+            raw: String(contentToken.content ?? ''),
           })
           k += 3 // Skip paragraph_open, inline, paragraph_close
         }
@@ -251,8 +254,10 @@ function parseNestedList(
     start: (() => {
       if (nestedToken.attrs && nestedToken.attrs.length) {
         const found = nestedToken.attrs.find(a => a[0] === 'start')
-        if (found)
-          return Number(found[1]) || 1
+        if (found) {
+          const parsed = Number(found[1])
+          return Number.isFinite(parsed) && parsed !== 0 ? parsed : 1
+        }
       }
       return undefined
     })(),

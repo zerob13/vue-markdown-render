@@ -16,7 +16,7 @@ export function parseBlockquote(
       blockquoteChildren.push({
         type: 'paragraph',
         children: parseInlineTokens(contentToken.children || []),
-        raw: contentToken.content || '',
+        raw: String(contentToken.content ?? ''),
       })
       j += 3 // Skip paragraph_open, inline, paragraph_close
     }

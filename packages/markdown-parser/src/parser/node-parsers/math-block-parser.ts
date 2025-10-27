@@ -4,8 +4,8 @@ import type { MarkdownToken, MathBlockNode } from '../../types'
 export function parseMathBlock(token: MarkdownToken): MathBlockNode {
   return {
     type: 'math_block',
-    content: token.content || '',
+    content: String(token.content ?? ''),
     loading: !!token.loading,
-    raw: token.raw || '',
+    raw: String(token.raw ?? ''),
   }
 }

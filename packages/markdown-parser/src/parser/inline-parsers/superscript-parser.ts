@@ -15,7 +15,7 @@ export function parseSuperscriptToken(
 
   // Process tokens between sup_open and sup_close (if applicable)
   while (i < tokens.length && tokens[i].type !== 'sup_close') {
-    supText += tokens[i].content || ''
+    supText += String(tokens[i].content ?? '')
     innerTokens.push(tokens[i])
     i++
   }
@@ -32,11 +32,11 @@ export function parseSuperscriptToken(
             {
               type: 'text',
               // Fallback to the collected inner text (e.g., "2" in x^2^)
-              content: supText || tokens[startIndex].content || '',
-              raw: supText || tokens[startIndex].content || '',
+              content: supText || String(tokens[startIndex].content ?? ''),
+              raw: supText || String(tokens[startIndex].content ?? ''),
             },
           ],
-    raw: `^${supText || tokens[startIndex].content || ''}^`,
+    raw: `^${supText || String(tokens[startIndex].content ?? '')}^`,
   }
 
   // Skip to after sup_close

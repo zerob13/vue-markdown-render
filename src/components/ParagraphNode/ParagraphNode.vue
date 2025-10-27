@@ -73,6 +73,10 @@ const nodeComponents = {
 .paragraph-node{
   margin: 1.25em 0;
 }
+.list-item .paragraph-node{
+  display: flex;
+  align-items: center;
+}
 li .paragraph-node{
   margin: 0;
 }

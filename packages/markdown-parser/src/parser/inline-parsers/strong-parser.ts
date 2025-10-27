@@ -16,7 +16,7 @@ export function parseStrongToken(
 
   // Process tokens between strong_open and strong_close
   while (i < tokens.length && tokens[i].type !== 'strong_close') {
-    strongText += tokens[i].content || ''
+    strongText += String(tokens[i].content ?? '')
     innerTokens.push(tokens[i])
     i++
   }
@@ -27,7 +27,7 @@ export function parseStrongToken(
   const node: StrongNode = {
     type: 'strong',
     children,
-    raw: `**${strongText}**`,
+    raw: `**${String(strongText)}**`,
   }
 
   // Skip to after strong_close

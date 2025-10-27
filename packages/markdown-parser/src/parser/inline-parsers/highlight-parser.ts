@@ -15,7 +15,7 @@ export function parseHighlightToken(
 
   // Process tokens between mark_open and mark_close
   while (i < tokens.length && tokens[i].type !== 'mark_close') {
-    markText += tokens[i].content || ''
+    markText += String(tokens[i].content ?? '')
     innerTokens.push(tokens[i])
     i++
   }
