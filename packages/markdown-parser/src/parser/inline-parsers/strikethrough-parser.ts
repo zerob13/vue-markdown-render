@@ -19,7 +19,7 @@ export function parseStrikethroughToken(
 
   // Process tokens between s_open and s_close
   while (i < tokens.length && tokens[i].type !== 's_close') {
-    sText += tokens[i].content || ''
+    sText += String(tokens[i].content ?? '')
     innerTokens.push(tokens[i])
     i++
   }

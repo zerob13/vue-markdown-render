@@ -55,7 +55,20 @@ export function parseMarkdownToStructure(
   // Backwards compatible token-level post hook: if provided and returns
   // a modified token array, re-process tokens and override node-level result.
   if (post && typeof post === 'function') {
-    result = post(transformedTokens) || transformedTokens
+    const postResult = post(transformedTokens)
+    if (Array.isArray(postResult)) {
+      // Backwards compatibility: if the hook returns an array of tokens
+      // (they have a `type` string property), re-process them into nodes.
+      const first = (postResult as unknown[])[0] as unknown
+      const firstType = (first as Record<string, unknown>)?.type
+      if (first && typeof firstType === 'string') {
+        result = processTokens(postResult as unknown as MarkdownToken[])
+      }
+      else {
+        // Otherwise assume it returned ParsedNode[] and use it as-is
+        result = postResult as unknown as ParsedNode[]
+      }
+    }
   }
   return result
 }
@@ -150,7 +163,7 @@ export function processTokens(tokens: MarkdownToken[]): ParsedNode[] {
       case 'container_open': {
         const match
           = /^::: ?(warning|info|note|tip|danger|caution|error) ?(.*)$/.exec(
-            token.info || '',
+            String(token.info ?? ''),
           )
         if (match) {
           const [admonitionNode, newIndex] = parseAdmonition(tokens, i, match)

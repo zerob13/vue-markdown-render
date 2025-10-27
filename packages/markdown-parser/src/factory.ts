@@ -5,8 +5,8 @@ import { applyContainers } from './plugins/containers'
 import { applyMath } from './plugins/math'
 import { applyRenderRules } from './renderers'
 
-export interface FactoryOptions extends Record<string, any> {
-  markdownItOptions?: Record<string, any>
+export interface FactoryOptions extends Record<string, unknown> {
+  markdownItOptions?: Record<string, unknown>
   enableMath?: boolean
   enableContainers?: boolean
   mathOptions?: { commands?: string[], escapeExclamation?: boolean }

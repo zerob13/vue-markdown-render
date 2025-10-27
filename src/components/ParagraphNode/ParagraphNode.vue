@@ -72,7 +72,9 @@ const nodeComponents = {
 <style scoped>
 .paragraph-node{
   margin: 1.25em 0;
+  line-height: 1;
 }
+
 li .paragraph-node{
   margin: 0;
 }

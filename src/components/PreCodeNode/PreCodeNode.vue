@@ -8,8 +8,8 @@ const props = defineProps<{
 
 // Normalize language to a safe, lowercase token (fallback to 'plaintext')
 const normalizedLanguage = computed(() => {
-  const raw = props.node?.language || ''
-  const head = String(raw).split(/\s+/g)[0]?.toLowerCase?.() || ''
+  const raw = String(props.node?.language ?? '')
+  const head = String(String(raw).split(/\s+/g)[0] ?? '').toLowerCase()
   const safe = head.replace(/[^\w-]/g, '')
   return safe || 'plaintext'
 })

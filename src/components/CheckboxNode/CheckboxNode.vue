@@ -24,7 +24,7 @@ defineProps<{
   display: inline-flex;
   align-items: center;
   margin-right: 0.5rem;
-  height: 1.2rem;
+  height: 24px;
 }
 
 .checkbox-input {

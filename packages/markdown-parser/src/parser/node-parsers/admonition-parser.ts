@@ -7,8 +7,8 @@ export function parseAdmonition(
   index: number,
   match: RegExpExecArray,
 ): [AdmonitionNode, number] {
-  const kind = match[1] || 'note'
-  const title = match[2] || kind.charAt(0).toUpperCase() + kind.slice(1)
+  const kind = String(match[1] ?? 'note')
+  const title = String(match[2] ?? (kind.charAt(0).toUpperCase() + kind.slice(1)))
   const admonitionChildren: ParsedNode[] = []
   let j = index + 1
 
@@ -19,7 +19,7 @@ export function parseAdmonition(
         admonitionChildren.push({
           type: 'paragraph',
           children: parseInlineTokens(contentToken.children || []),
-          raw: contentToken.content || '',
+          raw: String(contentToken.content ?? ''),
         })
       }
       j += 3 // Skip paragraph_open, inline, paragraph_close

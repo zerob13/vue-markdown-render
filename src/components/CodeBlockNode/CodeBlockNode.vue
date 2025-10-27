@@ -79,7 +79,7 @@ const container = ref<HTMLElement | null>(null)
 const copyText = ref(false)
 // local tooltip logic removed; use shared `showTooltipForAnchor` / `hideTooltip`
 
-const codeLanguage = ref(props.node.language || '')
+const codeLanguage = ref(String(props.node.language ?? ''))
 const isExpanded = ref(false)
 const isCollapsed = ref(false)
 const editorCreated = ref(false)
@@ -99,7 +99,7 @@ let getEditorView: () => any = () => ({ getModel: () => ({ getLineCount: () => 1
 let getDiffEditorView: () => any = () => ({ getModel: () => ({ getLineCount: () => 1 }), getOption: () => 14, updateOptions: () => {} })
 let cleanupEditor: () => void = () => {}
 let safeClean = () => {}
-let detectLanguage: (code: string) => string = () => props.node.language || 'plaintext'
+let detectLanguage: (code: string) => string = () => String(props.node.language ?? 'plaintext')
 let setTheme: (theme: MonacoTheme) => Promise<void> = async () => {}
 const isDiff = computed(() => props.node.diff)
 const usePreCodeRender = ref(false)
@@ -151,7 +151,7 @@ if (typeof window !== 'undefined') {
         if (!editorCreated.value && codeEditor.value) {
           editorCreated.value = true
           isDiff.value
-            ? createDiffEditor(codeEditor.value as HTMLElement, props.node.originalCode || '', props.node.updatedCode || '', codeLanguage.value)
+            ? createDiffEditor(codeEditor.value as HTMLElement, String(props.node.originalCode ?? ''), String(props.node.updatedCode ?? ''), codeLanguage.value)
             : createEditor(codeEditor.value as HTMLElement, props.node.code, codeLanguage.value)
         }
       }
@@ -352,9 +352,9 @@ function syncEditorCssVars() {
   catch {
     styles = null
   }
-  const fg = (styles && styles.getPropertyValue('--vscode-editor-foreground')) || ''
-  const bg = (styles && styles.getPropertyValue('--vscode-editor-background')) || ''
-  const hoverBg = (styles && styles.getPropertyValue('--vscode-editor-hoverHighlightBackground')) || ''
+  const fg = String(styles?.getPropertyValue('--vscode-editor-foreground') ?? '')
+  const bg = String(styles?.getPropertyValue('--vscode-editor-background') ?? '')
+  const hoverBg = String(styles?.getPropertyValue('--vscode-editor-hoverHighlightBackground') ?? '')
   if (fg && bg) {
     rootEl.style.setProperty('--vscode-editor-foreground', fg.trim())
     rootEl.style.setProperty('--vscode-editor-background', bg.trim())
@@ -530,7 +530,7 @@ watch(
       codeLanguage.value = detectLanguage(newCode)
 
     isDiff.value
-      ? updateDiffCode(props.node.originalCode || '', props.node.updatedCode || '', codeLanguage.value)
+      ? updateDiffCode(String(props.node.originalCode ?? ''), String(props.node.updatedCode ?? ''), codeLanguage.value)
       : updateCode(newCode, codeLanguage.value)
     if (isExpanded.value) {
       safeRaf(() => updateExpandedHeight())
@@ -738,7 +738,7 @@ const stopCreateEditorWatch = watch(
 
     if (isDiff.value) {
       safeClean()
-      await createDiffEditor(el as HTMLElement, props.node.originalCode || '', props.node.updatedCode || '', codeLanguage.value)
+      await createDiffEditor(el as HTMLElement, String(props.node.originalCode ?? ''), String(props.node.updatedCode ?? ''), codeLanguage.value)
     }
     else {
       await createEditor(el as HTMLElement, props.node.code, codeLanguage.value)

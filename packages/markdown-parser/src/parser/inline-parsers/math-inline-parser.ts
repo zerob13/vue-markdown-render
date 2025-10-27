@@ -4,7 +4,7 @@ import type { MarkdownToken, MathInlineNode } from '../../types'
 export function parseMathInlineToken(token: MarkdownToken): MathInlineNode {
   return {
     type: 'math_inline',
-    content: token.content || '',
+    content: String(token.content ?? ''),
     loading: !!token.loading,
     raw: token.raw!,
   }

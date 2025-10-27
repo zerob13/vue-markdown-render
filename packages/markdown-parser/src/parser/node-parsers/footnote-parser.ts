@@ -6,7 +6,8 @@ export function parseFootnote(
   index: number,
 ): [FootnoteNode, number] {
   const token = tokens[index]
-  const id = token.meta?.label ?? 0
+  const meta = (token.meta ?? {}) as unknown as { label?: number | string }
+  const id = String(meta?.label ?? '0')
   const footnoteChildren: ParsedNode[] = []
   let j = index + 1
 
@@ -16,7 +17,7 @@ export function parseFootnote(
       footnoteChildren.push({
         type: 'paragraph',
         children: parseInlineTokens(contentToken.children || []),
-        raw: contentToken.content || '',
+        raw: String(contentToken.content ?? ''),
       })
       j += 3 // Skip paragraph_open, inline, paragraph_close
     }

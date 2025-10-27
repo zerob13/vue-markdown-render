@@ -15,7 +15,7 @@ export function parseEmphasisToken(
 
   // Process tokens between em_open and em_close
   while (i < tokens.length && tokens[i].type !== 'em_close') {
-    emText += tokens[i].content || ''
+    emText += String(tokens[i].content ?? '')
     innerTokens.push(tokens[i])
     i++
   }

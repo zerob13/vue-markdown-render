@@ -16,7 +16,7 @@ export function parseContainer(
   if (typeMatch) {
     kind = typeMatch[1]
     // some implementations set info to remaining title text
-    const info = (openToken.info || '').trim()
+    const info = String(openToken.info ?? '').trim()
     if (info && !info.startsWith(':::')) {
       // if info looks like 'warning title', drop leading kind token
       const maybe = info.replace(new RegExp(`^${kind}`), '').trim()
@@ -26,14 +26,14 @@ export function parseContainer(
   }
   else {
     // container_open: info usually contains the marker like ' warning Title'
-    const info = (openToken.info || '').trim()
+    const info = String(openToken.info ?? '').trim()
 
     const match
       // eslint-disable-next-line regexp/no-super-linear-backtracking
       = /^:{1,3}\s*(warning|info|note|tip|danger|caution)\s*(.*)$/i.exec(info)
     if (match) {
       kind = match[1]
-      title = match[2] || ''
+      title = String(match[2] ?? '')
     }
   }
 
@@ -54,14 +54,20 @@ export function parseContainer(
     if (tokens[j].type === 'paragraph_open') {
       const contentToken = tokens[j + 1]
       if (contentToken) {
-        const i = (contentToken.children as any).findLastIndex((t: TextNode) => t.type === 'text' && /:+/.test(t.content))
-        const _children = i !== -1
-          ? contentToken.children?.slice(0, i)
-          : contentToken.children
+        const childrenArr = (contentToken.children as MarkdownToken[]) || []
+        let i = -1
+        for (let k = childrenArr.length - 1; k >= 0; k--) {
+          const t = childrenArr[k] as TextNode
+          if (t.type === 'text' && /:+/.test(t.content)) {
+            i = k
+            break
+          }
+        }
+        const _children = i !== -1 ? childrenArr.slice(0, i) : childrenArr
         children.push({
           type: 'paragraph',
           children: parseInlineTokens(_children || []),
-          raw: contentToken.content?.replace(/\n:+$/, '').replace(/\n\s*:::\s*$/, '') || '',
+          raw: String(contentToken.content ?? '').replace(/\n:+$/, '').replace(/\n\s*:::\s*$/, ''),
         })
       }
       j += 3

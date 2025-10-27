@@ -9,19 +9,21 @@ export function parseCodeBlock(token: MarkdownToken): CodeBlockNode {
     return parseFenceToken(token)
   }
 
-  const match = token.content!.match(/ type="application\/vnd\.ant\.([^"]+)"/)
+  const contentStr = String(token.content ?? '')
+  const match = contentStr.match(/ type="application\/vnd\.ant\.([^"]+)"/)
   if (match?.[1]) {
     // 需要把 <antArtifact> 标签去掉
-    token.content = token.content!
+    // mutate token.content safely by assigning the cleaned string
+    token.content = contentStr
       .replace(/<antArtifact[^>]*>/g, '')
       .replace(/<\/antArtifact>/g, '')
   }
   const hasMap = Array.isArray(token.map) && token.map.length === 2
   return {
     type: 'code_block',
-    language: match ? match[1] : (token.info || ''),
-    code: token.content || '',
-    raw: token.content || '',
+    language: match ? match[1] : String(token.info ?? ''),
+    code: String(token.content ?? ''),
+    raw: String(token.content ?? ''),
     loading: !hasMap,
   }
 }

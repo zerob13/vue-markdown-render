@@ -15,7 +15,7 @@ export function parseInsertToken(
 
   // Process tokens between ins_open and ins_close
   while (i < tokens.length && tokens[i].type !== 'ins_close') {
-    insText += tokens[i].content || ''
+    insText += String(tokens[i].content ?? '')
     innerTokens.push(tokens[i])
     i++
   }
@@ -26,7 +26,7 @@ export function parseInsertToken(
   const node: InsertNode = {
     type: 'insert',
     children,
-    raw: `++${insText}++`,
+    raw: `++${String(insText)}++`,
   }
 
   // Skip to after ins_close

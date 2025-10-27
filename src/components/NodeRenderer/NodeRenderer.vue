@@ -108,11 +108,11 @@ const viewportPriorityEnabled = ref(props.viewportPriority !== false)
 provideViewportPriority(() => containerRef.value, viewportPriorityEnabled)
 const parsedNodes = computed<ParsedNode[]>(() => {
   // 解析 content 字符串为节点数组
-  return props.nodes?.length
-    ? props.nodes
-    : props.content
-      ? parseMarkdownToStructure(props.content, md, props.parseOptions)
-      : []
+  if (props.nodes?.length)
+    return props.nodes as unknown as ParsedNode[]
+  if (props.content)
+    return parseMarkdownToStructure(props.content, md, props.parseOptions)
+  return []
 })
 
 // 异步按需加载 CodeBlock 组件；失败时退回为 InlineCodeNode（内联代码渲染）
@@ -173,19 +173,19 @@ function getNodeComponent(node: ParsedNode) {
   if (!node)
     return FallbackComponent
   if (node.type === 'code_block') {
-    const lang = String((node as any).language || '').trim().toLowerCase()
+    const lang = String((node as any).language ?? '').trim().toLowerCase()
     if (lang === 'mermaid') {
       const custom = getCustomNodeComponents(props.customId).mermaid
       return (custom as any) || MermaidBlockNode
     }
     return nodeComponents.code_block
   }
-  return (nodeComponents as any)[node.type] || FallbackComponent
+  return (nodeComponents as any)[String((node as any).type)] || FallbackComponent
 }
 
 function getBindingsFor(node: ParsedNode) {
   // For mermaid blocks we don't forward CodeBlock-specific props
-  if (node?.type === 'code_block' && String((node as any).language || '').trim().toLowerCase() === 'mermaid')
+  if (node?.type === 'code_block' && String((node as any).language ?? '').trim().toLowerCase() === 'mermaid')
     return {}
 
   return node.type === 'code_block'

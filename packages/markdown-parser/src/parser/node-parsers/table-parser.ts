@@ -38,7 +38,7 @@ export function parseTable(
         if (tokens[k].type === 'th_open' || tokens[k].type === 'td_open') {
           const isHeaderCell = tokens[k].type === 'th_open'
           const contentToken = tokens[k + 1]
-          const content = contentToken.content || ''
+          const content = String(contentToken.content ?? '')
 
           cells.push({
             type: 'table_cell',
@@ -87,7 +87,7 @@ export function parseTable(
     type: 'table',
     header: headerRow,
     rows,
-    loading: tokens[index].loading || false,
+    loading: tokens[index].loading ?? false,
     raw: [headerRow, ...rows].map(row => row.raw).join('\n'),
   }
 

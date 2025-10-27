@@ -1,9 +1,10 @@
 import type { InlineCodeNode, MarkdownToken } from '../../types'
 
 export function parseInlineCodeToken(token: MarkdownToken): InlineCodeNode {
+  const code = String(token.content ?? '')
   return {
     type: 'inline_code',
-    code: token.content || '',
-    raw: token.content || '',
+    code,
+    raw: code,
   }
 }

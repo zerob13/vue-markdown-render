@@ -35,7 +35,7 @@ export { applyMath, KATEX_COMMANDS, normalizeStandaloneBackslashT } from './plug
 export * from './types'
 
 export interface GetMarkdownOptions extends FactoryOptions {
-  plugin?: Array<any>
+  plugin?: Array<unknown>
   apply?: Array<(md: MarkdownIt) => void>
   /**
    * Custom translation function or translation map for UI texts
@@ -47,6 +47,9 @@ export interface GetMarkdownOptions extends FactoryOptions {
 export function getMarkdown(msgId: string = `editor-${Date.now()}`, options: GetMarkdownOptions = {}) {
   // keep legacy behaviour but delegate to new factory and reapply project-specific rules
   const md = factory(options)
+
+  // Narrow plugin function type for user-supplied plugins so we avoid wide `any`.
+  type MdPluginType = (md: MarkdownIt, opts?: unknown) => void
 
   // Setup i18n translator function
   const defaultTranslations: Record<string, string> = {
@@ -69,10 +72,17 @@ export function getMarkdown(msgId: string = `editor-${Date.now()}`, options: Get
   if (Array.isArray(options.plugin)) {
     for (const p of options.plugin) {
       // allow both [plugin, opts] tuple or plugin function
-      if (Array.isArray(p))
-        md.use(p[0], p[1])
-      else
-        md.use(p)
+      const pluginItem = p as unknown
+      if (Array.isArray(pluginItem)) {
+        const fn = pluginItem[0]
+        const opts = pluginItem[1]
+        if (typeof fn === 'function')
+          md.use(fn as unknown as MdPluginType, opts)
+      }
+      else if (typeof pluginItem === 'function') {
+        md.use(pluginItem as unknown as MdPluginType)
+      }
+      // otherwise ignore non-callable plugins
     }
   }
 
@@ -95,17 +105,24 @@ export function getMarkdown(msgId: string = `editor-${Date.now()}`, options: Get
   md.use(markdownItSup)
   md.use(markdownItMark)
   md.use(markdownItEmoji)
-  const markdownItCheckboxPlugin
-    = (markdownItCheckbox as any).default ?? markdownItCheckbox
+  // Safely resolve default export or the module itself for checkbox plugin
+  type CheckboxPluginFn = (md: MarkdownIt, opts?: unknown) => void
+  const markdownItCheckboxPlugin = ((markdownItCheckbox as unknown) as {
+    default?: CheckboxPluginFn
+  }).default ?? (markdownItCheckbox as unknown as CheckboxPluginFn)
   md.use(markdownItCheckboxPlugin)
   md.use(markdownItIns)
   md.use(markdownItFootnote)
 
   // Annotate fence tokens with unclosed meta using a lightweight line check
-  md.core.ruler.after('block', 'mark_fence_closed', (state: any) => {
-    const src: string = state.src as string
+  md.core.ruler.after('block', 'mark_fence_closed', (state: unknown) => {
+    const s = state as unknown as {
+      src: string
+      tokens: Array<{ type?: string, map?: number[], markup?: string, meta?: Record<string, unknown> }>
+    }
+    const src: string = s.src
     const lines = src.split(/\r?\n/)
-    for (const token of state.tokens) {
+    for (const token of s.tokens) {
       if (token.type !== 'fence' || !token.map || !token.markup)
         continue
       const openLine: number = token.map[0]
@@ -123,26 +140,28 @@ export function getMarkdown(msgId: string = `editor-${Date.now()}`, options: Get
       let j = i + count
       while (j < line.length && (line[j] === ' ' || line[j] === '\t')) j++
       const closed = endLine > openLine + 1 && count >= minLen && j === line.length
-      token.meta = token.meta || {}
-      token.meta.unclosed = !closed
+      const tokenShape = token as unknown as { meta?: Record<string, unknown> }
+      tokenShape.meta = tokenShape.meta ?? {}
+      ;(tokenShape.meta as Record<string, unknown>).unclosed = !closed
       // also set a explicit `closed` boolean for compatibility with plugins/tests
-      token.meta.closed = !!closed
+      ;(tokenShape.meta as Record<string, unknown>).closed = !!closed
     }
   })
 
   // wave rule (legacy)
-  const waveRule = (state: any, silent: boolean) => {
-    const start = state.pos
-    if (state.src[start] !== '~')
+  const waveRule = (state: unknown, silent: boolean) => {
+    const s = state as unknown as { pos: number, src: string, push: (type: string, tag?: string, nesting?: number) => any }
+    const start = s.pos
+    if (s.src[start] !== '~')
       return false
-    const prevChar = state.src[start - 1]
-    const nextChar = state.src[start + 1]
+    const prevChar = s.src[start - 1]
+    const nextChar = s.src[start + 1]
     if (/\d/.test(prevChar) && /\d/.test(nextChar)) {
       if (!silent) {
-        const token = state.push('text', '', 0)
+        const token = s.push('text', '', 0)
         token.content = '~'
       }
-      state.pos += 1
+      s.pos += 1
       return true
     }
     return false
@@ -151,12 +170,14 @@ export function getMarkdown(msgId: string = `editor-${Date.now()}`, options: Get
   md.inline.ruler.before('sub', 'wave', waveRule)
 
   // custom fence that uses msgId for unique ids
-  md.renderer.rules.fence = (tokens: any, idx: number) => {
-    const token = tokens[idx]
-    const info = token.info ? token.info.trim() : ''
-    const str = token.content
+  md.renderer.rules.fence = (tokens: unknown, idx: number) => {
+    const tokensAny = tokens as unknown as import('./types').MarkdownToken[]
+    const token = tokensAny[idx]
+    const tokenShape = token as unknown as { info?: string, content?: string }
+    const info = String(tokenShape.info ?? '').trim()
+    const str = String(tokenShape.content ?? '')
     const encodedCode = btoa(unescape(encodeURIComponent(str)))
-    const language = info || 'text'
+    const language = String(info ?? 'text')
     const uniqueId = `editor-${msgId}-${idx}-${language}`
 
     return `<div class="code-block" data-code="${encodedCode}" data-lang="${language}" id="${uniqueId}">
@@ -171,25 +192,27 @@ export function getMarkdown(msgId: string = `editor-${Date.now()}`, options: Get
   }
 
   // reference rule (legacy)
-  const referenceInline = (state: any, silent: boolean) => {
-    if (state.src[state.pos] !== '[')
+  const referenceInline = (state: unknown, silent: boolean) => {
+    const s = state as unknown as { src: string, pos: number, push: (type: string, tag?: string, nesting?: number) => any }
+    if (s.src[s.pos] !== '[')
       return false
-    const match = /^\[(\d+)\]/.exec(state.src.slice(state.pos))
+    const match = /^\[(\d+)\]/.exec(s.src.slice(s.pos))
     if (!match)
       return false
     if (!silent) {
       const id = match[1]
-      const token = state.push('reference', 'span', 0)
+      const token = s.push('reference', 'span', 0)
       token.content = id
       token.markup = match[0]
     }
-    state.pos += match[0].length
+    s.pos += match[0].length
     return true
   }
 
   md.inline.ruler.before('escape', 'reference', referenceInline)
-  md.renderer.rules.reference = (tokens: any, idx: number) => {
-    const id = tokens[idx].content
+  md.renderer.rules.reference = (tokens: unknown, idx: number) => {
+    const tokensAny = tokens as unknown as import('./types').MarkdownToken[]
+    const id = String(tokensAny[idx].content ?? '')
     return `<span class="reference-link" data-reference-id="${id}" role="button" tabindex="0" title="Click to view reference">${id}</span>`
   }
 

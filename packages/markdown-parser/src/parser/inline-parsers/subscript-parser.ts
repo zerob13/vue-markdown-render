@@ -15,7 +15,7 @@ export function parseSubscriptToken(
 
   // Process tokens between sub_open and sub_close (if applicable)
   while (i < tokens.length && tokens[i].type !== 'sub_close') {
-    subText += tokens[i].content || ''
+    subText += String(tokens[i].content ?? '')
     innerTokens.push(tokens[i])
     i++
   }
@@ -23,20 +23,21 @@ export function parseSubscriptToken(
   // Parse inner tokens to handle nested elements
   children.push(...parseInlineTokens(innerTokens))
 
+  const startContent = String(tokens[startIndex].content ?? '')
+  const display = subText || startContent
   const node: SubscriptNode = {
     type: 'subscript',
-    children:
-      children.length > 0
-        ? children
-        : [
-            {
-              type: 'text',
-              // Fallback to the collected inner text (e.g., "2" in H~2~O)
-              content: subText || tokens[startIndex].content || '',
-              raw: subText || tokens[startIndex].content || '',
-            },
-          ],
-    raw: `~${subText || tokens[startIndex].content || ''}~`,
+    children: children.length > 0
+      ? children
+      : [
+          {
+            type: 'text',
+            // Fallback to the collected inner text (e.g., "2" in H~2~O)
+            content: display,
+            raw: display,
+          },
+        ],
+    raw: `~${display}~`,
   }
 
   // Skip to after sub_close

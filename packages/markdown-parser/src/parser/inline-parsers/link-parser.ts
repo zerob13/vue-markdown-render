@@ -9,9 +9,10 @@ export function parseLinkToken(
   nextIndex: number
 } {
   const openToken = tokens[startIndex]
-  const href = openToken.attrs?.find(attr => attr[0] === 'href')?.[1] || ''
-  const title
-    = openToken.attrs?.find(attr => attr[0] === 'title')?.[1] || null
+  const attrs = openToken.attrs ?? []
+  const href = String(attrs.find(attr => attr[0] === 'href')?.[1] ?? '')
+  const _title = attrs.find(attr => attr[0] === 'title')?.[1] ?? null
+  const title = _title === null ? null : String(_title)
 
   let i = startIndex + 1
   const linkTokens: MarkdownToken[] = []
@@ -27,9 +28,10 @@ export function parseLinkToken(
   const children = parseInlineTokens(linkTokens)
   const linkText = children
     .map((node) => {
+      const nodeAny = node as unknown as { content?: string, raw?: string }
       if ('content' in node)
-        return node.content
-      return node.raw
+        return String(nodeAny.content ?? '')
+      return String(nodeAny.raw ?? '')
     })
     .join('')
 
@@ -39,7 +41,7 @@ export function parseLinkToken(
     title,
     text: linkText,
     children,
-    raw: `[${linkText}](${href}${title ? ` "${title}"` : ''})`,
+    raw: String(`[${linkText}](${href}${title ? ` "${title}"` : ''})`),
     loading,
   }
 

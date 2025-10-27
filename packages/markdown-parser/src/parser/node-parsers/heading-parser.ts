@@ -6,9 +6,10 @@ export function parseHeading(
   index: number,
 ): HeadingNode {
   const token = tokens[index]
-  const headingLevel = Number.parseInt(token.tag?.substring(1) || '1')
+  const levelStr = String(token.tag?.substring(1) ?? '1')
+  const headingLevel = Number.parseInt(levelStr, 10)
   const headingContentToken = tokens[index + 1]
-  const headingContent = headingContentToken.content || ''
+  const headingContent = String(headingContentToken.content ?? '')
 
   return {
     type: 'heading',

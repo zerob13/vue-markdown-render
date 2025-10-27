@@ -6,7 +6,7 @@ export function parseParagraph(
   index: number,
 ): ParagraphNode {
   const paragraphContentToken = tokens[index + 1]
-  const paragraphContent = paragraphContentToken.content || ''
+  const paragraphContent = String(paragraphContentToken.content ?? '')
 
   return {
     type: 'paragraph',
