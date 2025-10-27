@@ -84,4 +84,44 @@ describe('parser inline code multiple spans', () => {
     expect(children[8].type).toBe('inline_code')
     expect(children[8].code).toBe('1-')
   })
+
+  it('handles mid-state with trailing opening backtick in list item mid-state 3', () => {
+    const md = getMarkdown()
+    // mid-state: trailing opening backtick after a comma
+    const markdownMid = '1.  **整合冗余条款：** 将原\`1-(5)\`、\`3-(3)\`、\`3-(4)\`中关于“缴纳费用”和“告知法律状态变化”的核心义务合并，统一放入\`1-(4)\`“法律状态维护与通知义务”中，使其逻辑更集中，避免了在不同部分重复提及相似义务。'
+    const nodesMid = parseMarkdownToStructure(markdownMid, md)
+    const children = nodesMid[0].items[0].children[0].children
+    // Should contain a strong node for the leading bold and an inline_code mid-state
+    expect(children[0].type).toBe('strong')
+    expect(children[0].raw).toBe('**整合冗余条款：**')
+    expect(children[1].type).toBe('text')
+    expect(children[1].content).toBe(' 将原')
+    expect(children[2].type).toBe('inline_code')
+    expect(children[2].code).toBe('1-(5)')
+    expect(children[3].type).toBe('text')
+    expect(children[3].content).toBe('、')
+    expect(children[4].type).toBe('inline_code')
+    expect(children[4].code).toBe('3-(3)')
+    expect(children[5].type).toBe('text')
+    expect(children[5].content).toBe('、')
+    expect(children[6].type).toBe('inline_code')
+    expect(children[6].code).toBe('3-(4)')
+    expect(children[7].type).toBe('text')
+    expect(children[7].content).toBe('中关于“缴纳费用”和“告知法律状态变化”的核心义务合并，统一放入')
+    expect(children[8].type).toBe('inline_code')
+    expect(children[8].code).toBe('1-(4)')
+    expect(children[9].type).toBe('text')
+    expect(children[9].content).toBe('“法律状态维护与通知义务”中，使其逻辑更集中，避免了在不同部分重复提及相似义务。')
+  })
+
+  it('handles mid-state with trailing opening backtick in list item mid-state 4', () => {
+    const md = getMarkdown()
+    // mid-state: trailing opening backtick after a comma
+    const markdownMid = '1.  **整合冗余条款：** 将原 **hello world：** \`1-(5)\`、\`3-(3)\`、\`3-(4)\`中关于“缴纳费用”和“告知法律状态变化”的核心义务合并，统一放入\`1-(4)\`“法律状态维护与通知义务”中，使其逻辑更集中，避免了在不同部分重复提及相似义务。'
+    const nodesMid = parseMarkdownToStructure(markdownMid, md)
+    const children = nodesMid[0].items[0].children[0].children
+    // Should contain a strong node for the leading bold and an inline_code mid-state
+    const types = children.map((c: any) => c.type)
+    expect(types).toEqual(['strong', 'text', 'strong', 'text', 'inline_code', 'text', 'inline_code', 'text', 'inline_code', 'text', 'inline_code', 'text'])
+  })
 })

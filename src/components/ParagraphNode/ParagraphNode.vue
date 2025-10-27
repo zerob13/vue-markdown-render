@@ -72,9 +72,11 @@ const nodeComponents = {
 <style scoped>
 .paragraph-node{
   margin: 1.25em 0;
-  line-height: 24px;
 }
-
+.list-item .paragraph-node{
+  display: flex;
+  align-items: center;
+}
 li .paragraph-node{
   margin: 0;
 }

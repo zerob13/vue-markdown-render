@@ -110,7 +110,12 @@ export function parseInlineTokens(tokens: MarkdownToken[], raw?: string, pPreTok
       pushNode(node)
 
       if (after) {
-        pushText(after, after)
+        handleToken({
+          type: 'text',
+          content: after,
+          raw: after,
+        })
+        i--
       }
 
       i++
